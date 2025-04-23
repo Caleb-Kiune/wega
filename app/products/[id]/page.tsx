@@ -117,7 +117,7 @@ const reviews = [
   },
 ]
 
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
+export default async function ProductDetailPage({ params }: { params: { id: string } }) {
   const product = products.find((p) => p.id === params.id) || products[0]
 
   return (
