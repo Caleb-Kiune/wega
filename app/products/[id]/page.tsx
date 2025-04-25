@@ -1,3 +1,7 @@
+"use client"
+
+import { useState } from "react"
+import { use } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Minus, Plus, Star, Truck, ShieldCheck, Heart } from "lucide-react"
@@ -5,6 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import ProductCarousel from "@/components/product-carousel"
 import AddToCartButton from "@/components/add-to-cart-button"
+import { useToast } from "@/hooks/use-toast"
+import { useWishlist } from "@/lib/context/wishlist-context"
 
 // Update the products array to use the real images
 const products = [
@@ -14,35 +20,34 @@ const products = [
     price: 2499,
     rating: 4.8,
     reviewCount: 124,
-    description:
-      "This premium non-stick frying pan is perfect for everyday cooking. Made with high-quality materials, it ensures even heat distribution and long-lasting performance. The non-stick coating makes cooking and cleaning a breeze.",
+    description: "This premium non-stick frying pan is perfect for everyday cooking. Made with high-quality materials, it ensures even heat distribution and long-lasting performance. The non-stick coating makes cooking and cleaning a breeze.",
     features: [
       "Premium non-stick coating",
       "Even heat distribution",
       "Ergonomic handle for comfortable grip",
       "Suitable for all stovetops including induction",
       "Dishwasher safe",
-      "Heat resistant up to 240°C",
+      "Heat resistant up to 240°C"
     ],
     specifications: {
-      Material: "Aluminum with non-stick coating",
-      Diameter: "28 cm",
-      Weight: "1.2 kg",
+      "Material": "Aluminum with non-stick coating",
+      "Diameter": "28 cm",
+      "Weight": "1.2 kg",
       "Handle Material": "Bakelite",
       "Dishwasher Safe": "Yes",
       "Induction Compatible": "Yes",
-      Warranty: "2 years",
+      "Warranty": "2 years"
     },
     images: [
       "/images/kitchenware1.jpeg",
-      "/images/kitchenware1.jpeg",
-      "/images/kitchenware1.jpeg",
-      "/images/kitchenware1.jpeg",
+      "/images/kitchenware2.jpeg",
+      "/images/kitchenware3.jpeg",
+      "/images/kitchenware4.jpeg"
     ],
     stock: 15,
     category: "Cookware",
     brand: "WEGA",
-    sku: "WG-FP-28-BLK",
+    sku: "WG-FP-28-BLK"
   },
   {
     id: "2",
@@ -51,36 +56,241 @@ const products = [
     originalPrice: 7499,
     rating: 4.9,
     reviewCount: 86,
-    description:
-      "This premium stainless steel cooking pot set includes everything you need for your kitchen. The set features durable construction, even heat distribution, and elegant design that will last for years.",
+    description: "This premium stainless steel cooking pot set includes everything you need for your kitchen. The set features durable construction, even heat distribution, and elegant design that will last for years.",
     features: [
       "Premium stainless steel construction",
       "Set includes 3 pots with lids (2L, 4L, 6L)",
       "Even heat distribution",
       "Suitable for all stovetops including induction",
       "Dishwasher safe",
-      "Oven safe up to 260°C",
+      "Oven safe up to 260°C"
     ],
     specifications: {
-      Material: "18/10 Stainless Steel",
+      "Material": "18/10 Stainless Steel",
       "Set Includes": "2L, 4L, and 6L pots with lids",
-      Weight: "4.5 kg (total)",
+      "Weight": "4.5 kg (total)",
       "Handle Material": "Stainless Steel",
       "Dishwasher Safe": "Yes",
       "Induction Compatible": "Yes",
-      Warranty: "5 years",
+      "Warranty": "5 years"
     },
     images: [
       "/images/appliances1.jpeg",
-      "/images/appliances1.jpeg",
-      "/images/appliances1.jpeg",
-      "/images/appliances1.jpeg",
+      "/images/appliances2.jpeg",
+      "/images/appliances3.jpeg",
+      "/images/appliances4.jpeg"
     ],
     stock: 8,
     category: "Cookware",
     brand: "KitchenAid",
-    sku: "KA-SS-POT-SET",
+    sku: "KA-SS-POT-SET"
   },
+  {
+    id: "3",
+    name: "Electric Coffee Maker",
+    price: 3499,
+    rating: 4.7,
+    reviewCount: 52,
+    description: "Brew the perfect cup of coffee every time with our premium electric coffee maker. Features programmable settings, thermal carafe, and auto-shutoff for convenience and safety.",
+    features: [
+      "Programmable brewing",
+      "12-cup thermal carafe",
+      "Auto-shutoff feature",
+      "Pause and serve function",
+      "Removable water reservoir",
+      "Charcoal water filter"
+    ],
+    specifications: {
+      "Capacity": "12 cups",
+      "Power": "1200W",
+      "Material": "Stainless steel and plastic",
+      "Dimensions": "14 x 8 x 10 inches",
+      "Warranty": "2 years",
+      "Color": "Black"
+    },
+    images: [
+      "/images/appliances2.jpeg",
+      "/images/appliances1.jpeg",
+      "/images/appliances3.jpeg",
+      "/images/appliances4.jpeg"
+    ],
+    stock: 12,
+    category: "Appliances",
+    brand: "Cuisinart",
+    sku: "CU-CM-12-BLK"
+  },
+  {
+    id: "4",
+    name: "Kitchen Utensil Set",
+    price: 1899,
+    originalPrice: 2499,
+    rating: 4.6,
+    reviewCount: 38,
+    description: "Complete your kitchen with this premium utensil set. Includes all essential tools for cooking and baking, made from high-quality materials for durability and performance.",
+    features: [
+      "Set of 12 essential utensils",
+      "Stainless steel construction",
+      "Heat-resistant handles",
+      "Dishwasher safe",
+      "Hanging storage included",
+      "Lifetime warranty"
+    ],
+    specifications: {
+      "Material": "Stainless steel and silicone",
+      "Set Includes": "12 pieces",
+      "Storage": "Hanging rack included",
+      "Dishwasher Safe": "Yes",
+      "Warranty": "Lifetime",
+      "Color": "Silver"
+    },
+    images: [
+      "/images/tableware1.jpeg",
+      "/images/tableware2.jpeg",
+      "/images/tableware3.jpeg",
+      "/images/tableware4.jpeg"
+    ],
+    stock: 20,
+    category: "Utensils",
+    brand: "WEGA",
+    sku: "WG-UT-12-SIL"
+  },
+  {
+    id: "5",
+    name: "Glass Food Storage Containers (Set of 5)",
+    price: 1299,
+    rating: 4.5,
+    reviewCount: 42,
+    description: "Keep your food fresh and organized with these premium glass storage containers. Perfect for meal prep, leftovers, and pantry organization.",
+    features: [
+      "Set of 5 containers with lids",
+      "BPA-free plastic lids",
+      "Microwave and dishwasher safe",
+      "Airtight seal",
+      "Stackable design",
+      "Oven safe up to 400°F"
+    ],
+    specifications: {
+      "Material": "Tempered glass and BPA-free plastic",
+      "Set Includes": "5 containers with lids",
+      "Sizes": "0.5L, 1L, 1.5L, 2L, 2.5L",
+      "Microwave Safe": "Yes",
+      "Dishwasher Safe": "Yes",
+      "Warranty": "1 year"
+    },
+    images: [
+      "/images/homeessentials1.jpeg",
+      "/images/homeessentials2.jpeg",
+      "/images/homeessentials3.jpeg",
+      "/images/homeessentials4.jpeg"
+    ],
+    stock: 25,
+    category: "Storage Solutions",
+    brand: "Pyrex",
+    sku: "PY-GC-5-SET"
+  },
+  {
+    id: "6",
+    name: "Ceramic Dinner Plates (Set of 4)",
+    price: 1899,
+    rating: 4.7,
+    reviewCount: 29,
+    description: "Elevate your dining experience with these elegant ceramic dinner plates. Perfect for everyday use and special occasions.",
+    features: [
+      "Set of 4 dinner plates",
+      "Premium ceramic construction",
+      "Microwave and dishwasher safe",
+      "Chip-resistant design",
+      "Elegant pattern",
+      "Stackable for easy storage"
+    ],
+    specifications: {
+      "Material": "Premium ceramic",
+      "Set Includes": "4 dinner plates",
+      "Diameter": "10.5 inches",
+      "Microwave Safe": "Yes",
+      "Dishwasher Safe": "Yes",
+      "Warranty": "1 year"
+    },
+    images: [
+      "/images/homeessentials2.jpeg",
+      "/images/homeessentials1.jpeg",
+      "/images/homeessentials3.jpeg",
+      "/images/homeessentials4.jpeg"
+    ],
+    stock: 18,
+    category: "Home Essentials",
+    brand: "WEGA",
+    sku: "WG-CP-4-SET"
+  },
+  {
+    id: "7",
+    name: "Professional Chef Knife",
+    price: 2999,
+    rating: 4.9,
+    reviewCount: 67,
+    description: "Experience professional-grade cutting performance with this premium chef knife. Perfect for all your kitchen needs.",
+    features: [
+      "High-carbon stainless steel blade",
+      "Ergonomic handle",
+      "Full tang construction",
+      "Razor-sharp edge",
+      "Dishwasher safe",
+      "Lifetime warranty"
+    ],
+    specifications: {
+      "Material": "High-carbon stainless steel",
+      "Blade Length": "8 inches",
+      "Handle Material": "Pakkawood",
+      "Weight": "0.4 kg",
+      "Dishwasher Safe": "Yes",
+      "Warranty": "Lifetime"
+    },
+    images: [
+      "/images/kitchenware1.jpeg",
+      "/images/kitchenware2.jpeg",
+      "/images/kitchenware3.jpeg",
+      "/images/kitchenware4.jpeg"
+    ],
+    stock: 10,
+    category: "Utensils",
+    brand: "WEGA",
+    sku: "WG-CK-8-PRO"
+  },
+  {
+    id: "8",
+    name: "Electric Hand Mixer",
+    price: 2499,
+    originalPrice: 2999,
+    rating: 4.6,
+    reviewCount: 31,
+    description: "Make baking easier with this powerful electric hand mixer. Features multiple speed settings and comes with various attachments.",
+    features: [
+      "5 speed settings",
+      "Includes 2 beaters and 2 dough hooks",
+      "Ergonomic design",
+      "Easy-grip handle",
+      "Storage case included",
+      "2-year warranty"
+    ],
+    specifications: {
+      "Power": "250W",
+      "Speeds": "5 settings",
+      "Attachments": "2 beaters, 2 dough hooks",
+      "Weight": "1.2 kg",
+      "Warranty": "2 years",
+      "Color": "White"
+    },
+    images: [
+      "/images/appliances2.jpeg",
+      "/images/appliances1.jpeg",
+      "/images/appliances3.jpeg",
+      "/images/appliances4.jpeg"
+    ],
+    stock: 15,
+    category: "Appliances",
+    brand: "Tefal",
+    sku: "TF-HM-250-WHT"
+  }
 ]
 
 // Mock reviews
@@ -117,8 +327,47 @@ const reviews = [
   },
 ]
 
-export default async function ProductDetailPage({ params }: { params: { id: string } }) {
-  const product = products.find((p) => p.id === params.id) || products[0]
+export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const [quantity, setQuantity] = useState(1)
+  const { toast } = useToast()
+  const resolvedParams = use(params)
+  const product = products.find((p) => p.id === resolvedParams.id)
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
+
+  if (!product) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Product Not Found</h1>
+          <Link href="/products" className="text-green-600 hover:text-green-700">
+            Return to Products
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  const handleQuantityChange = (increment: boolean) => {
+    setQuantity((prev) => {
+      const newQuantity = increment ? prev + 1 : prev - 1
+      return Math.max(1, Math.min(newQuantity, product.stock))
+    })
+  }
+
+  const handleWishlistClick = () => {
+    if (isInWishlist(product.id)) {
+      removeFromWishlist(product.id)
+    } else {
+      addToWishlist({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.images[0],
+        category: product.category,
+        brand: product.brand,
+      })
+    }
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -230,20 +479,33 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
               <div className="mb-6">
                 <div className="flex items-center mb-4">
                   <div className="flex items-center border rounded-md mr-4">
-                    <button className="px-3 py-2 text-gray-600 hover:text-gray-800">
+                    <button 
+                      className="px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50"
+                      onClick={() => handleQuantityChange(false)}
+                      disabled={quantity <= 1}
+                    >
                       <Minus className="h-4 w-4" />
                     </button>
-                    <span className="px-4 py-2 border-x">1</span>
-                    <button className="px-3 py-2 text-gray-600 hover:text-gray-800">
+                    <span className="px-4 py-2 border-x">{quantity}</span>
+                    <button 
+                      className="px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50"
+                      onClick={() => handleQuantityChange(true)}
+                      disabled={quantity >= product.stock}
+                    >
                       <Plus className="h-4 w-4" />
                     </button>
                   </div>
-                  <AddToCartButton product={product} />
+                  <Button 
+                    variant="outline" 
+                    className="w-full flex items-center justify-center gap-2"
+                    onClick={handleWishlistClick}
+                    className={isInWishlist(product.id) ? "text-red-500" : ""}
+                  >
+                    <Heart className="h-4 w-4" />
+                    {isInWishlist(product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
+                  </Button>
                 </div>
-                <Button variant="outline" className="w-full flex items-center justify-center gap-2">
-                  <Heart className="h-4 w-4" />
-                  Add to Wishlist
-                </Button>
+                <AddToCartButton product={product} quantity={quantity} />
               </div>
 
               {/* SKU and Category */}

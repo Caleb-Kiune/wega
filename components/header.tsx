@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Menu, ShoppingCart, User, Heart, Search, X, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -12,10 +12,75 @@ import { Input } from "@/components/ui/input"
 import { useCart } from "@/lib/hooks/use-cart"
 import { cn } from "@/lib/utils"
 
+// Mock products data for search
+const products = [
+  {
+    id: "1",
+    name: "Premium Non-Stick Frying Pan",
+    price: 2499,
+    image: "/images/kitchenware1.jpeg",
+    category: "Cookware",
+  },
+  {
+    id: "2",
+    name: "Stainless Steel Cooking Pot Set",
+    price: 5999,
+    image: "/images/appliances1.jpeg",
+    category: "Cookware",
+  },
+  {
+    id: "3",
+    name: "Electric Coffee Maker",
+    price: 3499,
+    image: "/images/appliances2.jpeg",
+    category: "Appliances",
+  },
+  {
+    id: "4",
+    name: "Kitchen Utensil Set",
+    price: 1899,
+    image: "/images/tableware1.jpeg",
+    category: "Utensils",
+  },
+  {
+    id: "5",
+    name: "Glass Food Storage Containers (Set of 5)",
+    price: 1299,
+    image: "/images/homeessentials1.jpeg",
+    category: "Storage Solutions",
+  },
+  {
+    id: "6",
+    name: "Ceramic Dinner Plates (Set of 4)",
+    price: 1899,
+    image: "/images/homeessentials2.jpeg",
+    category: "Home Essentials",
+  },
+  {
+    id: "7",
+    name: "Professional Chef Knife",
+    price: 2999,
+    image: "/images/kitchenware1.jpeg",
+    category: "Utensils",
+  },
+  {
+    id: "8",
+    name: "Electric Hand Mixer",
+    price: 2499,
+    image: "/images/appliances2.jpeg",
+    category: "Appliances",
+  },
+]
+
 export default function Header() {
   const pathname = usePathname()
+  const router = useRouter()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [showResults, setShowResults] = useState(false)
+  const searchRef = useRef<HTMLDivElement>(null)
   const { cartCount } = useCart()
 
   // Handle scroll effect
@@ -26,6 +91,55 @@ export default function Header() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  // Handle click outside to close search results
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      // Navigate to products page with search query
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`)
+      setSearchQuery("")
+      setShowResults(false)
+      setIsSearchOpen(false)
+    }
+  }
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value
+    setSearchQuery(query)
+    
+    if (query.trim()) {
+      // Filter products based on search query
+      const results = products.filter(product =>
+        product.name.toLowerCase().includes(query.toLowerCase()) ||
+        product.category.toLowerCase().includes(query.toLowerCase()) ||
+        product.brand.toLowerCase().includes(query.toLowerCase())
+      )
+      setSearchResults(results)
+      setShowResults(true)
+    } else {
+      setSearchResults([])
+      setShowResults(false)
+    }
+  }
+
+  const handleResultClick = (productId: string) => {
+    router.push(`/products/${productId}`)
+    setSearchQuery("")
+    setShowResults(false)
+    setIsSearchOpen(false)
+  }
 
   const categories = [
     { name: "Cookware", href: "/products?category=cookware" },
@@ -78,10 +192,48 @@ export default function Header() {
 
           {/* Search Bar (Desktop) */}
           <div className="hidden md:flex flex-1 max-w-md mx-8">
-            <div className="relative w-full">
-              <Input type="text" placeholder="Search for products..." className="w-full pr-10" />
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            </div>
+            <form onSubmit={handleSearch} className="relative w-full flex gap-2">
+              <div ref={searchRef} className="relative w-full">
+                <Input
+                  type="text"
+                  placeholder="Search for products..."
+                  className="w-full"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onFocus={() => searchQuery.trim() && setShowResults(true)}
+                />
+                {showResults && searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto z-50">
+                    {searchResults.map((product) => (
+                      <div
+                        key={product.id}
+                        className="flex items-center p-3 hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleResultClick(product.id)}
+                      >
+                        <div className="relative w-12 h-12 mr-3">
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            fill
+                            className="object-cover rounded"
+                          />
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-800">{product.name}</div>
+                          <div className="text-sm text-gray-500">KES {product.price.toLocaleString()}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <Button
+                type="submit"
+                className="bg-green-600 hover:bg-green-700 text-white whitespace-nowrap"
+              >
+                Search
+              </Button>
+            </form>
           </div>
 
           {/* Desktop Navigation */}
@@ -189,10 +341,49 @@ export default function Header() {
         {/* Mobile Search Bar (Conditional) */}
         {isSearchOpen && (
           <div className="md:hidden pb-4">
-            <div className="relative w-full">
-              <Input type="text" placeholder="Search for products..." className="w-full pr-10" autoFocus />
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            </div>
+            <form onSubmit={handleSearch} className="relative w-full flex gap-2">
+              <div ref={searchRef} className="relative w-full">
+                <Input
+                  type="text"
+                  placeholder="Search for products..."
+                  className="w-full"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onFocus={() => searchQuery.trim() && setShowResults(true)}
+                  autoFocus
+                />
+                {showResults && searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto z-50">
+                    {searchResults.map((product) => (
+                      <div
+                        key={product.id}
+                        className="flex items-center p-3 hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleResultClick(product.id)}
+                      >
+                        <div className="relative w-12 h-12 mr-3">
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            fill
+                            className="object-cover rounded"
+                          />
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-800">{product.name}</div>
+                          <div className="text-sm text-gray-500">KES {product.price.toLocaleString()}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <Button
+                type="submit"
+                className="bg-green-600 hover:bg-green-700 text-white whitespace-nowrap"
+              >
+                Search
+              </Button>
+            </form>
           </div>
         )}
 

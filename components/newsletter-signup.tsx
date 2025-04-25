@@ -1,16 +1,19 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 
 export default function NewsletterSignup() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const { toast } = useToast()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,6 +28,10 @@ export default function NewsletterSignup() {
         description: "You've been subscribed to our newsletter.",
       })
     }, 1000)
+  }
+
+  if (!mounted) {
+    return null
   }
 
   return (
@@ -48,9 +55,13 @@ export default function NewsletterSignup() {
               required
               className="bg-white text-gray-800 border-0"
             />
-            <Button type="submit" className="bg-orange-500 hover:bg-orange-600 text-white" disabled={isLoading}>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="inline-flex items-center justify-center px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               {isLoading ? "Subscribing..." : "Subscribe"}
-            </Button>
+            </button>
           </div>
         </form>
       </div>
