@@ -6,17 +6,42 @@ import Link from "next/link"
 import { Minus, Plus, X, ArrowRight, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useCart } from "@/lib/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
+
+// Location data with shipping prices
+const locations = [
+  { id: "nairobi-cbd", name: "Nairobi CBD", shippingPrice: 250 },
+  { id: "nairobi-westlands", name: "Nairobi Westlands", shippingPrice: 300 },
+  { id: "nairobi-karen", name: "Nairobi Karen", shippingPrice: 350 },
+  { id: "nairobi-langata", name: "Nairobi Langata", shippingPrice: 300 },
+  { id: "nairobi-kilimani", name: "Nairobi Kilimani", shippingPrice: 250 },
+  { id: "nairobi-lavington", name: "Nairobi Lavington", shippingPrice: 300 },
+  { id: "nairobi-runda", name: "Nairobi Runda", shippingPrice: 350 },
+  { id: "nairobi-other", name: "Nairobi Other Areas", shippingPrice: 400 },
+  { id: "mombasa", name: "Mombasa", shippingPrice: 800 },
+  { id: "kisumu", name: "Kisumu", shippingPrice: 750 },
+  { id: "nakuru", name: "Nakuru", shippingPrice: 600 },
+  { id: "eldoret", name: "Eldoret", shippingPrice: 700 },
+  { id: "thika", name: "Thika", shippingPrice: 500 },
+  { id: "naivasha", name: "Naivasha", shippingPrice: 550 },
+  { id: "nyeri", name: "Nyeri", shippingPrice: 650 },
+  { id: "meru", name: "Meru", shippingPrice: 750 },
+  { id: "kakamega", name: "Kakamega", shippingPrice: 800 },
+  { id: "other", name: "Other Locations", shippingPrice: 1000 },
+]
 
 export default function CartPage() {
   const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart()
   const { toast } = useToast()
   const [promoCode, setPromoCode] = useState("")
+  const [selectedLocation, setSelectedLocation] = useState("nairobi-cbd")
 
   // Calculate totals
   const subtotal = cartItems.reduce((total, item) => total + item.price * (item.quantity || 1), 0)
-  const shipping = subtotal > 5000 ? 0 : 350
+  const location = locations.find(loc => loc.id === selectedLocation)
+  const shipping = subtotal > 5000 ? 0 : (location?.shippingPrice || 350)
   const total = subtotal + shipping
 
   const handleQuantityChange = (productId: number, newQuantity: number) => {
@@ -167,6 +192,25 @@ export default function CartPage() {
               <div className="bg-white rounded-lg shadow-sm overflow-hidden">
                 <div className="p-6">
                   <h2 className="text-xl font-bold text-gray-800 mb-6">Order Summary</h2>
+
+                  {/* Location Selector */}
+                  <div className="mb-6">
+                    <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
+                      Delivery Location
+                    </label>
+                    <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                      <SelectTrigger id="location">
+                        <SelectValue placeholder="Select location" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {locations.map((location) => (
+                          <SelectItem key={location.id} value={location.id}>
+                            {location.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
                   <div className="space-y-4 mb-6">
                     <div className="flex justify-between">
