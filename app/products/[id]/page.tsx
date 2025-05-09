@@ -4,11 +4,12 @@ import { useState } from "react"
 import { use } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Minus, Plus, Star, Truck, ShieldCheck, Heart } from "lucide-react"
+import { Minus, Plus, Truck, ShieldCheck, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import ProductCarousel from "@/components/product-carousel"
 import AddToCartButton from "@/components/add-to-cart-button"
+import WhatsAppOrderButton from "@/components/whatsapp-order-button"
 import { useToast } from "@/hooks/use-toast"
 import { useWishlist } from "@/lib/context/wishlist-context"
 
@@ -18,8 +19,6 @@ const products = [
     id: "1",
     name: "Premium Non-Stick Frying Pan",
     price: 2499,
-    rating: 4.8,
-    reviewCount: 124,
     description: "This premium non-stick frying pan is perfect for everyday cooking. Made with high-quality materials, it ensures even heat distribution and long-lasting performance. The non-stick coating makes cooking and cleaning a breeze.",
     features: [
       "Premium non-stick coating",
@@ -54,8 +53,6 @@ const products = [
     name: "Stainless Steel Cooking Pot Set",
     price: 5999,
     originalPrice: 7499,
-    rating: 4.9,
-    reviewCount: 86,
     description: "This premium stainless steel cooking pot set includes everything you need for your kitchen. The set features durable construction, even heat distribution, and elegant design that will last for years.",
     features: [
       "Premium stainless steel construction",
@@ -89,8 +86,6 @@ const products = [
     id: "3",
     name: "Electric Coffee Maker",
     price: 3499,
-    rating: 4.7,
-    reviewCount: 52,
     description: "Brew the perfect cup of coffee every time with our premium electric coffee maker. Features programmable settings, thermal carafe, and auto-shutoff for convenience and safety.",
     features: [
       "Programmable brewing",
@@ -124,8 +119,6 @@ const products = [
     name: "Kitchen Utensil Set",
     price: 1899,
     originalPrice: 2499,
-    rating: 4.6,
-    reviewCount: 38,
     description: "Complete your kitchen with this premium utensil set. Includes all essential tools for cooking and baking, made from high-quality materials for durability and performance.",
     features: [
       "Set of 12 essential utensils",
@@ -158,8 +151,6 @@ const products = [
     id: "5",
     name: "Glass Food Storage Containers (Set of 5)",
     price: 1299,
-    rating: 4.5,
-    reviewCount: 42,
     description: "Keep your food fresh and organized with these premium glass storage containers. Perfect for meal prep, leftovers, and pantry organization.",
     features: [
       "Set of 5 containers with lids",
@@ -192,8 +183,6 @@ const products = [
     id: "6",
     name: "Ceramic Dinner Plates (Set of 4)",
     price: 1899,
-    rating: 4.7,
-    reviewCount: 29,
     description: "Elevate your dining experience with these elegant ceramic dinner plates. Perfect for everyday use and special occasions.",
     features: [
       "Set of 4 dinner plates",
@@ -226,8 +215,6 @@ const products = [
     id: "7",
     name: "Professional Chef Knife",
     price: 2999,
-    rating: 4.9,
-    reviewCount: 67,
     description: "Experience professional-grade cutting performance with this premium chef knife. Perfect for all your kitchen needs.",
     features: [
       "High-carbon stainless steel blade",
@@ -261,8 +248,6 @@ const products = [
     name: "Electric Hand Mixer",
     price: 2499,
     originalPrice: 2999,
-    rating: 4.6,
-    reviewCount: 31,
     description: "Make baking easier with this powerful electric hand mixer. Features multiple speed settings and comes with various attachments.",
     features: [
       "5 speed settings",
@@ -299,7 +284,6 @@ const reviews = [
     id: 1,
     user: "Jane Doe",
     avatar: "/placeholder.svg?height=50&width=50",
-    rating: 5,
     date: "2023-10-15",
     title: "Excellent quality pan",
     comment:
@@ -309,7 +293,6 @@ const reviews = [
     id: 2,
     user: "John Smith",
     avatar: "/placeholder.svg?height=50&width=50",
-    rating: 4,
     date: "2023-09-28",
     title: "Good value for money",
     comment:
@@ -319,7 +302,6 @@ const reviews = [
     id: 3,
     user: "Mary Johnson",
     avatar: "/placeholder.svg?height=50&width=50",
-    rating: 5,
     date: "2023-09-10",
     title: "Perfect size and quality",
     comment:
@@ -436,22 +418,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">{product.name}</h1>
 
-              {/* Rating */}
-              <div className="flex items-center mb-4">
-                <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-5 w-5 ${i < Math.floor(product.rating) ? "text-yellow-400" : "text-gray-300"}`}
-                      fill={i < Math.floor(product.rating) ? "currentColor" : "none"}
-                    />
-                  ))}
-                </div>
-                <span className="ml-2 text-sm text-gray-600">
-                  {product.rating} ({product.reviewCount} reviews)
-                </span>
-              </div>
-
               {/* Price */}
               <div className="mb-6">
                 <span className="text-3xl font-bold text-gray-800">KES {product.price.toLocaleString()}</span>
@@ -505,7 +471,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     {isInWishlist(product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
                   </Button>
                 </div>
-                <AddToCartButton product={product} quantity={quantity} />
+                <div className="space-y-2">
+                  <AddToCartButton product={product} quantity={quantity} />
+                  <WhatsAppOrderButton product={product} quantity={quantity} />
+                </div>
               </div>
 
               {/* SKU and Category */}
@@ -599,15 +568,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                           <p className="font-medium text-gray-800">{review.user}</p>
                           <p className="text-sm text-gray-500">{review.date}</p>
                         </div>
-                      </div>
-                      <div className="flex mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${i < review.rating ? "text-yellow-400" : "text-gray-300"}`}
-                            fill={i < review.rating ? "currentColor" : "none"}
-                          />
-                        ))}
                       </div>
                       <h4 className="font-medium text-gray-800 mb-2">{review.title}</h4>
                       <p className="text-gray-600">{review.comment}</p>

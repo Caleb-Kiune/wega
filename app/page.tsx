@@ -3,7 +3,6 @@ import { ArrowRight } from "lucide-react"
 import FeaturedProducts from "@/components/featured-products"
 import CategoryShowcase from "@/components/category-showcase"
 import TestimonialSection from "@/components/testimonial-section"
-import NewsletterSignup from "@/components/newsletter-signup"
 import BrandFeatures from "@/components/brand-features"
 import ProductCarousel from "@/components/product-carousel"
 import HeroSection from "@/components/hero-section"
@@ -82,9 +81,6 @@ export default function Home() {
 
       {/* Testimonials */}
       <TestimonialSection />
-
-      {/* Newsletter Signup */}
-      <NewsletterSignup />
     </main>
   )
 }

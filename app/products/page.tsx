@@ -115,7 +115,7 @@ const products = [
 export default function ProductsPage({
   searchParams,
 }: { searchParams: { [key: string]: string | string[] | undefined } }) {
-  const [priceRange, setPriceRange] = useState<[number, number]>([500, 5000])
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000])
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedBrands, setSelectedBrands] = useState<string[]>([])
   const [sortBy, setSortBy] = useState<string>("featured")
@@ -161,18 +161,22 @@ export default function ProductsPage({
 
   const handleMinPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value) || 0
-    setPriceRange([value, priceRange[1]])
+    if (value <= priceRange[1]) {
+      setPriceRange([value, priceRange[1]])
+    }
   }
 
   const handleMaxPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || 10000
-    setPriceRange([priceRange[0], value])
+    const value = parseInt(e.target.value) || 100000
+    if (value >= priceRange[0]) {
+      setPriceRange([priceRange[0], value])
+    }
   }
 
   const clearFilters = () => {
     setSelectedCategories([])
     setSelectedBrands([])
-    setPriceRange([500, 5000])
+    setPriceRange([0, 100000])
   }
 
   // Filter products based on selected filters and search query
@@ -260,31 +264,102 @@ export default function ProductsPage({
             {/* Price Range */}
             <div className="mb-6">
               <h3 className="font-medium text-gray-800 mb-3">Price Range</h3>
-              <div className="flex items-center gap-2 mb-2">
-                <Input
-                  type="number"
-                  value={priceRange[0]}
-                  onChange={handleMinPriceChange}
-                  className="w-24"
-                  min={0}
-                />
-                <span className="text-gray-500">to</span>
-                <Input
-                  type="number"
-                  value={priceRange[1]}
-                  onChange={handleMaxPriceChange}
-                  className="w-24"
-                  min={priceRange[0]}
-                />
+              
+              {/* Price Range Slider */}
+              <div className="space-y-4">
+                <div className="relative px-2">
+                  <div className="relative h-2 bg-gray-200 rounded-full">
+                    <div 
+                      className="absolute h-full bg-green-600 rounded-full"
+                      style={{
+                        left: `${(priceRange[0] / 100000) * 100}%`,
+                        right: `${100 - (priceRange[1] / 100000) * 100}%`
+                      }}
+                    />
+                    <div 
+                      className="absolute w-4 h-4 bg-white border-2 border-green-600 rounded-full -top-1 cursor-pointer hover:scale-110 transition-transform"
+                      style={{ left: `calc(${(priceRange[0] / 100000) * 100}% - 8px)` }}
+                      onMouseDown={(e) => {
+                        const slider = e.currentTarget.parentElement
+                        if (!slider) return
+                        
+                        const handleMouseMove = (e: MouseEvent) => {
+                          const rect = slider.getBoundingClientRect()
+                          const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width))
+                          const value = Math.round((x / rect.width) * 100000)
+                          if (value <= priceRange[1]) {
+                            setPriceRange([value, priceRange[1]])
+                          }
+                        }
+                        
+                        const handleMouseUp = () => {
+                          document.removeEventListener('mousemove', handleMouseMove)
+                          document.removeEventListener('mouseup', handleMouseUp)
+                        }
+                        
+                        document.addEventListener('mousemove', handleMouseMove)
+                        document.addEventListener('mouseup', handleMouseUp)
+                      }}
+                    />
+                    <div 
+                      className="absolute w-4 h-4 bg-white border-2 border-green-600 rounded-full -top-1 cursor-pointer hover:scale-110 transition-transform"
+                      style={{ left: `calc(${(priceRange[1] / 100000) * 100}% - 8px)` }}
+                      onMouseDown={(e) => {
+                        const slider = e.currentTarget.parentElement
+                        if (!slider) return
+                        
+                        const handleMouseMove = (e: MouseEvent) => {
+                          const rect = slider.getBoundingClientRect()
+                          const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width))
+                          const value = Math.round((x / rect.width) * 100000)
+                          if (value >= priceRange[0]) {
+                            setPriceRange([priceRange[0], value])
+                          }
+                        }
+                        
+                        const handleMouseUp = () => {
+                          document.removeEventListener('mousemove', handleMouseMove)
+                          document.removeEventListener('mouseup', handleMouseUp)
+                        }
+                        
+                        document.addEventListener('mousemove', handleMouseMove)
+                        document.addEventListener('mouseup', handleMouseUp)
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-500 mt-2">
+                    <span>KES {priceRange[0].toLocaleString()}</span>
+                    <span>KES {priceRange[1].toLocaleString()}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    value={priceRange[0]}
+                    onChange={handleMinPriceChange}
+                    className="w-24 h-8 text-sm"
+                    min={0}
+                    placeholder="Min"
+                  />
+                  <span className="text-gray-500">-</span>
+                  <Input
+                    type="number"
+                    value={priceRange[1]}
+                    onChange={handleMaxPriceChange}
+                    className="w-24 h-8 text-sm"
+                    min={priceRange[0]}
+                    placeholder="Max"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => {}}
+                    className="h-8 bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    Go
+                  </Button>
+                </div>
               </div>
-              <Slider 
-                value={priceRange}
-                onValueChange={handlePriceRangeChange}
-                min={0} 
-                max={10000} 
-                step={100}
-                className="mt-2"
-              />
             </div>
 
             {/* Brands */}
@@ -362,31 +437,102 @@ export default function ProductsPage({
                     {/* Price Range */}
                     <div className="mb-6">
                       <h3 className="font-medium text-gray-800 mb-3">Price Range</h3>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Input
-                          type="number"
-                          value={priceRange[0]}
-                          onChange={handleMinPriceChange}
-                          className="w-24"
-                          min={0}
-                        />
-                        <span className="text-gray-500">to</span>
-                        <Input
-                          type="number"
-                          value={priceRange[1]}
-                          onChange={handleMaxPriceChange}
-                          className="w-24"
-                          min={priceRange[0]}
-                        />
+                      
+                      {/* Price Range Slider */}
+                      <div className="space-y-4">
+                        <div className="relative px-2">
+                          <div className="relative h-2 bg-gray-200 rounded-full">
+                            <div 
+                              className="absolute h-full bg-green-600 rounded-full"
+                              style={{
+                                left: `${(priceRange[0] / 100000) * 100}%`,
+                                right: `${100 - (priceRange[1] / 100000) * 100}%`
+                              }}
+                            />
+                            <div 
+                              className="absolute w-4 h-4 bg-white border-2 border-green-600 rounded-full -top-1 cursor-pointer hover:scale-110 transition-transform"
+                              style={{ left: `calc(${(priceRange[0] / 100000) * 100}% - 8px)` }}
+                              onMouseDown={(e) => {
+                                const slider = e.currentTarget.parentElement
+                                if (!slider) return
+                                
+                                const handleMouseMove = (e: MouseEvent) => {
+                                  const rect = slider.getBoundingClientRect()
+                                  const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width))
+                                  const value = Math.round((x / rect.width) * 100000)
+                                  if (value <= priceRange[1]) {
+                                    setPriceRange([value, priceRange[1]])
+                                  }
+                                }
+                                
+                                const handleMouseUp = () => {
+                                  document.removeEventListener('mousemove', handleMouseMove)
+                                  document.removeEventListener('mouseup', handleMouseUp)
+                                }
+                                
+                                document.addEventListener('mousemove', handleMouseMove)
+                                document.addEventListener('mouseup', handleMouseUp)
+                              }}
+                            />
+                            <div 
+                              className="absolute w-4 h-4 bg-white border-2 border-green-600 rounded-full -top-1 cursor-pointer hover:scale-110 transition-transform"
+                              style={{ left: `calc(${(priceRange[1] / 100000) * 100}% - 8px)` }}
+                              onMouseDown={(e) => {
+                                const slider = e.currentTarget.parentElement
+                                if (!slider) return
+                                
+                                const handleMouseMove = (e: MouseEvent) => {
+                                  const rect = slider.getBoundingClientRect()
+                                  const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width))
+                                  const value = Math.round((x / rect.width) * 100000)
+                                  if (value >= priceRange[0]) {
+                                    setPriceRange([priceRange[0], value])
+                                  }
+                                }
+                                
+                                const handleMouseUp = () => {
+                                  document.removeEventListener('mousemove', handleMouseMove)
+                                  document.removeEventListener('mouseup', handleMouseUp)
+                                }
+                                
+                                document.addEventListener('mousemove', handleMouseMove)
+                                document.addEventListener('mouseup', handleMouseUp)
+                              }}
+                            />
+                          </div>
+                          <div className="flex justify-between text-sm text-gray-500 mt-2">
+                            <span>KES {priceRange[0].toLocaleString()}</span>
+                            <span>KES {priceRange[1].toLocaleString()}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            value={priceRange[0]}
+                            onChange={handleMinPriceChange}
+                            className="w-24 h-8 text-sm"
+                            min={0}
+                            placeholder="Min"
+                          />
+                          <span className="text-gray-500">-</span>
+                          <Input
+                            type="number"
+                            value={priceRange[1]}
+                            onChange={handleMaxPriceChange}
+                            className="w-24 h-8 text-sm"
+                            min={priceRange[0]}
+                            placeholder="Max"
+                          />
+                          <Button
+                            size="sm"
+                            onClick={() => {}}
+                            className="h-8 bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            Go
+                          </Button>
+                        </div>
                       </div>
-                      <Slider 
-                        value={priceRange}
-                        onValueChange={handlePriceRangeChange}
-                        min={0} 
-                        max={10000} 
-                        step={100}
-                        className="mt-2"
-                      />
                     </div>
 
                     {/* Brands */}

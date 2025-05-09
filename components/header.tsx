@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { useCart } from "@/lib/hooks/use-cart"
+import { useWishlist } from "@/lib/hooks/use-wishlist"
 import { cn } from "@/lib/utils"
 
 // Mock products data for search
@@ -82,6 +83,7 @@ export default function Header() {
   const [showResults, setShowResults] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
   const { cartCount } = useCart()
+  const { items: wishlistItems } = useWishlist()
 
   // Handle scroll effect
   useEffect(() => {
@@ -187,6 +189,7 @@ export default function Header() {
                 className="h-12 w-auto"
                 priority
               />
+              <span className="ml-2 text-xl font-semibold text-gray-800">Wega Kitchenware</span>
             </Link>
           </div>
 
@@ -238,18 +241,12 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className={cn(
-                  "text-gray-700 hover:text-green-600 font-medium transition-colors",
-                  pathname === link.href && "text-green-600 font-semibold",
-                )}
-              >
-                {link.name}
-              </Link>
-            ))}
+            <Link href="/" className="text-gray-600 hover:text-green-600">
+              Home
+            </Link>
+            <Link href="/products" className="text-gray-600 hover:text-green-600">
+              Products
+            </Link>
           </nav>
 
           {/* User Actions */}
@@ -265,9 +262,27 @@ export default function Header() {
             {/* Wishlist */}
             <Link
               href="/wishlist"
-              className="hidden sm:flex text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100"
+              className="hidden sm:flex text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 relative"
             >
               <Heart className="h-5 w-5" />
+              {wishlistItems.length > 0 && (
+                <Badge className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                  {wishlistItems.length}
+                </Badge>
+              )}
+            </Link>
+
+            {/* Mobile Wishlist */}
+            <Link
+              href="/wishlist"
+              className="sm:hidden text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 relative"
+            >
+              <Heart className="h-5 w-5" />
+              {wishlistItems.length > 0 && (
+                <Badge className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                  {wishlistItems.length}
+                </Badge>
+              )}
             </Link>
 
             {/* Account */}

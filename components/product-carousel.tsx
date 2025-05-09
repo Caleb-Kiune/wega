@@ -3,11 +3,12 @@
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Star, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react"
+import { ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useCart } from "@/lib/hooks/use-cart"
+import WhatsAppOrderButton from "@/components/whatsapp-order-button"
 
 // Mock product data
 const newArrivals = [
@@ -15,8 +16,6 @@ const newArrivals = [
     id: 5,
     name: "Glass Food Storage Containers (Set of 5)",
     price: 1299,
-    rating: 4.5,
-    reviewCount: 42,
     image: "/images/homeessentials1.jpeg",
     isNew: true,
     category: "Storage Solutions",
@@ -25,8 +24,6 @@ const newArrivals = [
     id: 6,
     name: "Ceramic Dinner Plates (Set of 4)",
     price: 1899,
-    rating: 4.7,
-    reviewCount: 29,
     image: "/images/homeessentials2.jpeg",
     isNew: true,
     category: "Home Essentials",
@@ -35,8 +32,6 @@ const newArrivals = [
     id: 7,
     name: "Professional Chef Knife",
     price: 2999,
-    rating: 4.9,
-    reviewCount: 67,
     image: "/images/kitchenware1.jpeg",
     isNew: true,
     category: "Utensils",
@@ -46,8 +41,6 @@ const newArrivals = [
     name: "Electric Hand Mixer",
     price: 2499,
     originalPrice: 2999,
-    rating: 4.6,
-    reviewCount: 31,
     image: "/images/appliances2.jpeg",
     isNew: true,
     category: "Appliances",
@@ -56,8 +49,6 @@ const newArrivals = [
     id: 9,
     name: "Bamboo Cutting Board",
     price: 1199,
-    rating: 4.4,
-    reviewCount: 23,
     image: "/images/homeessentials3.jpeg",
     isNew: true,
     category: "Utensils",
@@ -66,8 +57,6 @@ const newArrivals = [
     id: 10,
     name: "Silicone Baking Mat Set",
     price: 899,
-    rating: 4.3,
-    reviewCount: 19,
     image: "/images/homeessentials4.jpeg",
     isNew: true,
     category: "Cookware",
@@ -80,8 +69,6 @@ const specialOffers = [
     name: "Premium Knife Set with Block",
     price: 4999,
     originalPrice: 6999,
-    rating: 4.8,
-    reviewCount: 56,
     image: "/images/kitchenware1.jpeg",
     isSale: true,
     category: "Utensils",
@@ -91,8 +78,6 @@ const specialOffers = [
     name: "Cast Iron Dutch Oven",
     price: 3499,
     originalPrice: 4999,
-    rating: 4.9,
-    reviewCount: 78,
     image: "/images/appliances1.jpeg",
     isSale: true,
     category: "Cookware",
@@ -102,8 +87,6 @@ const specialOffers = [
     name: "Electric Kettle",
     price: 1799,
     originalPrice: 2499,
-    rating: 4.7,
-    reviewCount: 45,
     image: "/images/appliances2.jpeg",
     isSale: true,
     category: "Appliances",
@@ -113,8 +96,6 @@ const specialOffers = [
     name: "Stainless Steel Mixing Bowls (Set of 3)",
     price: 1499,
     originalPrice: 1999,
-    rating: 4.6,
-    reviewCount: 34,
     image: "/images/tableware1.jpeg",
     isSale: true,
     category: "Cookware",
@@ -124,8 +105,6 @@ const specialOffers = [
     name: "Non-Stick Baking Tray Set",
     price: 1299,
     originalPrice: 1799,
-    rating: 4.5,
-    reviewCount: 28,
     image: "/images/homeessentials4.jpeg",
     isSale: true,
     category: "Cookware",
@@ -245,28 +224,17 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
                 )}
               </div>
 
-              {/* Ratings */}
-              <div className="flex items-center mb-4">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-4 w-4 ${i < Math.floor(product.rating) ? "text-yellow-400" : "text-gray-300"}`}
-                      fill={i < Math.floor(product.rating) ? "currentColor" : "none"}
-                    />
-                  ))}
-                  <span className="ml-1 text-sm text-gray-600">{product.rating}</span>
-                </div>
-              </div>
-
               {/* Add to cart button */}
-              <Button
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => handleAddToCart(product)}
-              >
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Add to Cart
-              </Button>
+              <div className="space-y-2">
+                <Button
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => handleAddToCart(product)}
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Add to Cart
+                </Button>
+                <WhatsAppOrderButton product={product} className="w-full" />
+              </div>
             </div>
           </div>
         ))}

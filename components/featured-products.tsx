@@ -3,11 +3,12 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Star, ShoppingCart, Heart, Eye } from "lucide-react"
+import { ShoppingCart, Heart, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useCart } from "@/lib/hooks/use-cart"
+import WhatsAppOrderButton from "@/components/whatsapp-order-button"
 
 // Mock featured products data
 const products = [
@@ -15,8 +16,6 @@ const products = [
     id: 1,
     name: "Premium Non-Stick Frying Pan",
     price: 2499,
-    rating: 4.8,
-    reviewCount: 124,
     image: "/images/kitchenware1.jpeg",
     isNew: true,
     isSale: false,
@@ -27,8 +26,6 @@ const products = [
     name: "Stainless Steel Cooking Pot Set",
     price: 5999,
     originalPrice: 7499,
-    rating: 4.9,
-    reviewCount: 86,
     image: "/images/appliances1.jpeg",
     isNew: false,
     isSale: true,
@@ -38,8 +35,6 @@ const products = [
     id: 3,
     name: "Electric Coffee Maker",
     price: 3499,
-    rating: 4.7,
-    reviewCount: 52,
     image: "/images/appliances2.jpeg",
     isNew: false,
     isSale: false,
@@ -50,8 +45,6 @@ const products = [
     name: "Kitchen Utensil Set",
     price: 1899,
     originalPrice: 2499,
-    rating: 4.6,
-    reviewCount: 38,
     image: "/images/tableware1.jpeg",
     isNew: true,
     isSale: true,
@@ -147,29 +140,16 @@ export default function FeaturedProducts() {
               )}
             </div>
 
-            {/* Ratings */}
-            <div className="flex items-center mb-4">
-              <div className="flex items-center">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-4 w-4 ${i < Math.floor(product.rating) ? "text-yellow-400" : "text-gray-300"}`}
-                    fill={i < Math.floor(product.rating) ? "currentColor" : "none"}
-                  />
-                ))}
-                <span className="ml-1 text-sm text-gray-600">{product.rating}</span>
-              </div>
-              <span className="mx-2 text-gray-300">|</span>
-              <span className="text-sm text-gray-600">{product.reviewCount} reviews</span>
-            </div>
-
             {/* Add to cart button */}
-            <Button
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
-              onClick={() => handleAddToCart(product)}
-            >
-              Add to Cart
-            </Button>
+            <div className="space-y-2">
+              <Button
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => handleAddToCart(product)}
+              >
+                Add to Cart
+              </Button>
+              <WhatsAppOrderButton product={product} className="w-full" />
+            </div>
           </div>
         </div>
       ))}

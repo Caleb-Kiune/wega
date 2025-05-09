@@ -8,6 +8,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import WhatsAppChat from "@/components/whatsapp-chat"
 import { Providers } from "./providers"
+import { CartProvider } from "@/lib/hooks/use-cart"
+import { WishlistProvider } from "@/lib/hooks/use-wishlist"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -36,15 +38,19 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="light">
-          <Providers>
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <div className="flex-grow">{children}</div>
-              <Footer />
-              <WhatsAppChat />
-              <Toaster />
-            </div>
-          </Providers>
+          <CartProvider>
+            <WishlistProvider>
+              <Providers>
+                <div className="flex min-h-screen flex-col">
+                  <Header />
+                  <div className="flex-grow">{children}</div>
+                  <Footer />
+                  <WhatsAppChat />
+                  <Toaster />
+                </div>
+              </Providers>
+            </WishlistProvider>
+          </CartProvider>
         </ThemeProvider>
       </body>
     </html>
