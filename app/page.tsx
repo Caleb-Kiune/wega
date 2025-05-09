@@ -1,7 +1,6 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import FeaturedProducts from "@/components/featured-products"
-import CategoryShowcase from "@/components/category-showcase"
 import TestimonialSection from "@/components/testimonial-section"
 import BrandFeatures from "@/components/brand-features"
 import ProductCarousel from "@/components/product-carousel"
@@ -15,9 +14,6 @@ export default function Home() {
 
       {/* Brand Features */}
       <BrandFeatures />
-
-      {/* Category Showcase */}
-      <CategoryShowcase />
 
       {/* Featured Products */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
