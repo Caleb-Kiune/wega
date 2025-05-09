@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft, Truck, ShieldCheck } from "lucide-react"
+import { ArrowLeft, Truck, ShieldCheck, Copy, Check, AlertCircle, Lock, CreditCard, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -20,11 +20,91 @@ export default function CheckoutPage() {
   const { toast } = useToast()
   const [paymentMethod, setPaymentMethod] = useState("mpesa")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [phoneNumber, setPhoneNumber] = useState("")
+  const [cardDetails, setCardDetails] = useState({
+    number: "",
+    expiry: "",
+    cvv: "",
+    name: ""
+  })
+  const [showCvv, setShowCvv] = useState(false)
+  const [cardType, setCardType] = useState<string | null>(null)
 
   // Calculate totals
   const subtotal = cartItems.reduce((total, item) => total + item.price * (item.quantity || 1), 0)
   const shipping = subtotal > 5000 ? 0 : 350
   const total = subtotal + shipping
+
+  const copyToClipboard = (text: string, field: string) => {
+    navigator.clipboard.writeText(text)
+    setCopiedField(field)
+    toast({
+      title: "Copied!",
+      description: `${field} copied to clipboard`,
+    })
+    setTimeout(() => setCopiedField(null), 2000)
+  }
+
+  const validatePhoneNumber = (phone: string) => {
+    // Kenyan phone number format: 07XXXXXXXX or 254XXXXXXXXX
+    const phoneRegex = /^(?:254|\+254|0)?([71](?:(?:0[0-8])|(?:[12][0-9])|(?:9[0-9])|(?:4[0-3]))[0-9]{6})$/
+    return phoneRegex.test(phone)
+  }
+
+  const validateCardNumber = (number: string) => {
+    // Remove spaces and dashes
+    const cleanNumber = number.replace(/[\s-]/g, "")
+    // Basic validation for card number length and format
+    return /^[0-9]{13,19}$/.test(cleanNumber)
+  }
+
+  const validateExpiry = (expiry: string) => {
+    if (!/^\d{2}\/\d{2}$/.test(expiry)) return false
+    const [month, year] = expiry.split("/")
+    const currentYear = new Date().getFullYear() % 100
+    const currentMonth = new Date().getMonth() + 1
+    const expMonth = parseInt(month)
+    const expYear = parseInt(year)
+    
+    if (expMonth < 1 || expMonth > 12) return false
+    if (expYear < currentYear) return false
+    if (expYear === currentYear && expMonth < currentMonth) return false
+    return true
+  }
+
+  const validateCvv = (cvv: string) => {
+    return /^[0-9]{3,4}$/.test(cvv)
+  }
+
+  const formatCardNumber = (number: string) => {
+    const cleanNumber = number.replace(/[\s-]/g, "")
+    const groups = cleanNumber.match(/.{1,4}/g) || []
+    return groups.join(" ")
+  }
+
+  const detectCardType = (number: string) => {
+    const cleanNumber = number.replace(/[\s-]/g, "")
+    if (/^4/.test(cleanNumber)) return "visa"
+    if (/^5[1-5]/.test(cleanNumber)) return "mastercard"
+    if (/^3[47]/.test(cleanNumber)) return "amex"
+    return null
+  }
+
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9\s-]/g, "")
+    const formatted = formatCardNumber(value)
+    setCardDetails(prev => ({ ...prev, number: formatted }))
+    setCardType(detectCardType(value))
+  }
+
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/[^0-9]/g, "")
+    if (value.length >= 2) {
+      value = value.slice(0, 2) + "/" + value.slice(2, 4)
+    }
+    setCardDetails(prev => ({ ...prev, expiry: value }))
+  }
 
   const handleSubmitOrder = (e: React.FormEvent) => {
     e.preventDefault()
@@ -124,37 +204,6 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
-                <div className="p-6">
-                  <h2 className="text-xl font-bold text-gray-800 mb-6">Delivery Method</h2>
-
-                  <RadioGroup defaultValue="standard">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="border rounded-lg p-4 flex items-start space-x-3">
-                        <RadioGroupItem value="standard" id="standard" />
-                        <div className="flex-1">
-                          <Label htmlFor="standard" className="font-medium text-gray-800">
-                            Standard Delivery
-                          </Label>
-                          <p className="text-sm text-gray-600">2-5 business days</p>
-                          <p className="text-sm font-medium text-gray-800 mt-1">KES 350</p>
-                        </div>
-                      </div>
-                      <div className="border rounded-lg p-4 flex items-start space-x-3">
-                        <RadioGroupItem value="express" id="express" />
-                        <div className="flex-1">
-                          <Label htmlFor="express" className="font-medium text-gray-800">
-                            Express Delivery
-                          </Label>
-                          <p className="text-sm text-gray-600">1-2 business days</p>
-                          <p className="text-sm font-medium text-gray-800 mt-1">KES 550</p>
-                        </div>
-                      </div>
-                    </div>
-                  </RadioGroup>
-                </div>
-              </div>
-
               <div className="bg-white rounded-lg shadow-sm overflow-hidden">
                 <div className="p-6">
                   <h2 className="text-xl font-bold text-gray-800 mb-6">Payment Method</h2>
@@ -171,6 +220,78 @@ export default function CheckoutPage() {
                             <Image src="/placeholder.svg?height=30&width=50" alt="M-Pesa" width={50} height={30} />
                           </div>
                           <p className="text-sm text-gray-600">Pay via M-Pesa mobile money</p>
+                          {paymentMethod === "mpesa" && (
+                            <div className="mt-4 space-y-4 text-sm">
+                              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <p className="font-medium text-gray-800 mb-2">Payment Amount:</p>
+                                <p className="text-2xl font-bold text-green-600">KES {total.toLocaleString()}</p>
+                              </div>
+
+                              <div>
+                                <p className="font-medium text-gray-800 mb-2">M-Pesa Payment Details:</p>
+                                <div className="bg-gray-50 p-3 rounded-md space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <p><span className="font-medium">Paybill Number:</span> 400200</p>
+                                    <button
+                                      onClick={() => copyToClipboard("400200", "Paybill")}
+                                      className="text-green-600 hover:text-green-700"
+                                    >
+                                      {copiedField === "Paybill" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                                    </button>
+                                  </div>
+                                  <div className="flex items-center justify-between">
+                                    <p><span className="font-medium">Account Number:</span> 40069258</p>
+                                    <button
+                                      onClick={() => copyToClipboard("40069258", "Account")}
+                                      className="text-green-600 hover:text-green-700"
+                                    >
+                                      {copiedField === "Account" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="space-y-2">
+                                <p className="font-medium text-gray-800">Payment Instructions:</p>
+                                <ol className="list-decimal list-inside space-y-1 text-gray-600">
+                                  <li>Go to your M-Pesa menu</li>
+                                  <li>Select "Pay Bill"</li>
+                                  <li>Enter Business Number: 400200</li>
+                                  <li>Enter Account Number: 40069258</li>
+                                  <li>Enter Amount: KES {total.toLocaleString()}</li>
+                                  <li>Enter your M-Pesa PIN</li>
+                                  <li>Confirm payment</li>
+                                </ol>
+                              </div>
+
+                              <div className="mt-4">
+                                <Label htmlFor="mpesaPhone" className="font-medium text-gray-800">Your M-Pesa Phone Number</Label>
+                                <div className="mt-1">
+                                  <Input
+                                    id="mpesaPhone"
+                                    type="tel"
+                                    placeholder="e.g., 07XXXXXXXX"
+                                    value={phoneNumber}
+                                    onChange={(e) => setPhoneNumber(e.target.value)}
+                                    className={phoneNumber && !validatePhoneNumber(phoneNumber) ? "border-red-500" : ""}
+                                  />
+                                  {phoneNumber && !validatePhoneNumber(phoneNumber) && (
+                                    <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                      <AlertCircle className="h-3 w-3" />
+                                      Please enter a valid Kenyan phone number
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-blue-800">
+                                <p className="flex items-start gap-2">
+                                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                  <span>Please keep your M-Pesa confirmation message as proof of payment. We'll process your order once payment is confirmed.</span>
+                                </p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="border rounded-lg p-4 flex items-start space-x-3">
@@ -194,23 +315,115 @@ export default function CheckoutPage() {
 
                           {paymentMethod === "card" && (
                             <div className="mt-4 space-y-4">
-                              <div>
-                                <Label htmlFor="cardNumber">Card Number</Label>
-                                <Input id="cardNumber" placeholder="1234 5678 9012 3456" className="mt-1" />
+                              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <p className="font-medium text-gray-800 mb-2">Payment Amount:</p>
+                                <p className="text-2xl font-bold text-green-600">KES {total.toLocaleString()}</p>
                               </div>
-                              <div className="grid grid-cols-2 gap-4">
+
+                              <div className="space-y-4">
                                 <div>
-                                  <Label htmlFor="expiry">Expiry Date</Label>
-                                  <Input id="expiry" placeholder="MM/YY" className="mt-1" />
+                                  <Label htmlFor="cardNumber" className="flex items-center gap-2">
+                                    <span>Card Number</span>
+                                    {cardType && (
+                                      <Image
+                                        src={`/card-logos/${cardType}.svg`}
+                                        alt={cardType}
+                                        width={40}
+                                        height={25}
+                                        className="h-6 w-auto"
+                                      />
+                                    )}
+                                  </Label>
+                                  <div className="relative mt-1">
+                                    <Input
+                                      id="cardNumber"
+                                      placeholder="1234 5678 9012 3456"
+                                      value={cardDetails.number}
+                                      onChange={handleCardNumberChange}
+                                      maxLength={19}
+                                      className={cardDetails.number && !validateCardNumber(cardDetails.number) ? "border-red-500" : ""}
+                                    />
+                                    {cardDetails.number && !validateCardNumber(cardDetails.number) && (
+                                      <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                        <AlertCircle className="h-3 w-3" />
+                                        Please enter a valid card number
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <Label htmlFor="expiry">Expiry Date</Label>
+                                    <Input
+                                      id="expiry"
+                                      placeholder="MM/YY"
+                                      value={cardDetails.expiry}
+                                      onChange={handleExpiryChange}
+                                      maxLength={5}
+                                      className={cardDetails.expiry && !validateExpiry(cardDetails.expiry) ? "border-red-500" : ""}
+                                    />
+                                    {cardDetails.expiry && !validateExpiry(cardDetails.expiry) && (
+                                      <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                        <AlertCircle className="h-3 w-3" />
+                                        Invalid expiry date
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <Label htmlFor="cvv" className="flex items-center gap-2">
+                                      <span>CVV</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => setShowCvv(!showCvv)}
+                                        className="text-gray-400 hover:text-gray-600"
+                                      >
+                                        {showCvv ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                      </button>
+                                    </Label>
+                                    <Input
+                                      id="cvv"
+                                      type={showCvv ? "text" : "password"}
+                                      placeholder="123"
+                                      value={cardDetails.cvv}
+                                      onChange={(e) => {
+                                        const value = e.target.value.replace(/[^0-9]/g, "")
+                                        setCardDetails(prev => ({ ...prev, cvv: value }))
+                                      }}
+                                      maxLength={4}
+                                      className={cardDetails.cvv && !validateCvv(cardDetails.cvv) ? "border-red-500" : ""}
+                                    />
+                                    {cardDetails.cvv && !validateCvv(cardDetails.cvv) && (
+                                      <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                        <AlertCircle className="h-3 w-3" />
+                                        Invalid CVV
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+
                                 <div>
-                                  <Label htmlFor="cvv">CVV</Label>
-                                  <Input id="cvv" placeholder="123" className="mt-1" />
+                                  <Label htmlFor="nameOnCard">Name on Card</Label>
+                                  <Input
+                                    id="nameOnCard"
+                                    value={cardDetails.name}
+                                    onChange={(e) => setCardDetails(prev => ({ ...prev, name: e.target.value }))}
+                                    className="mt-1"
+                                    placeholder="As shown on card"
+                                  />
                                 </div>
                               </div>
-                              <div>
-                                <Label htmlFor="nameOnCard">Name on Card</Label>
-                                <Input id="nameOnCard" className="mt-1" />
+
+                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-blue-800">
+                                <p className="flex items-start gap-2">
+                                  <Lock className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                  <span>Your payment information is encrypted and secure. We never store your full card details.</span>
+                                </p>
+                              </div>
+
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <ShieldCheck className="h-4 w-4 text-green-600" />
+                                <span>Secure payment powered by Stripe</span>
                               </div>
                             </div>
                           )}
