@@ -156,6 +156,7 @@ export default function Header() {
     { name: "Shop", href: "/products" },
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
+    { name: "Admin", href: "/admin/products" },
   ]
 
   return (
@@ -189,7 +190,7 @@ export default function Header() {
                 className="h-12 w-auto"
                 priority
               />
-              <span className="ml-2 text-xl font-semibold text-gray-800">Wega Kitchenware</span>
+              <span className="ml-2 text-xl font-semibold text-gray-800">WEGA Kitchenware</span>
             </Link>
           </div>
 
@@ -246,6 +247,9 @@ export default function Header() {
             </Link>
             <Link href="/products" className="text-gray-600 hover:text-green-600">
               Products
+            </Link>
+            <Link href="/admin/products" className="text-gray-600 hover:text-green-600">
+              Admin
             </Link>
           </nav>
 
