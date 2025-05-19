@@ -64,7 +64,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg overflow-hidden shadow-md product-card-hover">
+    <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 product-card-hover group">
       <div className="relative">
         <Link href={`/products/${product.id}`}>
           <div className="relative h-64 w-full">
@@ -84,7 +84,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <Button
               size="icon"
               variant="secondary"
-              className="rounded-full"
+              className="rounded-full bg-white hover:bg-gray-100"
               onClick={handleAddToCart}
             >
               <ShoppingCart className="h-4 w-4" />
@@ -92,12 +92,12 @@ export default function ProductCard({ product }: ProductCardProps) {
             <Button
               size="icon"
               variant="secondary"
-              className="rounded-full"
+              className="rounded-full bg-white hover:bg-gray-100"
               onClick={toggleWishlist}
             >
               <Heart className={`h-4 w-4 ${isWishlisted ? "text-red-500 fill-current" : ""}`} />
             </Button>
-            <Button size="icon" variant="secondary" className="rounded-full" asChild>
+            <Button size="icon" variant="secondary" className="rounded-full bg-white hover:bg-gray-100" asChild>
               <Link href={`/products/${product.id}`}>
                 <Eye className="h-4 w-4" />
               </Link>
@@ -106,22 +106,33 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       </div>
 
-      <div className="p-4">
-        <div className="text-xs text-gray-500 mb-1">{product.category}</div>
+      <div className="p-3">
+        <div className="text-xs text-gray-500 mb-0.5">{product.category}</div>
         <Link href={`/products/${product.id}`} className="block">
-          <h3 className="text-lg font-semibold text-gray-800 mb-2 hover:text-green-600 transition-colors line-clamp-2">
+          <h3 className="text-lg font-semibold text-gray-800 mb-1 hover:text-green-600 transition-colors line-clamp-2">
             {product.name}
           </h3>
         </Link>
 
         {/* Price */}
-        <div className="flex items-center">
+        <div className="flex items-center mb-2">
           <span className="text-xl font-bold text-gray-800">KES {product.price.toLocaleString()}</span>
           {product.originalPrice && (
             <span className="ml-2 text-sm text-gray-500 line-through">
               KES {product.originalPrice.toLocaleString()}
             </span>
           )}
+        </div>
+
+        {/* Add to Cart Button - Only visible on hover */}
+        <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+          <Button 
+            className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2"
+            onClick={handleAddToCart}
+          >
+            <ShoppingCart className="h-4 w-4" />
+            Add to Cart
+          </Button>
         </div>
       </div>
     </div>

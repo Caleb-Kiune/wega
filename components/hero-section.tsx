@@ -56,7 +56,7 @@ export default function HeroSection() {
   }, [])
 
   return (
-    <section className="relative h-[500px] md:h-[600px] overflow-hidden">
+    <section className="relative h-[400px] md:h-[500px] overflow-hidden">
       {/* Slides */}
       {slides.map((slide, index) => (
         <div
@@ -73,12 +73,12 @@ export default function HeroSection() {
               className="object-cover"
               priority={index === 0}
             />
-            <div className={`absolute inset-0 bg-gradient-to-r ${slide.color}`} />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/30" />
             <div className="absolute inset-0 flex items-center">
               <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="max-w-lg">
-                  <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">{slide.title}</h1>
-                  <p className="text-lg text-gray-700 mb-6">{slide.description}</p>
+                  <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{slide.title}</h1>
+                  <p className="text-lg text-gray-100 mb-6">{slide.description}</p>
                   <Button asChild className="bg-green-600 hover:bg-green-700 text-white">
                     <Link href={slide.link}>{slide.cta}</Link>
                   </Button>

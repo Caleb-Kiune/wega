@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Slider } from "@/components/ui/slider"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import ProductsLoading from "@/components/products-loading"
 import ProductCard from "@/components/product-card"
 import { Input } from "@/components/ui/input"
@@ -212,20 +212,6 @@ export default function ProductsPage({
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Page Header */}
-      <div className="bg-white py-8 border-b">
-        <div className="container mx-auto max-w-7xl px-4">
-          <h1 className="text-3xl font-bold text-gray-800">All Products</h1>
-          <div className="flex items-center text-sm text-gray-500 mt-2">
-            <Link href="/" className="hover:text-green-600">
-              Home
-            </Link>
-            <span className="mx-2">/</span>
-            <span>Products</span>
-          </div>
-        </div>
-      </div>
-
       <div className="container mx-auto max-w-7xl py-8 px-4">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar (Desktop) */}
@@ -399,6 +385,7 @@ export default function ProductsPage({
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+                  <SheetTitle className="sr-only">Product Filters</SheetTitle>
                   <div className="py-4">
                     <div className="flex items-center justify-between mb-6">
                       <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
@@ -599,7 +586,7 @@ export default function ProductsPage({
 
             {/* Products */}
             <Suspense fallback={<ProductsLoading />}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {sortedProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

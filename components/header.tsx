@@ -6,7 +6,7 @@ import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { Menu, ShoppingCart, User, Heart, Search, X, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { useCart } from "@/lib/hooks/use-cart"
@@ -143,13 +143,7 @@ export default function Header() {
     setIsSearchOpen(false)
   }
 
-  const categories = [
-    { name: "Cookware", href: "/products?category=cookware" },
-    { name: "Utensils", href: "/products?category=utensils" },
-    { name: "Appliances", href: "/products?category=appliances" },
-    { name: "Home Essentials", href: "/products?category=home-essentials" },
-    { name: "Storage Solutions", href: "/products?category=storage" },
-  ]
+  const categories = []
 
   const navLinks = [
     { name: "Home", href: "/" },
@@ -318,6 +312,7 @@ export default function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right">
+                <SheetTitle className="sr-only">Mobile Menu</SheetTitle>
                 <div className="flex flex-col space-y-4 mt-8">
                   {navLinks.map((link) => (
                     <Link
