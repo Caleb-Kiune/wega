@@ -64,7 +64,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 product-card-hover group">
+    <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 product-card-hover group flex flex-col h-full">
       <div className="relative">
         <Link href={`/products/${product.id}`}>
           <div className="relative h-64 w-full">
@@ -106,10 +106,10 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       </div>
 
-      <div className="p-3">
+      <div className="p-3 flex flex-col flex-grow">
         <div className="text-xs text-gray-500 mb-0.5">{product.category}</div>
         <Link href={`/products/${product.id}`} className="block">
-          <h3 className="text-lg font-semibold text-gray-800 mb-1 hover:text-green-600 transition-colors line-clamp-2">
+          <h3 className="text-lg font-semibold text-gray-800 mb-1 hover:text-green-600 transition-colors line-clamp-2 min-h-[3.5rem]">
             {product.name}
           </h3>
         </Link>
@@ -125,7 +125,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Add to Cart Button - Only visible on hover */}
-        <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+        <div className="mt-auto opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
           <Button 
             className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2"
             onClick={handleAddToCart}
