@@ -111,7 +111,9 @@ def get_products():
 
 @app.route('/api/products/<int:id>', methods=['GET'])
 def get_product(id):
-    product = Product.query.get_or_404(id)
+    product = db.session.get(Product, id)
+    if product is None:
+        return jsonify({'error': 'Product not found'}), 404
     return jsonify(product.to_dict())
 
 @app.route('/api/products', methods=['POST'])
@@ -172,7 +174,10 @@ def create_product():
 
 @app.route('/api/products/<int:id>', methods=['PUT'])
 def update_product(id):
-    product = Product.query.get_or_404(id)
+    product = db.session.get(Product, id)
+    if product is None:
+        return jsonify({'error': 'Product not found'}), 404
+    
     data = request.get_json()
     
     # Update basic product info
@@ -222,7 +227,10 @@ def update_product(id):
 
 @app.route('/api/products/<int:id>', methods=['DELETE'])
 def delete_product(id):
-    product = Product.query.get_or_404(id)
+    product = db.session.get(Product, id)
+    if product is None:
+        return jsonify({'error': 'Product not found'}), 404
+    
     db.session.delete(product)
     db.session.commit()
     return '', 204
@@ -235,7 +243,9 @@ def get_categories():
 
 @app.route('/api/categories/<int:id>', methods=['GET'])
 def get_category(id):
-    category = Category.query.get_or_404(id)
+    category = db.session.get(Category, id)
+    if category is None:
+        return jsonify({'error': 'Category not found'}), 404
     return jsonify(category.to_dict())
 
 @app.route('/api/categories/<int:id>/products', methods=['GET'])
@@ -261,7 +271,9 @@ def get_brands():
 
 @app.route('/api/brands/<int:id>', methods=['GET'])
 def get_brand(id):
-    brand = Brand.query.get_or_404(id)
+    brand = db.session.get(Brand, id)
+    if brand is None:
+        return jsonify({'error': 'Brand not found'}), 404
     return jsonify(brand.to_dict())
 
 @app.route('/api/brands/<int:id>/products', methods=['GET'])
@@ -297,7 +309,10 @@ def get_product_reviews(id):
 
 @app.route('/api/products/<int:id>/reviews', methods=['POST'])
 def create_product_review(id):
-    product = Product.query.get_or_404(id)
+    product = db.session.get(Product, id)
+    if product is None:
+        return jsonify({'error': 'Product not found'}), 404
+    
     data = request.get_json()
     
     review = Review(
@@ -320,7 +335,9 @@ def create_product_review(id):
 
 @app.route('/api/products/<int:id>/reviews/<int:review_id>', methods=['PUT'])
 def update_product_review(id, review_id):
-    review = Review.query.filter_by(product_id=id, id=review_id).first_or_404()
+    review = db.session.get(Review, review_id)
+    if review is None or review.product_id != id:
+        return jsonify({'error': 'Review not found'}), 404
     data = request.get_json()
     
     for key, value in data.items():
@@ -328,23 +345,161 @@ def update_product_review(id, review_id):
             setattr(review, key, value)
     
     # Update product rating
-    product = Product.query.get(id)
-    product.rating = db.session.query(db.func.avg(Review.rating)).filter_by(product_id=id).scalar()
+    product = db.session.get(Product, id)
+    if product is not None:
+        product.rating = db.session.query(db.func.avg(Review.rating)).filter_by(product_id=id).scalar()
     
     db.session.commit()
     return jsonify(review.to_dict())
 
 @app.route('/api/products/<int:id>/reviews/<int:review_id>', methods=['DELETE'])
 def delete_product_review(id, review_id):
-    review = Review.query.filter_by(product_id=id, id=review_id).first_or_404()
+    review = db.session.get(Review, review_id)
+    if review is None or review.product_id != id:
+        return jsonify({'error': 'Review not found'}), 404
     
     db.session.delete(review)
     
     # Update product rating and review count
-    product = Product.query.get(id)
-    product.review_count = Review.query.filter_by(product_id=id).count() - 1
-    product.rating = db.session.query(db.func.avg(Review.rating)).filter_by(product_id=id).scalar()
+    product = db.session.get(Product, id)
+    if product is not None:
+        product.review_count = Review.query.filter_by(product_id=id).count() - 1
+        product.rating = db.session.query(db.func.avg(Review.rating)).filter_by(product_id=id).scalar()
     
+    db.session.commit()
+    return '', 204
+
+# ProductImage Routes
+@app.route('/api/products/<int:product_id>/images', methods=['GET'])
+def get_product_images(product_id):
+    images = ProductImage.query.filter_by(product_id=product_id).order_by(ProductImage.display_order).all()
+    return jsonify([image.to_dict() for image in images])
+
+@app.route('/api/products/<int:product_id>/images', methods=['POST'])
+def create_product_image(product_id):
+    data = request.get_json()
+    
+    image = ProductImage(
+        product_id=product_id,
+        image_url=data['image_url'],
+        is_primary=data.get('is_primary', False),
+        display_order=data.get('display_order', 0)
+    )
+    
+    db.session.add(image)
+    db.session.commit()
+    return jsonify(image.to_dict()), 201
+
+@app.route('/api/products/<int:product_id>/images/<int:image_id>', methods=['PUT'])
+def update_product_image(product_id, image_id):
+    image = db.session.get(ProductImage, image_id)
+    if image is None or image.product_id != product_id:
+        return jsonify({'error': 'Image not found'}), 404
+    data = request.get_json()
+    
+    for key, value in data.items():
+        if hasattr(image, key):
+            setattr(image, key, value)
+    
+    db.session.commit()
+    return jsonify(image.to_dict())
+
+@app.route('/api/products/<int:product_id>/images/<int:image_id>', methods=['DELETE'])
+def delete_product_image(product_id, image_id):
+    image = db.session.get(ProductImage, image_id)
+    if image is None or image.product_id != product_id:
+        return jsonify({'error': 'Image not found'}), 404
+    
+    db.session.delete(image)
+    db.session.commit()
+    return '', 204
+
+# ProductSpecification Routes
+@app.route('/api/products/<int:product_id>/specifications', methods=['GET'])
+def get_product_specifications(product_id):
+    specifications = ProductSpecification.query.filter_by(product_id=product_id).order_by(ProductSpecification.display_order).all()
+    return jsonify([spec.to_dict() for spec in specifications])
+
+@app.route('/api/products/<int:product_id>/specifications', methods=['POST'])
+def create_product_specification(product_id):
+    data = request.get_json()
+    
+    specification = ProductSpecification(
+        product_id=product_id,
+        name=data['name'],
+        value=data['value'],
+        display_order=data.get('display_order', 0)
+    )
+    
+    db.session.add(specification)
+    db.session.commit()
+    return jsonify(specification.to_dict()), 201
+
+@app.route('/api/products/<int:product_id>/specifications/<int:spec_id>', methods=['PUT'])
+def update_product_specification(product_id, spec_id):
+    spec = db.session.get(ProductSpecification, spec_id)
+    if spec is None or spec.product_id != product_id:
+        return jsonify({'error': 'Specification not found'}), 404
+    data = request.get_json()
+    
+    for key, value in data.items():
+        if hasattr(spec, key):
+            setattr(spec, key, value)
+    
+    db.session.commit()
+    return jsonify(spec.to_dict())
+
+@app.route('/api/products/<int:product_id>/specifications/<int:spec_id>', methods=['DELETE'])
+def delete_product_specification(product_id, spec_id):
+    spec = db.session.get(ProductSpecification, spec_id)
+    if spec is None or spec.product_id != product_id:
+        return jsonify({'error': 'Specification not found'}), 404
+    
+    db.session.delete(spec)
+    db.session.commit()
+    return '', 204
+
+# ProductFeature Routes
+@app.route('/api/products/<int:product_id>/features', methods=['GET'])
+def get_product_features(product_id):
+    features = ProductFeature.query.filter_by(product_id=product_id).order_by(ProductFeature.display_order).all()
+    return jsonify([feature.to_dict() for feature in features])
+
+@app.route('/api/products/<int:product_id>/features', methods=['POST'])
+def create_product_feature(product_id):
+    data = request.get_json()
+    
+    feature = ProductFeature(
+        product_id=product_id,
+        feature=data['feature'],
+        display_order=data.get('display_order', 0)
+    )
+    
+    db.session.add(feature)
+    db.session.commit()
+    return jsonify(feature.to_dict()), 201
+
+@app.route('/api/products/<int:product_id>/features/<int:feature_id>', methods=['PUT'])
+def update_product_feature(product_id, feature_id):
+    feature = db.session.get(ProductFeature, feature_id)
+    if feature is None or feature.product_id != product_id:
+        return jsonify({'error': 'Feature not found'}), 404
+    data = request.get_json()
+    
+    for key, value in data.items():
+        if hasattr(feature, key):
+            setattr(feature, key, value)
+    
+    db.session.commit()
+    return jsonify(feature.to_dict())
+
+@app.route('/api/products/<int:product_id>/features/<int:feature_id>', methods=['DELETE'])
+def delete_product_feature(product_id, feature_id):
+    feature = db.session.get(ProductFeature, feature_id)
+    if feature is None or feature.product_id != product_id:
+        return jsonify({'error': 'Feature not found'}), 404
+    
+    db.session.delete(feature)
     db.session.commit()
     return '', 204
 
