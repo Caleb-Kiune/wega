@@ -1,52 +1,49 @@
-# Backend API with SQLite
+# Wega Kitchenware Backend
 
-This is a Flask-based REST API with SQLite database integration.
+This is the backend API for the Wega Kitchenware e-commerce platform.
 
-## Setup
+## Setup Instructions
 
-1. Create a virtual environment (recommended):
+1. Create a virtual environment:
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-2. Install dependencies:
+2. Activate the virtual environment:
+- On Windows:
+```bash
+.\venv\Scripts\activate
+```
+- On macOS/Linux:
+```bash
+source venv/bin/activate
+```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Initialize the database:
+4. Initialize the database:
 ```bash
 flask db init
-flask db migrate
+flask db migrate -m "Initial migration"
 flask db upgrade
 ```
 
-4. Run the application:
+5. Run the development server:
 ```bash
 python app.py
 ```
 
-The server will start at `http://localhost:5000`
+The server will start on `http://localhost:5000`
 
-## API Endpoints
+## API Documentation
 
-- `GET /api/items` - Get all items
-- `POST /api/items` - Create a new item
-- `GET /api/items/<id>` - Get a specific item
-- `PUT /api/items/<id>` - Update an item
-- `DELETE /api/items/<id>` - Delete an item
+The API provides the following main endpoints:
 
-## Example Usage
+- `/api/products` - Product management
+- `/api/categories` - Category management
+- `/api/brands` - Brand management
 
-Create a new item:
-```bash
-curl -X POST http://localhost:5000/api/items \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Example Item", "description": "This is an example item"}'
-```
-
-Get all items:
-```bash
-curl http://localhost:5000/api/items
-``` 
+For detailed API documentation, refer to the API endpoints in the code. 

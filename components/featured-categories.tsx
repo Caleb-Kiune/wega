@@ -1,37 +1,34 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { categoriesApi } from "../app/lib/api/categories"
 
 export default function FeaturedCategories() {
-  const categories = [
-    {
-      id: 1,
-      name: "Cookware",
-      image: "/images/kitchenware1.jpeg",
-      href: "/categories/cookware",
-      description: "Pots, pans, and cooking essentials",
-    },
-    {
-      id: 2,
-      name: "Utensils",
-      image: "/images/tableware1.jpeg",
-      href: "/categories/utensils",
-      description: "Kitchen tools and gadgets",
-    },
-    {
-      id: 3,
-      name: "Appliances",
-      image: "/images/appliances2.jpeg",
-      href: "/categories/appliances",
-      description: "Modern kitchen appliances",
-    },
-    {
-      id: 4,
-      name: "Home Essentials",
-      image: "/images/homeessentials2.jpeg",
-      href: "/categories/home-essentials",
-      description: "Everyday home necessities",
-    },
-  ]
+  const [categories, setCategories] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true)
+        const data = await categoriesApi.getAll()
+        setCategories(data)
+      } catch (err) {
+        setError(err.message)
+        console.error('Error fetching categories:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCategories()
+  }, [])
+
+  if (loading) return <div>Loading...</div>
+  if (error) return <div>Error loading categories</div>
 
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
@@ -45,11 +42,11 @@ export default function FeaturedCategories() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {categories.map((category) => (
-            <Link key={category.id} href={category.href} className="group">
+            <Link key={category.id} href={`/categories/${category.id}`} className="group">
               <div className="bg-gray-50 rounded-lg overflow-hidden shadow-md transition-transform duration-300 group-hover:shadow-xl group-hover:-translate-y-1">
                 <div className="relative h-64 w-full">
                   <Image
-                    src={category.image || "/placeholder.svg"}
+                    src={category.image_url || "/placeholder.svg"}
                     alt={category.name}
                     fill
                     className="object-cover transition-transform duration-300 group-hover:scale-105"

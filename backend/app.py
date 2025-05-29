@@ -7,7 +7,18 @@ from models import db, Product, Category, Brand, ProductImage, ProductSpecificat
 from sqlalchemy import or_, and_
 
 app = Flask(__name__, static_folder='static')
-CORS(app)
+
+# Configure CORS - Completely permissive for development
+CORS(app, 
+     resources={r"/*": {
+         "origins": "*",
+         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         "allow_headers": "*",
+         "expose_headers": "*",
+         "supports_credentials": False,
+         "max_age": 3600
+     }},
+     supports_credentials=False)
 
 # Database configuration
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -16,6 +27,18 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 migrate = Migrate(app, db)
+
+# Root route
+@app.route('/')
+def index():
+    return jsonify({
+        'message': 'Welcome to Wega Kitchenware API',
+        'endpoints': {
+            'products': '/api/products',
+            'categories': '/api/categories',
+            'brands': '/api/brands'
+        }
+    })
 
 # Serve static files
 @app.route('/static/<path:filename>')

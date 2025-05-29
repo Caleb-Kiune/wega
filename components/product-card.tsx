@@ -8,17 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useCart } from "@/lib/hooks/use-cart"
 import { useWishlist } from "@/lib/hooks/use-wishlist"
-
-interface Product {
-  id: number
-  name: string
-  price: number
-  originalPrice?: number
-  image: string
-  isNew?: boolean
-  isSale?: boolean
-  category: string
-}
+import { Product } from "../app/lib/api/products"
 
 interface ProductCardProps {
   product: Product
@@ -53,7 +43,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         id: product.id,
         name: product.name,
         price: product.price,
-        image: product.image,
+        image: product.image_url,
         category: product.category,
       })
       toast({
@@ -68,14 +58,19 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="relative">
         <Link href={`/products/${product.id}`}>
           <div className="relative h-64 w-full">
-            <Image src={product.image || "/placeholder.svg"} alt={product.name} fill className="object-cover" />
+            <Image 
+              src={product.image_url || "/placeholder.svg"} 
+              alt={product.name} 
+              fill 
+              className="object-cover" 
+            />
           </div>
         </Link>
 
         {/* Product badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-2">
-          {product.isNew && <Badge className="bg-green-600">New</Badge>}
-          {product.isSale && <Badge className="bg-orange-500">Sale</Badge>}
+          {product.is_new && <Badge className="bg-green-600">New</Badge>}
+          {product.is_sale && <Badge className="bg-orange-500">Sale</Badge>}
         </div>
 
         {/* Quick actions overlay (visible on hover) */}
@@ -117,9 +112,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Price */}
         <div className="flex items-center mb-2">
           <span className="text-xl font-bold text-gray-800">KES {product.price.toLocaleString()}</span>
-          {product.originalPrice && (
+          {product.original_price && (
             <span className="ml-2 text-sm text-gray-500 line-through">
-              KES {product.originalPrice.toLocaleString()}
+              KES {product.original_price.toLocaleString()}
             </span>
           )}
         </div>
