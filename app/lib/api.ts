@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Product, ProductsResponse } from './api/products';
 
 const API_BASE_URL = 'http://127.0.0.1:5000/api';
 
@@ -88,26 +89,6 @@ export const endpoints = {
 } as const;
 
 // Types
-export interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  original_price?: number;
-  image_url: string;
-  is_new?: boolean;
-  is_sale?: boolean;
-  category: string;
-  brand: string;
-  stock: number;
-  rating?: number;
-  review_count?: number;
-  features?: string[];
-  specifications?: Record<string, string>;
-  images?: string[];
-  sku?: string;
-}
-
 export interface Brand {
   id: number;
   name: string;
@@ -124,14 +105,6 @@ export interface Category {
   image_url?: string;
 }
 
-export interface ProductsResponse {
-  products: Product[];
-  total: number;
-  pages: number;
-  current_page: number;
-  per_page: number;
-}
-
 export interface ProductsFilters {
   page?: number;
   limit?: number;
@@ -146,7 +119,7 @@ export interface ProductsFilters {
 // API methods with error handling
 export const apiClient = {
   // Products
-  getProducts: async (filters?: ProductsFilters) => {
+  getProducts: async (filters?: ProductsFilters): Promise<ProductsResponse> => {
     try {
       const response = await api.get<ProductsResponse>(endpoints.products, {
         params: filters,

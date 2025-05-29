@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_migrate import Migrate
 import os
-from models import db, Product, Category, Brand, ProductImage, ProductSpecification, ProductFeature
+from models import db, Product, Category, Brand, ProductImage, ProductSpecification, ProductFeature, Review
 from sqlalchemy import or_, and_
 
 app = Flask(__name__, static_folder='static')
@@ -278,6 +278,75 @@ def get_brand_products(id):
         'pages': paginated_products.pages,
         'current_page': page
     })
+
+# Reviews Routes
+@app.route('/api/products/<int:id>/reviews', methods=['GET'])
+def get_product_reviews(id):
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('limit', 10, type=int)
+    
+    query = Review.query.filter_by(product_id=id)
+    paginated_reviews = paginate(query, page, per_page)
+    
+    return jsonify({
+        'reviews': [review.to_dict() for review in paginated_reviews.items],
+        'total': paginated_reviews.total,
+        'pages': paginated_reviews.pages,
+        'current_page': page
+    })
+
+@app.route('/api/products/<int:id>/reviews', methods=['POST'])
+def create_product_review(id):
+    product = Product.query.get_or_404(id)
+    data = request.get_json()
+    
+    review = Review(
+        product_id=id,
+        user=data['user'],
+        avatar=data.get('avatar'),
+        title=data['title'],
+        comment=data['comment'],
+        rating=data['rating']
+    )
+    
+    db.session.add(review)
+    
+    # Update product rating and review count
+    product.review_count = Review.query.filter_by(product_id=id).count() + 1
+    product.rating = db.session.query(db.func.avg(Review.rating)).filter_by(product_id=id).scalar()
+    
+    db.session.commit()
+    return jsonify(review.to_dict()), 201
+
+@app.route('/api/products/<int:id>/reviews/<int:review_id>', methods=['PUT'])
+def update_product_review(id, review_id):
+    review = Review.query.filter_by(product_id=id, id=review_id).first_or_404()
+    data = request.get_json()
+    
+    for key, value in data.items():
+        if hasattr(review, key):
+            setattr(review, key, value)
+    
+    # Update product rating
+    product = Product.query.get(id)
+    product.rating = db.session.query(db.func.avg(Review.rating)).filter_by(product_id=id).scalar()
+    
+    db.session.commit()
+    return jsonify(review.to_dict())
+
+@app.route('/api/products/<int:id>/reviews/<int:review_id>', methods=['DELETE'])
+def delete_product_review(id, review_id):
+    review = Review.query.filter_by(product_id=id, id=review_id).first_or_404()
+    
+    db.session.delete(review)
+    
+    # Update product rating and review count
+    product = Product.query.get(id)
+    product.review_count = Review.query.filter_by(product_id=id).count() - 1
+    product.rating = db.session.query(db.func.avg(Review.rating)).filter_by(product_id=id).scalar()
+    
+    db.session.commit()
+    return '', 204
 
 if __name__ == '__main__':
     with app.app_context():

@@ -69,9 +69,10 @@ class Product(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    images = db.relationship('ProductImage', backref='product', lazy=True)
-    specifications = db.relationship('ProductSpecification', backref='product', lazy=True)
-    features = db.relationship('ProductFeature', backref='product', lazy=True)
+    images = db.relationship('ProductImage', backref='product', lazy=True, order_by='ProductImage.display_order')
+    specifications = db.relationship('ProductSpecification', backref='product', lazy=True, order_by='ProductSpecification.display_order')
+    features = db.relationship('ProductFeature', backref='product', lazy=True, order_by='ProductFeature.display_order')
+    reviews = db.relationship('Review', backref='product', lazy=True)
 
     def to_dict(self):
         # Get the primary image URL
@@ -81,15 +82,22 @@ class Product(db.Model):
         return {
             'id': self.id,
             'name': self.name,
+            'description': self.description,
             'price': float(self.price) if self.price else None,
             'originalPrice': float(self.original_price) if self.original_price else None,
             'image': primary_image,
+            'images': [img.to_dict() for img in self.images],
             'isNew': self.is_new,
             'isSale': self.is_sale,
             'category': self.category.name if self.category else None,
             'brand': self.brand.name if self.brand else None,
             'rating': float(self.rating) if self.rating else None,
-            'reviewCount': self.review_count
+            'reviewCount': self.review_count,
+            'stock': self.stock,
+            'sku': self.sku,
+            'features': [feature.to_dict() for feature in self.features],
+            'specifications': [spec.to_dict() for spec in self.specifications],
+            'reviews': [review.to_dict() for review in self.reviews]
         }
 
 class ProductImage(db.Model):
@@ -144,4 +152,30 @@ class ProductFeature(db.Model):
             'product_id': self.product_id,
             'feature': self.feature,
             'display_order': self.display_order
+        }
+
+class Review(db.Model):
+    __tablename__ = 'reviews'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'))
+    user = db.Column(db.String(100), nullable=False)
+    avatar = db.Column(db.String(255))
+    title = db.Column(db.String(255), nullable=False)
+    comment = db.Column(db.Text, nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'product_id': self.product_id,
+            'user': self.user,
+            'avatar': self.avatar,
+            'title': self.title,
+            'comment': self.comment,
+            'rating': self.rating,
+            'date': self.date.isoformat() if self.date else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         } 

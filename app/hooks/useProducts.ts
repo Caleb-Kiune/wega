@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import apiClient, { ProductsFilters, ProductsResponse } from '../lib/api';
+import apiClient from '../lib/api';
+import { ProductsFilters } from '../lib/api';
+import { Product, ProductsResponse } from '../lib/api/products';
 
 interface UseProductsResult {
-  products: ProductsResponse['products'];
+  products: Product[];
   loading: boolean;
   error: Error | null;
   totalPages: number;
@@ -10,7 +12,7 @@ interface UseProductsResult {
 }
 
 export function useProducts(filters: ProductsFilters = {}): UseProductsResult {
-  const [products, setProducts] = useState<ProductsResponse['products']>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [totalPages, setTotalPages] = useState(0);

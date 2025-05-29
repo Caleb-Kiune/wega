@@ -18,10 +18,16 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { toast } = useToast()
   const { addToCart } = useCart()
   const { addItem, removeItem, isInWishlist } = useWishlist()
-  const isWishlisted = isInWishlist(product.id)
+  const isWishlisted = isInWishlist(String(product.id))
 
   const handleAddToCart = () => {
-    addToCart(product)
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.images?.[0]?.image_url || "/placeholder.svg",
+      quantity: 1
+    })
     toast({
       title: "Added to cart",
       description: `${product.name} has been added to your cart.`,
@@ -33,17 +39,17 @@ export default function ProductCard({ product }: ProductCardProps) {
     e.stopPropagation()
     
     if (isWishlisted) {
-      removeItem(product.id)
+      removeItem(String(product.id))
       toast({
         title: "Removed from wishlist",
         description: `${product.name} has been removed from your wishlist.`,
       })
     } else {
       addItem({
-        id: product.id,
+        id: String(product.id),
         name: product.name,
         price: product.price,
-        image: product.image_url,
+        image: product.images?.[0]?.image_url || "/placeholder.svg",
         category: product.category,
       })
       toast({
@@ -59,7 +65,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <Link href={`/products/${product.id}`}>
           <div className="relative h-64 w-full">
             <Image 
-              src={product.image_url || "/placeholder.svg"} 
+              src={product.images?.[0]?.image_url || "/placeholder.svg"} 
               alt={product.name} 
               fill 
               className="object-cover" 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { use } from "react"
 import Image from "next/image"
 import Link from "next/link"
@@ -13,310 +13,50 @@ import WhatsAppOrderButton from "@/components/whatsapp-order-button"
 import { useToast } from "@/hooks/use-toast"
 import { useWishlist } from "@/lib/context/wishlist-context"
 
-// Update the products array to use the real images
-const products = [
-  {
-    id: "1",
-    name: "Premium Non-Stick Frying Pan",
-    price: 2499,
-    description: "This premium non-stick frying pan is perfect for everyday cooking. Made with high-quality materials, it ensures even heat distribution and long-lasting performance. The non-stick coating makes cooking and cleaning a breeze.",
-    features: [
-      "Premium non-stick coating",
-      "Even heat distribution",
-      "Ergonomic handle for comfortable grip",
-      "Suitable for all stovetops including induction",
-      "Dishwasher safe",
-      "Heat resistant up to 240°C"
-    ],
-    specifications: {
-      "Material": "Aluminum with non-stick coating",
-      "Diameter": "28 cm",
-      "Weight": "1.2 kg",
-      "Handle Material": "Bakelite",
-      "Dishwasher Safe": "Yes",
-      "Induction Compatible": "Yes",
-      "Warranty": "2 years"
-    },
-    images: [
-      "/images/kitchenware1.jpeg",
-      "/images/kitchenware2.jpeg",
-      "/images/kitchenware3.jpeg",
-      "/images/kitchenware4.jpeg"
-    ],
-    stock: 15,
-    category: "Cookware",
-    brand: "WEGA",
-    sku: "WG-FP-28-BLK"
-  },
-  {
-    id: "2",
-    name: "Stainless Steel Cooking Pot Set",
-    price: 5999,
-    originalPrice: 7499,
-    description: "This premium stainless steel cooking pot set includes everything you need for your kitchen. The set features durable construction, even heat distribution, and elegant design that will last for years.",
-    features: [
-      "Premium stainless steel construction",
-      "Set includes 3 pots with lids (2L, 4L, 6L)",
-      "Even heat distribution",
-      "Suitable for all stovetops including induction",
-      "Dishwasher safe",
-      "Oven safe up to 260°C"
-    ],
-    specifications: {
-      "Material": "18/10 Stainless Steel",
-      "Set Includes": "2L, 4L, and 6L pots with lids",
-      "Weight": "4.5 kg (total)",
-      "Handle Material": "Stainless Steel",
-      "Dishwasher Safe": "Yes",
-      "Induction Compatible": "Yes",
-      "Warranty": "5 years"
-    },
-    images: [
-      "/images/appliances1.jpeg",
-      "/images/appliances2.jpeg",
-      "/images/appliances3.jpeg",
-      "/images/appliances4.jpeg"
-    ],
-    stock: 8,
-    category: "Cookware",
-    brand: "KitchenAid",
-    sku: "KA-SS-POT-SET"
-  },
-  {
-    id: "3",
-    name: "Electric Coffee Maker",
-    price: 3499,
-    description: "Brew the perfect cup of coffee every time with our premium electric coffee maker. Features programmable settings, thermal carafe, and auto-shutoff for convenience and safety.",
-    features: [
-      "Programmable brewing",
-      "12-cup thermal carafe",
-      "Auto-shutoff feature",
-      "Pause and serve function",
-      "Removable water reservoir",
-      "Charcoal water filter"
-    ],
-    specifications: {
-      "Capacity": "12 cups",
-      "Power": "1200W",
-      "Material": "Stainless steel and plastic",
-      "Dimensions": "14 x 8 x 10 inches",
-      "Warranty": "2 years",
-      "Color": "Black"
-    },
-    images: [
-      "/images/appliances2.jpeg",
-      "/images/appliances1.jpeg",
-      "/images/appliances3.jpeg",
-      "/images/appliances4.jpeg"
-    ],
-    stock: 12,
-    category: "Appliances",
-    brand: "Cuisinart",
-    sku: "CU-CM-12-BLK"
-  },
-  {
-    id: "4",
-    name: "Kitchen Utensil Set",
-    price: 1899,
-    originalPrice: 2499,
-    description: "Complete your kitchen with this premium utensil set. Includes all essential tools for cooking and baking, made from high-quality materials for durability and performance.",
-    features: [
-      "Set of 12 essential utensils",
-      "Stainless steel construction",
-      "Heat-resistant handles",
-      "Dishwasher safe",
-      "Hanging storage included",
-      "Lifetime warranty"
-    ],
-    specifications: {
-      "Material": "Stainless steel and silicone",
-      "Set Includes": "12 pieces",
-      "Storage": "Hanging rack included",
-      "Dishwasher Safe": "Yes",
-      "Warranty": "Lifetime",
-      "Color": "Silver"
-    },
-    images: [
-      "/images/tableware1.jpeg",
-      "/images/tableware2.jpeg",
-      "/images/tableware3.jpeg",
-      "/images/tableware4.jpeg"
-    ],
-    stock: 20,
-    category: "Utensils",
-    brand: "WEGA",
-    sku: "WG-UT-12-SIL"
-  },
-  {
-    id: "5",
-    name: "Glass Food Storage Containers (Set of 5)",
-    price: 1299,
-    description: "Keep your food fresh and organized with these premium glass storage containers. Perfect for meal prep, leftovers, and pantry organization.",
-    features: [
-      "Set of 5 containers with lids",
-      "BPA-free plastic lids",
-      "Microwave and dishwasher safe",
-      "Airtight seal",
-      "Stackable design",
-      "Oven safe up to 400°F"
-    ],
-    specifications: {
-      "Material": "Tempered glass and BPA-free plastic",
-      "Set Includes": "5 containers with lids",
-      "Sizes": "0.5L, 1L, 1.5L, 2L, 2.5L",
-      "Microwave Safe": "Yes",
-      "Dishwasher Safe": "Yes",
-      "Warranty": "1 year"
-    },
-    images: [
-      "/images/homeessentials1.jpeg",
-      "/images/homeessentials2.jpeg",
-      "/images/homeessentials3.jpeg",
-      "/images/homeessentials4.jpeg"
-    ],
-    stock: 25,
-    category: "Storage Solutions",
-    brand: "Pyrex",
-    sku: "PY-GC-5-SET"
-  },
-  {
-    id: "6",
-    name: "Ceramic Dinner Plates (Set of 4)",
-    price: 1899,
-    description: "Elevate your dining experience with these elegant ceramic dinner plates. Perfect for everyday use and special occasions.",
-    features: [
-      "Set of 4 dinner plates",
-      "Premium ceramic construction",
-      "Microwave and dishwasher safe",
-      "Chip-resistant design",
-      "Elegant pattern",
-      "Stackable for easy storage"
-    ],
-    specifications: {
-      "Material": "Premium ceramic",
-      "Set Includes": "4 dinner plates",
-      "Diameter": "10.5 inches",
-      "Microwave Safe": "Yes",
-      "Dishwasher Safe": "Yes",
-      "Warranty": "1 year"
-    },
-    images: [
-      "/images/homeessentials2.jpeg",
-      "/images/homeessentials1.jpeg",
-      "/images/homeessentials3.jpeg",
-      "/images/homeessentials4.jpeg"
-    ],
-    stock: 18,
-    category: "Home Essentials",
-    brand: "WEGA",
-    sku: "WG-CP-4-SET"
-  },
-  {
-    id: "7",
-    name: "Professional Chef Knife",
-    price: 2999,
-    description: "Experience professional-grade cutting performance with this premium chef knife. Perfect for all your kitchen needs.",
-    features: [
-      "High-carbon stainless steel blade",
-      "Ergonomic handle",
-      "Full tang construction",
-      "Razor-sharp edge",
-      "Dishwasher safe",
-      "Lifetime warranty"
-    ],
-    specifications: {
-      "Material": "High-carbon stainless steel",
-      "Blade Length": "8 inches",
-      "Handle Material": "Pakkawood",
-      "Weight": "0.4 kg",
-      "Dishwasher Safe": "Yes",
-      "Warranty": "Lifetime"
-    },
-    images: [
-      "/images/kitchenware1.jpeg",
-      "/images/kitchenware2.jpeg",
-      "/images/kitchenware3.jpeg",
-      "/images/kitchenware4.jpeg"
-    ],
-    stock: 10,
-    category: "Utensils",
-    brand: "WEGA",
-    sku: "WG-CK-8-PRO"
-  },
-  {
-    id: "8",
-    name: "Electric Hand Mixer",
-    price: 2499,
-    originalPrice: 2999,
-    description: "Make baking easier with this powerful electric hand mixer. Features multiple speed settings and comes with various attachments.",
-    features: [
-      "5 speed settings",
-      "Includes 2 beaters and 2 dough hooks",
-      "Ergonomic design",
-      "Easy-grip handle",
-      "Storage case included",
-      "2-year warranty"
-    ],
-    specifications: {
-      "Power": "250W",
-      "Speeds": "5 settings",
-      "Attachments": "2 beaters, 2 dough hooks",
-      "Weight": "1.2 kg",
-      "Warranty": "2 years",
-      "Color": "White"
-    },
-    images: [
-      "/images/appliances2.jpeg",
-      "/images/appliances1.jpeg",
-      "/images/appliances3.jpeg",
-      "/images/appliances4.jpeg"
-    ],
-    stock: 15,
-    category: "Appliances",
-    brand: "Tefal",
-    sku: "TF-HM-250-WHT"
-  }
-]
-
-// Mock reviews
-const reviews = [
-  {
-    id: 1,
-    user: "Jane Doe",
-    avatar: "/placeholder.svg?height=50&width=50",
-    date: "2023-10-15",
-    title: "Excellent quality pan",
-    comment:
-      "I love this frying pan! The non-stick coating works perfectly, and it heats up evenly. Cleaning is super easy, and the handle stays cool while cooking. Highly recommend!",
-  },
-  {
-    id: 2,
-    user: "John Smith",
-    avatar: "/placeholder.svg?height=50&width=50",
-    date: "2023-09-28",
-    title: "Good value for money",
-    comment:
-      "Great pan for the price. The non-stick surface works well, and it feels sturdy. The only reason I'm giving 4 stars instead of 5 is that the handle gets a bit warm during extended cooking sessions.",
-  },
-  {
-    id: 3,
-    user: "Mary Johnson",
-    avatar: "/placeholder.svg?height=50&width=50",
-    date: "2023-09-10",
-    title: "Perfect size and quality",
-    comment:
-      "This pan is the perfect size for my family's needs. The quality is excellent, and food doesn't stick at all. I've been using it daily for a month now, and it still looks brand new. Very happy with my purchase!",
-  },
-]
-
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [quantity, setQuantity] = useState(1)
+  const [product, setProduct] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const { toast } = useToast()
   const resolvedParams = use(params)
-  const product = products.find((p) => p.id === resolvedParams.id)
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
 
-  if (!product) {
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/products/${resolvedParams.id}`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch product')
+        }
+        const data = await response.json()
+        setProduct(data)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred')
+        toast({
+          title: "Error",
+          description: "Failed to load product details",
+          variant: "destructive",
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProduct()
+  }, [resolvedParams.id, toast])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Loading...</h1>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !product) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -344,7 +84,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         id: product.id,
         name: product.name,
         price: product.price,
-        image: product.images[0],
+        image: product.image,
         category: product.category,
         brand: product.brand,
       })
@@ -365,7 +105,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               Products
             </Link>
             <span className="mx-2">/</span>
-            <Link href={`/products?category=${product.category.toLowerCase()}`} className="hover:text-green-600">
+            <Link href={`/products?category=${product.category?.toLowerCase()}`} className="hover:text-green-600">
               {product.category}
             </Link>
             <span className="mx-2">/</span>
@@ -382,7 +122,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <div>
               <div className="relative h-[400px] mb-4 rounded-lg overflow-hidden">
                 <Image
-                  src={product.images[0] || "/placeholder.svg"}
+                  src={product.image || "/placeholder.svg"}
                   alt={product.name}
                   fill
                   className="object-contain"
@@ -390,13 +130,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 />
               </div>
               <div className="grid grid-cols-4 gap-2">
-                {product.images.map((image, index) => (
+                {product.images?.map((image: any, index: number) => (
                   <div
                     key={index}
                     className="relative h-24 rounded-md overflow-hidden border cursor-pointer hover:border-green-600"
                   >
                     <Image
-                      src={image || "/placeholder.svg"}
+                      src={image.image_url || "/placeholder.svg"}
                       alt={`${product.name} - Image ${index + 1}`}
                       fill
                       className="object-cover"
@@ -410,7 +150,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <div>
               <div className="mb-2">
                 <Link
-                  href={`/products?brand=${product.brand.toLowerCase()}`}
+                  href={`/products?brand=${product.brand?.toLowerCase()}`}
                   className="text-sm text-green-600 hover:underline"
                 >
                   {product.brand}
@@ -420,10 +160,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
               {/* Price */}
               <div className="mb-6">
-                <span className="text-3xl font-bold text-gray-800">KES {product.price.toLocaleString()}</span>
+                <span className="text-3xl font-bold text-gray-800">KES {product.price?.toLocaleString()}</span>
                 {product.originalPrice && (
                   <span className="ml-2 text-lg text-gray-500 line-through">
-                    KES {product.originalPrice.toLocaleString()}
+                    KES {product.originalPrice?.toLocaleString()}
                   </span>
                 )}
                 <p className="text-sm text-gray-500 mt-1">Inclusive of all taxes</p>
@@ -463,9 +203,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   </div>
                   <Button 
                     variant="outline" 
-                    className="w-full flex items-center justify-center gap-2"
+                    className={`w-full flex items-center justify-center gap-2 ${isInWishlist(product.id) ? "text-red-500" : ""}`}
                     onClick={handleWishlistClick}
-                    className={isInWishlist(product.id) ? "text-red-500" : ""}
                   >
                     <Heart className="h-4 w-4" />
                     {isInWishlist(product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
@@ -529,23 +268,23 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="details">Details</TabsTrigger>
                 <TabsTrigger value="specifications">Specifications</TabsTrigger>
-                <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
+                <TabsTrigger value="reviews">Reviews ({product.reviewCount || 0})</TabsTrigger>
               </TabsList>
               <TabsContent value="details" className="p-4">
                 <h3 className="text-xl font-semibold text-gray-800 mb-4">Product Features</h3>
                 <ul className="list-disc pl-5 space-y-2 text-gray-600">
-                  {product.features.map((feature, index) => (
-                    <li key={index}>{feature}</li>
+                  {product.features?.map((feature: any, index: number) => (
+                    <li key={index}>{feature.feature}</li>
                   ))}
                 </ul>
               </TabsContent>
               <TabsContent value="specifications" className="p-4">
                 <h3 className="text-xl font-semibold text-gray-800 mb-4">Technical Specifications</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(product.specifications).map(([key, value]) => (
-                    <div key={key} className="flex border-b pb-2">
-                      <span className="font-medium text-gray-800 w-1/2">{key}</span>
-                      <span className="text-gray-600">{value}</span>
+                  {product.specifications?.map((spec: any) => (
+                    <div key={spec.id} className="flex border-b pb-2">
+                      <span className="font-medium text-gray-800 w-1/2">{spec.name}</span>
+                      <span className="text-gray-600">{spec.value}</span>
                     </div>
                   ))}
                 </div>
@@ -553,7 +292,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <TabsContent value="reviews" className="p-4">
                 <h3 className="text-xl font-semibold text-gray-800 mb-4">Customer Reviews</h3>
                 <div className="space-y-6">
-                  {reviews.map((review) => (
+                  {product.reviews?.map((review: any) => (
                     <div key={review.id} className="border-b pb-6">
                       <div className="flex items-center mb-3">
                         <div className="relative h-10 w-10 rounded-full overflow-hidden mr-3">
