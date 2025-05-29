@@ -57,6 +57,8 @@ export default function CrudPage() {
   const [error, setError] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -144,6 +146,41 @@ export default function CrudPage() {
         [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
       };
     });
+  };
+
+  const handleDelete = async (product: Product) => {
+    setProductToDelete(product);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!productToDelete) return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/products/${productToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete product');
+      }
+
+      // Refresh the products list
+      const fetchProducts = async () => {
+        const response = await fetch('http://localhost:5000/api/products');
+        if (!response.ok) {
+          throw new Error('Failed to fetch products');
+        }
+        const data = await response.json();
+        setProducts(data.products);
+      };
+
+      await fetchProducts();
+      setIsDeleteModalOpen(false);
+      setProductToDelete(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    }
   };
 
   if (loading) {
@@ -242,8 +279,8 @@ export default function CrudPage() {
                     </div>
                   </div>
 
-                  {/* Edit Button - Moved and restyled */}
-                  <div className="flex justify-end mb-4">
+                  {/* Edit and Delete Buttons */}
+                  <div className="flex justify-end gap-2 mb-4">
                     <button
                       onClick={() => handleEdit(product)}
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-black bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -252,6 +289,15 @@ export default function CrudPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                       </svg>
                       Edit Product
+                    </button>
+                    <button
+                      onClick={() => handleDelete(product)}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                      Delete Product
                     </button>
                   </div>
 
@@ -443,6 +489,39 @@ export default function CrudPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && productToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-800">Confirm Delete</h2>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-600 mb-4">
+                Are you sure you want to delete "{productToDelete.name}"? This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setIsDeleteModalOpen(false);
+                    setProductToDelete(null);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
