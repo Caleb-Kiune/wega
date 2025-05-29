@@ -63,42 +63,42 @@ export default function ProductsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-8">
         {/* Filters */}
         <ProductFilters filters={filters} onFiltersChange={handleFiltersChange} />
 
         {/* Main Content */}
         <div className="flex-1">
-          {/* Sort and View Options */}
-          <div className="bg-white p-4 rounded-lg shadow-sm mb-6 flex flex-col sm:flex-row justify-between items-center">
-            <div className="flex items-center mb-4 sm:mb-0">
-              <span className="text-sm text-gray-600 mr-3">Sort by:</span>
+            {/* Sort and View Options */}
+            <div className="bg-white p-4 rounded-lg shadow-sm mb-6 flex flex-col sm:flex-row justify-between items-center">
+              <div className="flex items-center mb-4 sm:mb-0">
+                <span className="text-sm text-gray-600 mr-3">Sort by:</span>
               <Select value={filters.sort} onValueChange={handleSortChange}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="featured">Featured</SelectItem>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="featured">Featured</SelectItem>
                   <SelectItem value="price_asc">Price: Low to High</SelectItem>
                   <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                    <SelectItem value="newest">Newest</SelectItem>
+                    <SelectItem value="rating">Highest Rated</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="flex items-center">
-              <span className="text-sm text-gray-600 mr-3">View:</span>
-              <div className="flex border rounded-md overflow-hidden">
-                <button className="p-2 bg-green-600 text-white">
-                  <Grid3X3 className="h-5 w-5" />
-                </button>
-                <button className="p-2 bg-white text-gray-600 hover:bg-gray-100">
-                  <List className="h-5 w-5" />
-                </button>
+              <div className="flex items-center">
+                <span className="text-sm text-gray-600 mr-3">View:</span>
+                <div className="flex border rounded-md overflow-hidden">
+                  <button className="p-2 bg-green-600 text-white">
+                    <Grid3X3 className="h-5 w-5" />
+                  </button>
+                  <button className="p-2 bg-white text-gray-600 hover:bg-gray-100">
+                    <List className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
           {/* Products Grid */}
           {loading ? (
@@ -115,18 +115,18 @@ export default function ProductsPage() {
                 ))}
               </div>
 
-              {/* Pagination */}
+            {/* Pagination */}
               {totalPages > 1 && (
-                <div className="mt-8 flex justify-center">
-                  <nav className="flex items-center space-x-2">
+            <div className="mt-8 flex justify-center">
+              <nav className="flex items-center space-x-2">
                     <Button
                       variant="outline"
                       size="sm"
                       disabled={currentPage === 1}
                       onClick={() => handlePageChange(currentPage - 1)}
                     >
-                      Previous
-                    </Button>
+                  Previous
+                </Button>
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                       <Button
                         key={page}
@@ -136,7 +136,7 @@ export default function ProductsPage() {
                         className={currentPage === page ? 'bg-green-600 text-white' : ''}
                       >
                         {page}
-                      </Button>
+                </Button>
                     ))}
                     <Button
                       variant="outline"
@@ -144,10 +144,10 @@ export default function ProductsPage() {
                       disabled={currentPage === totalPages}
                       onClick={() => handlePageChange(currentPage + 1)}
                     >
-                      Next
-                    </Button>
-                  </nav>
-                </div>
+                  Next
+                </Button>
+              </nav>
+            </div>
               )}
             </>
           )}

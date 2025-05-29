@@ -14,32 +14,68 @@ interface ProductFiltersProps {
 }
 
 export function ProductFilters({ filters, onFiltersChange }: ProductFiltersProps) {
-  const { brands, loading: brandsLoading } = useBrands();
-  const { categories, loading: categoriesLoading } = useCategories();
-  const [localFilters, setLocalFilters] = useState<ProductsFilters>(filters);
+  const { brands } = useBrands();
+  const { categories } = useCategories();
+
+  // Local state for price inputs as strings
+  const [minPriceInput, setMinPriceInput] = useState('');
+  const [maxPriceInput, setMaxPriceInput] = useState('');
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   useEffect(() => {
-    setLocalFilters(filters);
+    setMinPriceInput(filters.minPrice?.toString() || '');
+    setMaxPriceInput(filters.maxPrice?.toString() || '');
   }, [filters]);
 
-  const handleFilterChange = (key: keyof ProductsFilters, value: any) => {
-    const newFilters = { ...localFilters, [key]: value };
-    setLocalFilters(newFilters);
+  const handleCheckboxChange = (
+    key: 'brands' | 'categories',
+    value: string,
+    checked: boolean
+  ) => {
+    const currentValues = filters[key] || [];
+    const updatedValues = checked
+      ? [...currentValues, value]
+      : currentValues.filter((v) => v !== value);
+
+    onFiltersChange({
+      ...filters,
+      [key]: updatedValues,
+      page: 1,
+    });
   };
 
-  const handleApplyFilters = () => {
-    onFiltersChange(localFilters);
+  const handleSearchChange = (value: string) => {
+    onFiltersChange({
+      ...filters,
+      search: value || undefined,
+      page: 1,
+    });
+  };
+
+  const handleApplyPriceFilters = () => {
+    const updatedFilters = {
+      ...filters,
+      minPrice: minPriceInput ? Number(minPriceInput) : undefined,
+      maxPrice: maxPriceInput ? Number(maxPriceInput) : undefined,
+      page: 1,
+    };
+    onFiltersChange(updatedFilters);
     setIsMobileFiltersOpen(false);
   };
 
   const clearFilters = () => {
-    const clearedFilters: ProductsFilters = {
-      page: 1,
+    onFiltersChange({ 
+      page: 1, 
       limit: 12,
-    };
-    setLocalFilters(clearedFilters);
-    onFiltersChange(clearedFilters);
+      brands: [],
+      categories: [],
+      minPrice: undefined,
+      maxPrice: undefined,
+      sort: 'featured',
+      search: undefined
+    });
+    setMinPriceInput('');
+    setMaxPriceInput('');
   };
 
   const FilterContent = () => (
@@ -50,9 +86,8 @@ export function ProductFilters({ filters, onFiltersChange }: ProductFiltersProps
         <Input
           type="text"
           placeholder="Search products..."
-          value={localFilters.search || ''}
-          onChange={(e) => handleFilterChange('search', e.target.value)}
-          className="w-full"
+          value={filters.search || ''}
+          onChange={(e) => handleSearchChange(e.target.value)}
         />
       </div>
 
@@ -64,14 +99,10 @@ export function ProductFilters({ filters, onFiltersChange }: ProductFiltersProps
             <div key={category.id} className="flex items-center">
               <Checkbox
                 id={`category-${category.id}`}
-                checked={localFilters.categories?.includes(category.name)}
-                onCheckedChange={(checked) => {
-                  const currentCategories = localFilters.categories || [];
-                  const newCategories = checked
-                    ? [...currentCategories, category.name]
-                    : currentCategories.filter((c) => c !== category.name);
-                  handleFilterChange('categories', newCategories);
-                }}
+                checked={filters.categories?.includes(category.name)}
+                onCheckedChange={(checked) =>
+                  handleCheckboxChange('categories', category.name, !!checked)
+                }
               />
               <label
                 htmlFor={`category-${category.id}`}
@@ -86,21 +117,30 @@ export function ProductFilters({ filters, onFiltersChange }: ProductFiltersProps
 
       {/* Price Range */}
       <div>
-        <h3 className="font-medium text-gray-800 mb-3">Price Range</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-medium text-gray-800">Price Range</h3>
+          <Button
+            onClick={handleApplyPriceFilters}
+            className="bg-green-600 hover:bg-green-700 text-white"
+            size="sm"
+          >
+            Apply
+          </Button>
+        </div>
         <div className="flex items-center gap-2">
           <Input
             type="number"
             placeholder="Min"
-            value={localFilters.minPrice || ''}
-            onChange={(e) => handleFilterChange('minPrice', Number(e.target.value))}
+            value={minPriceInput}
+            onChange={(e) => setMinPriceInput(e.target.value)}
             className="w-24"
           />
           <span className="text-gray-500">-</span>
           <Input
             type="number"
             placeholder="Max"
-            value={localFilters.maxPrice || ''}
-            onChange={(e) => handleFilterChange('maxPrice', Number(e.target.value))}
+            value={maxPriceInput}
+            onChange={(e) => setMaxPriceInput(e.target.value)}
             className="w-24"
           />
         </div>
@@ -114,14 +154,10 @@ export function ProductFilters({ filters, onFiltersChange }: ProductFiltersProps
             <div key={brand.id} className="flex items-center">
               <Checkbox
                 id={`brand-${brand.id}`}
-                checked={localFilters.brands?.includes(brand.name)}
-                onCheckedChange={(checked) => {
-                  const currentBrands = localFilters.brands || [];
-                  const newBrands = checked
-                    ? [...currentBrands, brand.name]
-                    : currentBrands.filter((b) => b !== brand.name);
-                  handleFilterChange('brands', newBrands);
-                }}
+                checked={filters.brands?.includes(brand.name)}
+                onCheckedChange={(checked) =>
+                  handleCheckboxChange('brands', brand.name, !!checked)
+                }
               />
               <label
                 htmlFor={`brand-${brand.id}`}
@@ -136,17 +172,7 @@ export function ProductFilters({ filters, onFiltersChange }: ProductFiltersProps
 
       {/* Action Buttons */}
       <div className="flex gap-2">
-        <Button
-          onClick={handleApplyFilters}
-          className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-        >
-          Apply Filters
-        </Button>
-        <Button
-          onClick={clearFilters}
-          variant="outline"
-          className="flex-1"
-        >
+        <Button onClick={clearFilters} variant="outline" className="w-full">
           Clear All
         </Button>
       </div>
@@ -176,4 +202,4 @@ export function ProductFilters({ filters, onFiltersChange }: ProductFiltersProps
       </div>
     </>
   );
-} 
+}
