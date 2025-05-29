@@ -311,223 +311,262 @@ export default function CrudPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Product Management</h1>
-        <button
-          onClick={handleCreate}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-        >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-          Create Product
-        </button>
-      </div>
-      
-      {successMessage && (
-        <div className="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-          <span className="block sm:inline">{successMessage}</span>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900">Product Management</h1>
+            <p className="mt-2 text-gray-600">Manage your product catalog with ease</p>
+          </div>
+          <button
+            onClick={handleCreate}
+            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 ease-in-out transform hover:scale-105"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Create Product
+          </button>
         </div>
-      )}
+        
+        {successMessage && (
+          <div className="mb-6 bg-green-50 border-l-4 border-green-400 p-4 rounded-md shadow-sm" role="alert">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-green-700">{successMessage}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
-      {error && (
-        <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-          <span className="block sm:inline">{error}</span>
-        </div>
-      )}
+        {error && (
+          <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4 rounded-md shadow-sm" role="alert">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">Error: {error}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
-      <div className="grid grid-cols-1 gap-8">
-        {products.map((product) => (
-          <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="p-6">
-              {/* Header Section */}
-              <div className="flex flex-col md:flex-row gap-6">
-                {/* Image Gallery */}
-                <div className="w-full md:w-1/3">
-                  <div className="relative">
-                    <img
-                      src={product.image || '/placeholder.png'}
-                      alt={product.name || 'Product image'}
-                      className="w-full h-64 object-cover rounded-lg"
-                    />
-                    {product.isNew && (
-                      <span className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded-full text-sm">
-                        New
-                      </span>
-                    )}
-                    {product.isSale && (
-                      <span className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-sm">
-                        Sale
-                      </span>
-                    )}
-                  </div>
-                  {/* Additional Images */}
-                  <div className="grid grid-cols-4 gap-2 mt-2">
-                    {product.images?.map((img) => (
+        <div className="grid grid-cols-1 gap-8">
+          {products.map((product) => (
+            <div key={product.id} className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-200 hover:shadow-xl">
+              <div className="p-8">
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row gap-8">
+                  {/* Image Gallery */}
+                  <div className="w-full md:w-1/3">
+                    <div className="relative group">
                       <img
-                        key={img.id}
-                        src={img.image_url}
-                        alt={`${product.name} - Image ${img.display_order}`}
-                        className="w-full h-16 object-cover rounded"
+                        src={product.image || '/placeholder.png'}
+                        alt={product.name || 'Product image'}
+                        className="w-full h-72 object-cover rounded-lg transition-transform duration-300 group-hover:scale-105"
                       />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Product Info */}
-                <div className="w-full md:w-2/3">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-800">{product.name || 'Unnamed Product'}</h2>
-                      <p className="text-gray-500">{product.brand || 'Unknown Brand'}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500">SKU: {product.sku || 'N/A'}</p>
-                      <p className="text-sm text-gray-500">Stock: {product.stock || 0}</p>
-                    </div>
-                  </div>
-
-                  <p className="text-gray-600 mb-4">{product.description || 'No description available'}</p>
-
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="flex items-center">
-                      <span className="text-2xl font-bold text-gray-900">
-                        ${(product.price || 0).toFixed(2)}
-                      </span>
-                      {product.originalPrice && product.originalPrice > 0 && (
-                        <span className="ml-2 text-lg text-gray-500 line-through">
-                          ${product.originalPrice.toFixed(2)}
+                      {product.isNew && (
+                        <span className="absolute top-3 right-3 bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-md">
+                          New
+                        </span>
+                      )}
+                      {product.isSale && (
+                        <span className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-md">
+                          Sale
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center">
-                      <span className="text-yellow-400 text-xl">★</span>
-                      <span className="ml-1 text-gray-600">
-                        {(product.rating || 0).toFixed(1)} ({product.reviewCount || 0} reviews)
-                      </span>
+                    {/* Additional Images */}
+                    <div className="grid grid-cols-4 gap-3 mt-4">
+                      {product.images?.map((img) => (
+                        <img
+                          key={img.id}
+                          src={img.image_url}
+                          alt={`${product.name} - Image ${img.display_order}`}
+                          className="w-full h-20 object-cover rounded-lg cursor-pointer transition-transform duration-200 hover:scale-110"
+                        />
+                      ))}
                     </div>
                   </div>
 
-                  {/* Edit and Delete Buttons */}
-                  <div className="flex justify-end gap-2 mb-4">
-                    <button
-                      onClick={() => handleEdit(product)}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-black bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                      </svg>
-                      Edit Product
-                    </button>
-                    <button
-                      onClick={() => handleDelete(product)}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                    >
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                      </svg>
-                      Delete Product
-                    </button>
-                  </div>
-
-                  {/* Features */}
-                  {product.features && product.features.length > 0 && (
-                    <div className="mb-4">
-                      <h3 className="text-lg font-semibold mb-2">Features</h3>
-                      <ul className="list-disc list-inside text-gray-600">
-                        {product.features.map((feature) => (
-                          <li key={feature.id}>{feature.feature}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Specifications */}
-                  {product.specifications && product.specifications.length > 0 && (
-                    <div className="mb-4">
-                      <h3 className="text-lg font-semibold mb-2">Specifications</h3>
-                      <div className="grid grid-cols-2 gap-2">
-                        {product.specifications.map((spec) => (
-                          <div key={spec.id} className="text-sm">
-                            <span className="font-medium">{spec.name}:</span>{' '}
-                            <span className="text-gray-600">{spec.value}</span>
-                          </div>
-                        ))}
+                  {/* Product Info */}
+                  <div className="w-full md:w-2/3">
+                    <div className="flex justify-between items-start mb-6">
+                      <div>
+                        <h2 className="text-3xl font-bold text-gray-900 mb-2">{product.name || 'Unnamed Product'}</h2>
+                        <p className="text-gray-600 text-lg">{product.brand || 'Unknown Brand'}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-500 font-medium">SKU: {product.sku || 'N/A'}</p>
+                        <p className="text-sm text-gray-500 font-medium">Stock: {product.stock || 0}</p>
                       </div>
                     </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Reviews Section */}
-              {product.reviews && product.reviews.length > 0 && (
-                <div className="mt-8 border-t pt-6">
-                  <h3 className="text-xl font-semibold mb-4">Customer Reviews</h3>
-                  <div className="space-y-4">
-                    {product.reviews.map((review) => (
-                      <div key={review.id} className="bg-gray-50 p-4 rounded-lg">
-                        <div className="flex items-center gap-4 mb-2">
-                          <img
-                            src={review.avatar}
-                            alt={review.user}
-                            className="w-10 h-10 rounded-full"
-                          />
-                          <div>
-                            <h4 className="font-medium">{review.user}</h4>
-                            <div className="flex items-center">
-                              <span className="text-yellow-400">★</span>
-                              <span className="ml-1 text-sm text-gray-600">{review.rating}/5</span>
-                            </div>
-                          </div>
-                          <span className="text-sm text-gray-500 ml-auto">
-                            {new Date(review.date).toLocaleDateString()}
+                    <p className="text-gray-600 text-lg mb-6 leading-relaxed">{product.description || 'No description available'}</p>
+
+                    <div className="flex items-center gap-6 mb-6">
+                      <div className="flex items-center">
+                        <span className="text-3xl font-bold text-gray-900">
+                          ${(product.price || 0).toFixed(2)}
+                        </span>
+                        {product.originalPrice && product.originalPrice > 0 && (
+                          <span className="ml-3 text-xl text-gray-500 line-through">
+                            ${product.originalPrice.toFixed(2)}
                           </span>
-                        </div>
-                        <h5 className="font-medium mb-1">{review.title}</h5>
-                        <p className="text-gray-600">{review.comment}</p>
+                        )}
                       </div>
-                    ))}
+                      <div className="flex items-center">
+                        <span className="text-yellow-400 text-2xl">★</span>
+                        <span className="ml-2 text-gray-600 text-lg">
+                          {(product.rating || 0).toFixed(1)} ({product.reviewCount || 0} reviews)
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Edit and Delete Buttons */}
+                    <div className="flex justify-end gap-4 mb-6">
+                      <button
+                        onClick={() => handleEdit(product)}
+                        className="inline-flex items-center px-5 py-2.5 border border-transparent text-base font-medium rounded-lg shadow-sm text-black bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 ease-in-out transform hover:scale-105"
+                      >
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                        Edit Product
+                      </button>
+                      <button
+                        onClick={() => handleDelete(product)}
+                        className="inline-flex items-center px-5 py-2.5 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 ease-in-out transform hover:scale-105"
+                      >
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Delete Product
+                      </button>
+                    </div>
+
+                    {/* Features */}
+                    {product.features && product.features.length > 0 && (
+                      <div className="mb-6">
+                        <h3 className="text-xl font-semibold mb-3 text-gray-900">Features</h3>
+                        <ul className="grid grid-cols-2 gap-3">
+                          {product.features.map((feature) => (
+                            <li key={feature.id} className="flex items-center text-gray-600">
+                              <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                              </svg>
+                              {feature.feature}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Specifications */}
+                    {product.specifications && product.specifications.length > 0 && (
+                      <div className="mb-6">
+                        <h3 className="text-xl font-semibold mb-3 text-gray-900">Specifications</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          {product.specifications.map((spec) => (
+                            <div key={spec.id} className="bg-gray-50 p-3 rounded-lg">
+                              <span className="font-medium text-gray-900">{spec.name}:</span>{' '}
+                              <span className="text-gray-600">{spec.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
+
+                {/* Reviews Section */}
+                {product.reviews && product.reviews.length > 0 && (
+                  <div className="mt-10 border-t pt-8">
+                    <h3 className="text-2xl font-semibold mb-6 text-gray-900">Customer Reviews</h3>
+                    <div className="space-y-6">
+                      {product.reviews.map((review) => (
+                        <div key={review.id} className="bg-gray-50 p-6 rounded-xl">
+                          <div className="flex items-center gap-4 mb-4">
+                            <img
+                              src={review.avatar}
+                              alt={review.user}
+                              className="w-12 h-12 rounded-full border-2 border-white shadow-md"
+                            />
+                            <div>
+                              <h4 className="font-semibold text-gray-900">{review.user}</h4>
+                              <div className="flex items-center">
+                                <span className="text-yellow-400 text-xl">★</span>
+                                <span className="ml-2 text-gray-600">{review.rating}/5</span>
+                              </div>
+                            </div>
+                            <span className="text-sm text-gray-500 ml-auto">
+                              {new Date(review.date).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <h5 className="font-semibold text-gray-900 mb-2">{review.title}</h5>
+                          <p className="text-gray-600 leading-relaxed">{review.comment}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Edit Modal */}
       {isModalOpen && editingProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-800">Edit Product</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all duration-300 ease-in-out">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl transform transition-all duration-300 ease-in-out scale-100 animate-fadeIn">
+            <div className="px-8 py-6 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">Edit Product</h2>
+              <button
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setEditingProduct(null);
+                }}
+                className="text-gray-400 hover:text-gray-500 transition-colors duration-200"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            <form onSubmit={handleSave} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={editingProduct.name}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
+            <form onSubmit={handleSave} className="p-8 space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={editingProduct.name}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Description</label>
-                <textarea
-                  name="description"
-                  value={editingProduct.description}
-                  onChange={handleInputChange}
-                  rows={2}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <textarea
+                    name="description"
+                    value={editingProduct.description}
+                    onChange={handleInputChange}
+                    rows={2}
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white resize-none"
+                  />
+                </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
+                <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">Price</label>
                   <input
                     type="number"
@@ -535,11 +574,11 @@ export default function CrudPage() {
                     value={editingProduct.price}
                     onChange={handleInputChange}
                     step="0.01"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                   />
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">Original Price</label>
                   <input
                     type="number"
@@ -547,73 +586,71 @@ export default function CrudPage() {
                     value={editingProduct.originalPrice || ''}
                     onChange={handleInputChange}
                     step="0.01"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
+                <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">SKU</label>
                   <input
                     type="text"
                     name="sku"
                     value={editingProduct.sku}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                   />
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">Stock</label>
                   <input
                     type="number"
                     name="stock"
                     value={editingProduct.stock}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                <label className="flex items-center">
+              <div className="flex items-center gap-6 pt-4">
+                <label className="flex items-center space-x-3 cursor-pointer group">
                   <input
                     type="checkbox"
                     name="isNew"
                     checked={editingProduct.isNew}
                     onChange={handleInputChange}
-                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
                   />
-                  <span className="ml-2 text-sm text-gray-700">New Product</span>
+                  <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">New Product</span>
                 </label>
 
-                <label className="flex items-center">
+                <label className="flex items-center space-x-3 cursor-pointer group">
                   <input
                     type="checkbox"
                     name="isSale"
                     checked={editingProduct.isSale}
                     onChange={handleInputChange}
-                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
                   />
-                  <span className="ml-2 text-sm text-gray-700">On Sale</span>
+                  <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">On Sale</span>
                 </label>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t">
+              <div className="flex justify-end gap-4 pt-6 border-t">
                 <button
                   type="button"
                   onClick={() => {
                     setIsModalOpen(false);
                     setEditingProduct(null);
                   }}
-                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                  className="px-6 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-3 py-2 text-sm font-medium text-black bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-6 py-2.5 text-sm font-medium text-black bg-green-500 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 transform hover:scale-105"
                 >
                   Save Changes
                 </button>
@@ -625,28 +662,46 @@ export default function CrudPage() {
 
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && productToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-800">Confirm Delete</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all duration-300 ease-in-out">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 ease-in-out scale-100 animate-fadeIn">
+            <div className="px-8 py-6 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">Confirm Delete</h2>
+              <button
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setProductToDelete(null);
+                }}
+                className="text-gray-400 hover:text-gray-500 transition-colors duration-200"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            <div className="p-6">
-              <p className="text-gray-600 mb-4">
-                Are you sure you want to delete "{productToDelete.name}"? This action cannot be undone.
+            <div className="p-8">
+              <div className="flex items-center justify-center mb-6">
+                <div className="bg-red-100 p-3 rounded-full">
+                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-gray-600 text-lg text-center mb-6">
+                Are you sure you want to delete <span className="font-semibold text-gray-900">"{productToDelete.name}"</span>? This action cannot be undone.
               </p>
-              <div className="flex justify-end gap-3">
+              <div className="flex justify-end gap-4">
                 <button
                   onClick={() => {
                     setIsDeleteModalOpen(false);
                     setProductToDelete(null);
                   }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                  className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  className="px-6 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 transform hover:scale-105"
                 >
                   Delete
                 </button>
@@ -658,16 +713,44 @@ export default function CrudPage() {
 
       {/* Create Product Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 pt-20">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mt-8">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-800">Create New Product</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start justify-center p-4 pt-20 z-50 transition-all duration-300 ease-in-out">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl mt-8 transform transition-all duration-300 ease-in-out scale-100 animate-fadeIn">
+            <div className="px-8 py-6 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">Create New Product</h2>
+              <button
+                onClick={() => {
+                  setIsCreateModalOpen(false);
+                  setNewProduct({
+                    name: '',
+                    description: '',
+                    price: 0,
+                    originalPrice: null,
+                    sku: '',
+                    stock: 0,
+                    isNew: false,
+                    isSale: false,
+                    images: [],
+                    specifications: [],
+                    features: [],
+                    brand: '',
+                    category: '',
+                    rating: 0,
+                    reviewCount: 0,
+                    reviews: []
+                  });
+                }}
+                className="text-gray-400 hover:text-gray-500 transition-colors duration-200"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            <form onSubmit={handleCreateSubmit} className="p-6">
-              <div className="grid grid-cols-2 gap-6">
+            <form onSubmit={handleCreateSubmit} className="p-8">
+              <div className="grid grid-cols-2 gap-8">
                 {/* Left Column */}
-                <div className="space-y-4">
-                  <div>
+                <div className="space-y-6">
+                  <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">Name</label>
                     <input
                       type="text"
@@ -675,47 +758,47 @@ export default function CrudPage() {
                       value={newProduct.name}
                       onChange={handleCreateInputChange}
                       required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                     />
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">Description</label>
                     <textarea
                       name="description"
                       value={newProduct.description}
                       onChange={handleCreateInputChange}
-                      rows={2}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      rows={3}
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white resize-none"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
+                    <div className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700">Brand</label>
                       <input
                         type="text"
                         name="brand"
                         value={newProduct.brand}
                         onChange={handleCreateInputChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                       />
                     </div>
 
-                    <div>
+                    <div className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700">Category</label>
                       <input
                         type="text"
                         name="category"
                         value={newProduct.category}
                         onChange={handleCreateInputChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
+                    <div className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700">Price</label>
                       <input
                         type="number"
@@ -724,11 +807,11 @@ export default function CrudPage() {
                         onChange={handleCreateInputChange}
                         step="0.01"
                         required
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                       />
                     </div>
 
-                    <div>
+                    <div className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700">Original Price</label>
                       <input
                         type="number"
@@ -736,40 +819,40 @@ export default function CrudPage() {
                         value={newProduct.originalPrice || ''}
                         onChange={handleCreateInputChange}
                         step="0.01"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Right Column */}
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
+                    <div className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700">SKU</label>
                       <input
                         type="text"
                         name="sku"
                         value={newProduct.sku}
                         onChange={handleCreateInputChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                       />
                     </div>
 
-                    <div>
+                    <div className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700">Stock</label>
                       <input
                         type="number"
                         name="stock"
                         value={newProduct.stock}
                         onChange={handleCreateInputChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
+                    <div className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700">Rating</label>
                       <input
                         type="number"
@@ -779,11 +862,11 @@ export default function CrudPage() {
                         min="0"
                         max="5"
                         step="0.1"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                       />
                     </div>
 
-                    <div>
+                    <div className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700">Review Count</label>
                       <input
                         type="number"
@@ -791,38 +874,38 @@ export default function CrudPage() {
                         value={newProduct.reviewCount}
                         onChange={handleCreateInputChange}
                         min="0"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 pt-4">
-                    <label className="flex items-center">
+                  <div className="flex items-center gap-6 pt-4">
+                    <label className="flex items-center space-x-3 cursor-pointer group">
                       <input
                         type="checkbox"
                         name="isNew"
                         checked={newProduct.isNew}
                         onChange={handleCreateInputChange}
-                        className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
                       />
-                      <span className="ml-2 text-sm text-gray-700">New Product</span>
+                      <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">New Product</span>
                     </label>
 
-                    <label className="flex items-center">
+                    <label className="flex items-center space-x-3 cursor-pointer group">
                       <input
                         type="checkbox"
                         name="isSale"
                         checked={newProduct.isSale}
                         onChange={handleCreateInputChange}
-                        className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
                       />
-                      <span className="ml-2 text-sm text-gray-700">On Sale</span>
+                      <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">On Sale</span>
                     </label>
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-6 mt-6 border-t">
+              <div className="flex justify-end gap-4 pt-8 mt-8 border-t">
                 <button
                   type="button"
                   onClick={() => {
@@ -846,13 +929,13 @@ export default function CrudPage() {
                       reviews: []
                     });
                   }}
-                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                  className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  className="px-6 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 transform hover:scale-105"
                 >
                   Create Product
                 </button>
