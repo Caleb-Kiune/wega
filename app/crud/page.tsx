@@ -60,6 +60,7 @@ export default function CrudPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [newProduct, setNewProduct] = useState<Partial<Product>>({
     name: '',
     description: '',
@@ -71,7 +72,12 @@ export default function CrudPage() {
     isSale: false,
     images: [],
     specifications: [],
-    features: []
+    features: [],
+    brand: '',
+    category: '',
+    rating: 0,
+    reviewCount: 0,
+    reviews: []
   });
 
   useEffect(() => {
@@ -225,7 +231,12 @@ export default function CrudPage() {
         is_sale: newProduct.isSale,
         images: newProduct.images,
         specifications: newProduct.specifications,
-        features: newProduct.features
+        features: newProduct.features,
+        brand: newProduct.brand,
+        category: newProduct.category,
+        rating: newProduct.rating,
+        reviewCount: newProduct.reviewCount,
+        reviews: newProduct.reviews
       };
 
       const response = await fetch('http://localhost:5000/api/products', {
@@ -239,6 +250,8 @@ export default function CrudPage() {
       if (!response.ok) {
         throw new Error('Failed to create product');
       }
+
+      const createdProduct = await response.json();
 
       // Refresh the products list
       const fetchProducts = async () => {
@@ -263,8 +276,15 @@ export default function CrudPage() {
         isSale: false,
         images: [],
         specifications: [],
-        features: []
+        features: [],
+        brand: '',
+        category: '',
+        rating: 0,
+        reviewCount: 0,
+        reviews: []
       });
+      setSuccessMessage(`Product "${createdProduct.name}" has been created successfully!`);
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
@@ -305,6 +325,18 @@ export default function CrudPage() {
         </button>
       </div>
       
+      {successMessage && (
+        <div className="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+          <span className="block sm:inline">{successMessage}</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <span className="block sm:inline">{error}</span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-8">
         {products.map((product) => (
           <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -626,111 +658,171 @@ export default function CrudPage() {
 
       {/* Create Product Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 pt-20">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mt-8">
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-800">Create New Product</h2>
             </div>
-            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={newProduct.name}
-                  onChange={handleCreateInputChange}
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
+            <form onSubmit={handleCreateSubmit} className="p-6">
+              <div className="grid grid-cols-2 gap-6">
+                {/* Left Column */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={newProduct.name}
+                      onChange={handleCreateInputChange}
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Description</label>
-                <textarea
-                  name="description"
-                  value={newProduct.description}
-                  onChange={handleCreateInputChange}
-                  rows={2}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea
+                      name="description"
+                      value={newProduct.description}
+                      onChange={handleCreateInputChange}
+                      rows={2}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Price</label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={newProduct.price}
-                    onChange={handleCreateInputChange}
-                    step="0.01"
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Brand</label>
+                      <input
+                        type="text"
+                        name="brand"
+                        value={newProduct.brand}
+                        onChange={handleCreateInputChange}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Category</label>
+                      <input
+                        type="text"
+                        name="category"
+                        value={newProduct.category}
+                        onChange={handleCreateInputChange}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Price</label>
+                      <input
+                        type="number"
+                        name="price"
+                        value={newProduct.price}
+                        onChange={handleCreateInputChange}
+                        step="0.01"
+                        required
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Original Price</label>
+                      <input
+                        type="number"
+                        name="originalPrice"
+                        value={newProduct.originalPrice || ''}
+                        onChange={handleCreateInputChange}
+                        step="0.01"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Original Price</label>
-                  <input
-                    type="number"
-                    name="originalPrice"
-                    value={newProduct.originalPrice || ''}
-                    onChange={handleCreateInputChange}
-                    step="0.01"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  />
+                {/* Right Column */}
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">SKU</label>
+                      <input
+                        type="text"
+                        name="sku"
+                        value={newProduct.sku}
+                        onChange={handleCreateInputChange}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Stock</label>
+                      <input
+                        type="number"
+                        name="stock"
+                        value={newProduct.stock}
+                        onChange={handleCreateInputChange}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Rating</label>
+                      <input
+                        type="number"
+                        name="rating"
+                        value={newProduct.rating}
+                        onChange={handleCreateInputChange}
+                        min="0"
+                        max="5"
+                        step="0.1"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Review Count</label>
+                      <input
+                        type="number"
+                        name="reviewCount"
+                        value={newProduct.reviewCount}
+                        onChange={handleCreateInputChange}
+                        min="0"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 pt-4">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        name="isNew"
+                        checked={newProduct.isNew}
+                        onChange={handleCreateInputChange}
+                        className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">New Product</span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        name="isSale"
+                        checked={newProduct.isSale}
+                        onChange={handleCreateInputChange}
+                        className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">On Sale</span>
+                    </label>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">SKU</label>
-                  <input
-                    type="text"
-                    name="sku"
-                    value={newProduct.sku}
-                    onChange={handleCreateInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Stock</label>
-                  <input
-                    type="number"
-                    name="stock"
-                    value={newProduct.stock}
-                    onChange={handleCreateInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="isNew"
-                    checked={newProduct.isNew}
-                    onChange={handleCreateInputChange}
-                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">New Product</span>
-                </label>
-
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="isSale"
-                    checked={newProduct.isSale}
-                    onChange={handleCreateInputChange}
-                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">On Sale</span>
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t">
+              <div className="flex justify-end gap-3 pt-6 mt-6 border-t">
                 <button
                   type="button"
                   onClick={() => {
@@ -746,7 +838,12 @@ export default function CrudPage() {
                       isSale: false,
                       images: [],
                       specifications: [],
-                      features: []
+                      features: [],
+                      brand: '',
+                      category: '',
+                      rating: 0,
+                      reviewCount: 0,
+                      reviews: []
                     });
                   }}
                   className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
