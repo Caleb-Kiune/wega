@@ -5,6 +5,7 @@ from flask_migrate import Migrate
 import os
 from models import db, Product, Category, Brand, ProductImage, ProductSpecification, ProductFeature, Review
 from sqlalchemy import or_, and_
+from decimal import Decimal
 
 app = Flask(__name__, static_folder='static')
 
@@ -27,6 +28,54 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 migrate = Migrate(app, db)
+
+# Helper functions
+def validate_product_data(data):
+    if not data.get('name'):
+        return False, "Product name is required"
+    if not data.get('price'):
+        return False, "Product price is required"
+    try:
+        price = Decimal(str(data['price']))
+        if price < 0:
+            return False, "Price cannot be negative"
+    except (ValueError, TypeError):
+        return False, "Invalid price format"
+    return True, None
+
+def validate_review_data(data):
+    if not data.get('user'):
+        return False, "User name is required"
+    if not data.get('title'):
+        return False, "Review title is required"
+    if not data.get('comment'):
+        return False, "Review comment is required"
+    if not data.get('rating'):
+        return False, "Rating is required"
+    try:
+        rating = int(data['rating'])
+        if rating < 1 or rating > 5:
+            return False, "Rating must be between 1 and 5"
+    except (ValueError, TypeError):
+        return False, "Invalid rating format"
+    return True, None
+
+def validate_image_data(data):
+    if not data.get('image_url'):
+        return False, "Image URL is required"
+    return True, None
+
+def validate_specification_data(data):
+    if not data.get('name'):
+        return False, "Specification name is required"
+    if not data.get('value'):
+        return False, "Specification value is required"
+    return True, None
+
+def validate_feature_data(data):
+    if not data.get('feature'):
+        return False, "Feature description is required"
+    return True, None
 
 # Root route
 @app.route('/')
@@ -54,11 +103,11 @@ def paginate(query, page=1, per_page=10):
 def get_products():
     # Get query parameters
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('limit', 12, type=int)  # Changed to 12 for 4x3 grid
-    categories = request.args.getlist('categories[]')  # Changed to handle multiple categories
-    brands = request.args.getlist('brands[]')  # Changed to handle multiple brands
-    min_price = request.args.get('minPrice', type=float)  # Changed to match frontend
-    max_price = request.args.get('maxPrice', type=float)  # Changed to match frontend
+    per_page = request.args.get('limit', 12, type=int)
+    categories = request.args.getlist('categories[]')
+    brands = request.args.getlist('brands[]')
+    min_price = request.args.get('minPrice', type=float)
+    max_price = request.args.get('maxPrice', type=float)
     sort = request.args.get('sort', 'featured')
     search = request.args.get('search')
 
@@ -77,7 +126,7 @@ def get_products():
     if search:
         search_term = f"%{search}%"
         query = query.filter(
-            db.or_(
+            or_(
                 Product.name.ilike(search_term),
                 Product.description.ilike(search_term),
                 Category.name.ilike(search_term),
@@ -120,6 +169,11 @@ def get_product(id):
 def create_product():
     data = request.get_json()
     
+    # Validate product data
+    is_valid, error_message = validate_product_data(data)
+    if not is_valid:
+        return jsonify({'error': error_message}), 400
+    
     # Create product
     product = Product(
         name=data['name'],
@@ -140,6 +194,10 @@ def create_product():
     # Add images
     if 'images' in data:
         for image_data in data['images']:
+            is_valid, error_message = validate_image_data(image_data)
+            if not is_valid:
+                db.session.rollback()
+                return jsonify({'error': error_message}), 400
             image = ProductImage(
                 product_id=product.id,
                 image_url=image_data['image_url'],
@@ -151,6 +209,10 @@ def create_product():
     # Add specifications
     if 'specifications' in data:
         for spec_data in data['specifications']:
+            is_valid, error_message = validate_specification_data(spec_data)
+            if not is_valid:
+                db.session.rollback()
+                return jsonify({'error': error_message}), 400
             spec = ProductSpecification(
                 product_id=product.id,
                 name=spec_data['name'],
@@ -162,6 +224,10 @@ def create_product():
     # Add features
     if 'features' in data:
         for feature_data in data['features']:
+            is_valid, error_message = validate_feature_data(feature_data)
+            if not is_valid:
+                db.session.rollback()
+                return jsonify({'error': error_message}), 400
             feature = ProductFeature(
                 product_id=product.id,
                 feature=feature_data['feature'],
@@ -180,6 +246,15 @@ def update_product(id):
     
     data = request.get_json()
     
+    # Validate price if provided
+    if 'price' in data:
+        try:
+            price = Decimal(str(data['price']))
+            if price < 0:
+                return jsonify({'error': 'Price cannot be negative'}), 400
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Invalid price format'}), 400
+    
     # Update basic product info
     for key, value in data.items():
         if key not in ['images', 'specifications', 'features']:
@@ -191,6 +266,10 @@ def update_product(id):
         ProductImage.query.filter_by(product_id=id).delete()
         # Add new images
         for image_data in data['images']:
+            is_valid, error_message = validate_image_data(image_data)
+            if not is_valid:
+                db.session.rollback()
+                return jsonify({'error': error_message}), 400
             image = ProductImage(
                 product_id=id,
                 image_url=image_data['image_url'],
@@ -201,8 +280,14 @@ def update_product(id):
     
     # Update specifications
     if 'specifications' in data:
+        # Delete existing specifications
         ProductSpecification.query.filter_by(product_id=id).delete()
+        # Add new specifications
         for spec_data in data['specifications']:
+            is_valid, error_message = validate_specification_data(spec_data)
+            if not is_valid:
+                db.session.rollback()
+                return jsonify({'error': error_message}), 400
             spec = ProductSpecification(
                 product_id=id,
                 name=spec_data['name'],
@@ -213,8 +298,14 @@ def update_product(id):
     
     # Update features
     if 'features' in data:
+        # Delete existing features
         ProductFeature.query.filter_by(product_id=id).delete()
+        # Add new features
         for feature_data in data['features']:
+            is_valid, error_message = validate_feature_data(feature_data)
+            if not is_valid:
+                db.session.rollback()
+                return jsonify({'error': error_message}), 400
             feature = ProductFeature(
                 product_id=id,
                 feature=feature_data['feature'],
@@ -250,17 +341,23 @@ def get_category(id):
 
 @app.route('/api/categories/<int:id>/products', methods=['GET'])
 def get_category_products(id):
+    category = db.session.get(Category, id)
+    if category is None:
+        return jsonify({'error': 'Category not found'}), 404
+    
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('limit', 10, type=int)
+    per_page = request.args.get('limit', 12, type=int)
     
     query = Product.query.filter_by(category_id=id)
-    paginated_products = paginate(query, page, per_page)
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    products = pagination.items
     
     return jsonify({
-        'products': [product.to_dict() for product in paginated_products.items],
-        'total': paginated_products.total,
-        'pages': paginated_products.pages,
-        'current_page': page
+        'products': [product.to_dict() for product in products],
+        'total': pagination.total,
+        'pages': pagination.pages,
+        'current_page': page,
+        'per_page': per_page
     })
 
 # Brands Routes
@@ -278,33 +375,45 @@ def get_brand(id):
 
 @app.route('/api/brands/<int:id>/products', methods=['GET'])
 def get_brand_products(id):
+    brand = db.session.get(Brand, id)
+    if brand is None:
+        return jsonify({'error': 'Brand not found'}), 404
+    
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('limit', 10, type=int)
+    per_page = request.args.get('limit', 12, type=int)
     
     query = Product.query.filter_by(brand_id=id)
-    paginated_products = paginate(query, page, per_page)
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    products = pagination.items
     
     return jsonify({
-        'products': [product.to_dict() for product in paginated_products.items],
-        'total': paginated_products.total,
-        'pages': paginated_products.pages,
-        'current_page': page
+        'products': [product.to_dict() for product in products],
+        'total': pagination.total,
+        'pages': pagination.pages,
+        'current_page': page,
+        'per_page': per_page
     })
 
 # Reviews Routes
 @app.route('/api/products/<int:id>/reviews', methods=['GET'])
 def get_product_reviews(id):
+    product = db.session.get(Product, id)
+    if product is None:
+        return jsonify({'error': 'Product not found'}), 404
+    
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('limit', 10, type=int)
     
     query = Review.query.filter_by(product_id=id)
-    paginated_reviews = paginate(query, page, per_page)
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    reviews = pagination.items
     
     return jsonify({
-        'reviews': [review.to_dict() for review in paginated_reviews.items],
-        'total': paginated_reviews.total,
-        'pages': paginated_reviews.pages,
-        'current_page': page
+        'reviews': [review.to_dict() for review in reviews],
+        'total': pagination.total,
+        'pages': pagination.pages,
+        'current_page': page,
+        'per_page': per_page
     })
 
 @app.route('/api/products/<int:id>/reviews', methods=['POST'])
@@ -314,6 +423,11 @@ def create_product_review(id):
         return jsonify({'error': 'Product not found'}), 404
     
     data = request.get_json()
+    
+    # Validate review data
+    is_valid, error_message = validate_review_data(data)
+    if not is_valid:
+        return jsonify({'error': error_message}), 400
     
     review = Review(
         product_id=id,
@@ -326,45 +440,58 @@ def create_product_review(id):
     
     db.session.add(review)
     
-    # Update product rating and review count
+    # Update product rating
     product.review_count = Review.query.filter_by(product_id=id).count() + 1
-    product.rating = db.session.query(db.func.avg(Review.rating)).filter_by(product_id=id).scalar()
+    avg_rating = db.session.query(db.func.avg(Review.rating)).filter_by(product_id=id).scalar()
+    product.rating = avg_rating if avg_rating else data['rating']
     
     db.session.commit()
     return jsonify(review.to_dict()), 201
 
 @app.route('/api/products/<int:id>/reviews/<int:review_id>', methods=['PUT'])
 def update_product_review(id, review_id):
-    review = db.session.get(Review, review_id)
-    if review is None or review.product_id != id:
+    review = Review.query.filter_by(id=review_id, product_id=id).first()
+    if review is None:
         return jsonify({'error': 'Review not found'}), 404
+    
     data = request.get_json()
     
+    # Validate rating if provided
+    if 'rating' in data:
+        try:
+            rating = int(data['rating'])
+            if rating < 1 or rating > 5:
+                return jsonify({'error': 'Rating must be between 1 and 5'}), 400
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Invalid rating format'}), 400
+    
+    # Update review
     for key, value in data.items():
-        if hasattr(review, key):
-            setattr(review, key, value)
+        setattr(review, key, value)
     
     # Update product rating
+    avg_rating = db.session.query(db.func.avg(Review.rating)).filter_by(product_id=id).scalar()
     product = db.session.get(Product, id)
-    if product is not None:
-        product.rating = db.session.query(db.func.avg(Review.rating)).filter_by(product_id=id).scalar()
+    if product:
+        product.rating = avg_rating if avg_rating else None
     
     db.session.commit()
     return jsonify(review.to_dict())
 
 @app.route('/api/products/<int:id>/reviews/<int:review_id>', methods=['DELETE'])
 def delete_product_review(id, review_id):
-    review = db.session.get(Review, review_id)
-    if review is None or review.product_id != id:
+    review = Review.query.filter_by(id=review_id, product_id=id).first()
+    if review is None:
         return jsonify({'error': 'Review not found'}), 404
     
     db.session.delete(review)
     
-    # Update product rating and review count
+    # Update product rating
     product = db.session.get(Product, id)
-    if product is not None:
+    if product:
         product.review_count = Review.query.filter_by(product_id=id).count() - 1
-        product.rating = db.session.query(db.func.avg(Review.rating)).filter_by(product_id=id).scalar()
+        avg_rating = db.session.query(db.func.avg(Review.rating)).filter_by(product_id=id).scalar()
+        product.rating = avg_rating if avg_rating else None
     
     db.session.commit()
     return '', 204
@@ -377,7 +504,16 @@ def get_product_images(product_id):
 
 @app.route('/api/products/<int:product_id>/images', methods=['POST'])
 def create_product_image(product_id):
+    product = db.session.get(Product, product_id)
+    if product is None:
+        return jsonify({'error': 'Product not found'}), 404
+    
     data = request.get_json()
+    
+    # Validate image data
+    is_valid, error_message = validate_image_data(data)
+    if not is_valid:
+        return jsonify({'error': error_message}), 400
     
     image = ProductImage(
         product_id=product_id,
@@ -392,22 +528,28 @@ def create_product_image(product_id):
 
 @app.route('/api/products/<int:product_id>/images/<int:image_id>', methods=['PUT'])
 def update_product_image(product_id, image_id):
-    image = db.session.get(ProductImage, image_id)
-    if image is None or image.product_id != product_id:
+    image = ProductImage.query.filter_by(id=image_id, product_id=product_id).first()
+    if image is None:
         return jsonify({'error': 'Image not found'}), 404
+    
     data = request.get_json()
     
+    # Validate image data
+    is_valid, error_message = validate_image_data(data)
+    if not is_valid:
+        return jsonify({'error': error_message}), 400
+    
+    # Update image
     for key, value in data.items():
-        if hasattr(image, key):
-            setattr(image, key, value)
+        setattr(image, key, value)
     
     db.session.commit()
     return jsonify(image.to_dict())
 
 @app.route('/api/products/<int:product_id>/images/<int:image_id>', methods=['DELETE'])
 def delete_product_image(product_id, image_id):
-    image = db.session.get(ProductImage, image_id)
-    if image is None or image.product_id != product_id:
+    image = ProductImage.query.filter_by(id=image_id, product_id=product_id).first()
+    if image is None:
         return jsonify({'error': 'Image not found'}), 404
     
     db.session.delete(image)
@@ -422,7 +564,16 @@ def get_product_specifications(product_id):
 
 @app.route('/api/products/<int:product_id>/specifications', methods=['POST'])
 def create_product_specification(product_id):
+    product = db.session.get(Product, product_id)
+    if product is None:
+        return jsonify({'error': 'Product not found'}), 404
+    
     data = request.get_json()
+    
+    # Validate specification data
+    is_valid, error_message = validate_specification_data(data)
+    if not is_valid:
+        return jsonify({'error': error_message}), 400
     
     specification = ProductSpecification(
         product_id=product_id,
@@ -437,25 +588,31 @@ def create_product_specification(product_id):
 
 @app.route('/api/products/<int:product_id>/specifications/<int:spec_id>', methods=['PUT'])
 def update_product_specification(product_id, spec_id):
-    spec = db.session.get(ProductSpecification, spec_id)
-    if spec is None or spec.product_id != product_id:
+    specification = ProductSpecification.query.filter_by(id=spec_id, product_id=product_id).first()
+    if specification is None:
         return jsonify({'error': 'Specification not found'}), 404
+    
     data = request.get_json()
     
+    # Validate specification data
+    is_valid, error_message = validate_specification_data(data)
+    if not is_valid:
+        return jsonify({'error': error_message}), 400
+    
+    # Update specification
     for key, value in data.items():
-        if hasattr(spec, key):
-            setattr(spec, key, value)
+        setattr(specification, key, value)
     
     db.session.commit()
-    return jsonify(spec.to_dict())
+    return jsonify(specification.to_dict())
 
 @app.route('/api/products/<int:product_id>/specifications/<int:spec_id>', methods=['DELETE'])
 def delete_product_specification(product_id, spec_id):
-    spec = db.session.get(ProductSpecification, spec_id)
-    if spec is None or spec.product_id != product_id:
+    specification = ProductSpecification.query.filter_by(id=spec_id, product_id=product_id).first()
+    if specification is None:
         return jsonify({'error': 'Specification not found'}), 404
     
-    db.session.delete(spec)
+    db.session.delete(specification)
     db.session.commit()
     return '', 204
 
@@ -467,7 +624,16 @@ def get_product_features(product_id):
 
 @app.route('/api/products/<int:product_id>/features', methods=['POST'])
 def create_product_feature(product_id):
+    product = db.session.get(Product, product_id)
+    if product is None:
+        return jsonify({'error': 'Product not found'}), 404
+    
     data = request.get_json()
+    
+    # Validate feature data
+    is_valid, error_message = validate_feature_data(data)
+    if not is_valid:
+        return jsonify({'error': error_message}), 400
     
     feature = ProductFeature(
         product_id=product_id,
@@ -481,22 +647,28 @@ def create_product_feature(product_id):
 
 @app.route('/api/products/<int:product_id>/features/<int:feature_id>', methods=['PUT'])
 def update_product_feature(product_id, feature_id):
-    feature = db.session.get(ProductFeature, feature_id)
-    if feature is None or feature.product_id != product_id:
+    feature = ProductFeature.query.filter_by(id=feature_id, product_id=product_id).first()
+    if feature is None:
         return jsonify({'error': 'Feature not found'}), 404
+    
     data = request.get_json()
     
+    # Validate feature data
+    is_valid, error_message = validate_feature_data(data)
+    if not is_valid:
+        return jsonify({'error': error_message}), 400
+    
+    # Update feature
     for key, value in data.items():
-        if hasattr(feature, key):
-            setattr(feature, key, value)
+        setattr(feature, key, value)
     
     db.session.commit()
     return jsonify(feature.to_dict())
 
 @app.route('/api/products/<int:product_id>/features/<int:feature_id>', methods=['DELETE'])
 def delete_product_feature(product_id, feature_id):
-    feature = db.session.get(ProductFeature, feature_id)
-    if feature is None or feature.product_id != product_id:
+    feature = ProductFeature.query.filter_by(id=feature_id, product_id=product_id).first()
+    if feature is None:
         return jsonify({'error': 'Feature not found'}), 404
     
     db.session.delete(feature)

@@ -151,6 +151,7 @@ export default function Header() {
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
     { name: "Admin", href: "/admin/products" },
+    { name: "CRUD", href: "/crud" },
   ]
 
   return (
@@ -244,6 +245,9 @@ export default function Header() {
             </Link>
             <Link href="/admin/products" className="text-gray-600 hover:text-green-600">
               Admin
+            </Link>
+            <Link href="/crud" className="text-gray-600 hover:text-green-600">
+              CRUD
             </Link>
           </nav>
 
