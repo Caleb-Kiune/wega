@@ -1,27 +1,64 @@
 import apiClient from './client';
 
+interface ProductFeature {
+  id: number;
+  name: string;
+  value: string;
+  display_order: number;
+  product_id: number;
+}
+
+interface ProductSpecification {
+  id: number;
+  name: string;
+  value: string;
+  display_order: number;
+  product_id: number;
+}
+
 export interface Product {
   id: number;
   name: string;
   description: string;
   price: number;
   original_price?: number;
-  is_new?: boolean;
-  is_sale?: boolean;
-  category: string;
-  brand: string;
-  stock: number;
-  rating?: number;
-  review_count?: number;
-  features?: string[];
-  specifications?: Record<string, string>;
-  images?: Array<{
-    id: number;
-    image_url: string;
-    is_primary: boolean;
-    display_order: number;
-  }>;
   sku?: string;
+  stock: number;
+  is_new: boolean;
+  is_sale: boolean;
+  images: ProductImage[];
+  specifications: ProductSpecification[];
+  features: ProductFeature[];
+  brand?: string;
+  category?: string;
+  rating?: number;
+  review_count: number;
+  category_id?: number;
+  brand_id?: number;
+}
+
+export interface ProductSpecification {
+  id: number;
+  product_id: number;
+  name: string;
+  value: string;
+  display_order: number;
+}
+
+export interface ProductFeature {
+  id: number;
+  product_id: number;
+  name: string;
+  value: string;
+  display_order: number;
+}
+
+export interface ProductImage {
+  id: number;
+  product_id: number;
+  image_url: string;
+  is_primary: boolean;
+  display_order: number;
 }
 
 export interface ProductsResponse {

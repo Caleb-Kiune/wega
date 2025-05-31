@@ -12,6 +12,7 @@ import AddToCartButton from "@/components/add-to-cart-button"
 import WhatsAppOrderButton from "@/components/whatsapp-order-button"
 import { useToast } from "@/hooks/use-toast"
 import { useWishlist } from "@/lib/context/wishlist-context"
+import { productsApi } from "@/app/lib/api/products"
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [quantity, setQuantity] = useState(1)
@@ -25,14 +26,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/products/${resolvedParams.id}`)
-        if (!response.ok) {
-          throw new Error('Failed to fetch product')
-        }
-        const data = await response.json()
+        const data = await productsApi.getById(Number(resolvedParams.id))
         setProduct(data)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
+        const errorMessage = err instanceof Error ? err.message : 'An error occurred'
+        setError(errorMessage)
         toast({
           title: "Error",
           description: "Failed to load product details",

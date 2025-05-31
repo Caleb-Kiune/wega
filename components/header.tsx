@@ -243,7 +243,7 @@ export default function Header() {
             <Link href="/products" className="text-gray-600 hover:text-green-600">
               Products
             </Link>
-            <Link href="/admin/products" className="text-gray-600 hover:text-green-600">
+            <Link href="/admin" className="text-gray-600 hover:text-green-600">
               Admin
             </Link>
             <Link href="/crud" className="text-gray-600 hover:text-green-600">

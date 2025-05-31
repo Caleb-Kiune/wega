@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import apiClient, { Brand } from '../lib/api';
+import { apiClient, Brand } from '@/app/lib/api';
 
 interface UseBrandsResult {
   brands: Brand[];

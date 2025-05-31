@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import apiClient from '../lib/api';
-import { ProductsFilters } from '../lib/api';
-import { Product, ProductsResponse } from '../lib/api/products';
+import { apiClient, ProductsFilters, Product, ProductsResponse } from '@/app/lib/api';
 
 interface UseProductsResult {
   products: Product[];

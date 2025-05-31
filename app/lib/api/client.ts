@@ -1,4 +1,7 @@
 import axios from 'axios';
+import { Brand } from './brands';
+import { Category } from './categories';
+import { Product, ProductsFilters, ProductsResponse } from './products';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -7,7 +10,8 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Enable sending cookies if needed
+  withCredentials: false, // Changed to false to match server CORS config
+  timeout: 10000, // Added timeout
 });
 
 // Add request interceptor for debugging
@@ -45,5 +49,21 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Add API methods
+apiClient.getBrands = async (): Promise<Brand[]> => {
+  const response = await apiClient.get('/brands');
+  return response.data;
+};
+
+apiClient.getCategories = async (): Promise<Category[]> => {
+  const response = await apiClient.get('/categories');
+  return response.data;
+};
+
+apiClient.getProducts = async (filters: ProductsFilters = {}): Promise<ProductsResponse> => {
+  const response = await apiClient.get('/products', { params: filters });
+  return response.data;
+};
 
 export default apiClient; 

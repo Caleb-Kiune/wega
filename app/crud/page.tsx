@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { productsApi, Product } from '../lib/api/products';
 
 interface Review {
   id: number;
@@ -12,83 +14,42 @@ interface Review {
   avatar: string;
 }
 
-interface Specification {
-  id: number;
-  name: string;
-  value: string;
-  display_order: number;
-}
-
-interface Feature {
-  id: number;
-  feature: string;
-  display_order: number;
-}
-
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  originalPrice: number | null;
-  image: string;
-  images: Array<{
-    id: number;
-    image_url: string;
-    is_primary: boolean;
-    display_order: number;
-  }>;
-  brand: string;
-  category: string;
-  isNew: boolean;
-  isSale: boolean;
-  rating: number;
-  reviewCount: number;
+interface ProductWithReviews extends Product {
   reviews: Review[];
-  specifications: Specification[];
-  features: Feature[];
-  sku: string;
-  stock: number;
 }
 
 export default function CrudPage() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const router = useRouter();
+  const [products, setProducts] = useState<ProductWithReviews[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [productToDelete, setProductToDelete] = useState<ProductWithReviews | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [newProduct, setNewProduct] = useState<Partial<Product>>({
+  const [newProduct, setNewProduct] = useState<Omit<Product, 'id'>>({
     name: '',
     description: '',
     price: 0,
-    originalPrice: null,
+    original_price: undefined,
     sku: '',
     stock: 0,
-    isNew: false,
-    isSale: false,
+    is_new: false,
+    is_sale: false,
     images: [],
-    specifications: [],
+    specifications: {},
     features: [],
     brand: '',
     category: '',
     rating: 0,
-    reviewCount: 0,
-    reviews: []
+    review_count: 0
   });
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/products');
-        if (!response.ok) {
-          throw new Error('Failed to fetch products');
-        }
-        const data = await response.json();
-        setProducts(data.products);
+        const response = await productsApi.getAll();
+        setProducts(response.products.map(p => ({ ...p, reviews: [] })));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -99,76 +60,11 @@ export default function CrudPage() {
     fetchProducts();
   }, []);
 
-  const handleEdit = (product: Product) => {
-    setEditingProduct(product);
-    setIsModalOpen(true);
+  const handleEdit = (product: ProductWithReviews) => {
+    router.push(`/crud/${product.id}/edit`);
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingProduct) return;
-
-    try {
-      // Format the data to match the backend model
-      const formattedData = {
-        name: editingProduct.name,
-        description: editingProduct.description,
-        price: editingProduct.price,
-        original_price: editingProduct.originalPrice,
-        sku: editingProduct.sku,
-        stock: editingProduct.stock,
-        is_new: editingProduct.isNew,
-        is_sale: editingProduct.isSale,
-        // Keep existing images, specifications, and features
-        images: editingProduct.images,
-        specifications: editingProduct.specifications,
-        features: editingProduct.features
-      };
-
-      const response = await fetch(`http://localhost:5000/api/products/${editingProduct.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formattedData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update product');
-      }
-
-      // Refresh the products list
-      const fetchProducts = async () => {
-        const response = await fetch('http://localhost:5000/api/products');
-        if (!response.ok) {
-          throw new Error('Failed to fetch products');
-        }
-        const data = await response.json();
-        setProducts(data.products);
-      };
-
-      await fetchProducts();
-      setIsModalOpen(false);
-      setEditingProduct(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    if (!editingProduct) return;
-
-    const { name, value, type } = e.target;
-    setEditingProduct(prev => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
-      };
-    });
-  };
-
-  const handleDelete = async (product: Product) => {
+  const handleDelete = async (product: ProductWithReviews) => {
     setProductToDelete(product);
     setIsDeleteModalOpen(true);
   };
@@ -177,25 +73,11 @@ export default function CrudPage() {
     if (!productToDelete) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/products/${productToDelete.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete product');
-      }
+      await productsApi.delete(productToDelete.id);
 
       // Refresh the products list
-      const fetchProducts = async () => {
-        const response = await fetch('http://localhost:5000/api/products');
-        if (!response.ok) {
-          throw new Error('Failed to fetch products');
-        }
-        const data = await response.json();
-        setProducts(data.products);
-      };
-
-      await fetchProducts();
+      const response = await productsApi.getAll();
+      setProducts(response.products.map(p => ({ ...p, reviews: [] })));
       setIsDeleteModalOpen(false);
       setProductToDelete(null);
     } catch (err) {
@@ -219,72 +101,29 @@ export default function CrudPage() {
     e.preventDefault();
 
     try {
-      // Format the data to match the backend model
-      const formattedData = {
-        name: newProduct.name,
-        description: newProduct.description,
-        price: newProduct.price,
-        original_price: newProduct.originalPrice,
-        sku: newProduct.sku,
-        stock: newProduct.stock,
-        is_new: newProduct.isNew,
-        is_sale: newProduct.isSale,
-        images: newProduct.images,
-        specifications: newProduct.specifications,
-        features: newProduct.features,
-        brand: newProduct.brand,
-        category: newProduct.category,
-        rating: newProduct.rating,
-        reviewCount: newProduct.reviewCount,
-        reviews: newProduct.reviews
-      };
-
-      const response = await fetch('http://localhost:5000/api/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formattedData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create product');
-      }
-
-      const createdProduct = await response.json();
+      await productsApi.create(newProduct);
 
       // Refresh the products list
-      const fetchProducts = async () => {
-        const response = await fetch('http://localhost:5000/api/products');
-        if (!response.ok) {
-          throw new Error('Failed to fetch products');
-        }
-        const data = await response.json();
-        setProducts(data.products);
-      };
-
-      await fetchProducts();
+      const response = await productsApi.getAll();
+      setProducts(response.products.map(p => ({ ...p, reviews: [] })));
       setIsCreateModalOpen(false);
       setNewProduct({
         name: '',
         description: '',
         price: 0,
-        originalPrice: null,
+        original_price: undefined,
         sku: '',
         stock: 0,
-        isNew: false,
-        isSale: false,
+        is_new: false,
+        is_sale: false,
         images: [],
-        specifications: [],
+        specifications: {},
         features: [],
         brand: '',
         category: '',
         rating: 0,
-        reviewCount: 0,
-        reviews: []
+        review_count: 0
       });
-      setSuccessMessage(`Product "${createdProduct.name}" has been created successfully!`);
-      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
@@ -369,16 +208,16 @@ export default function CrudPage() {
                   <div className="w-full md:w-1/3">
                     <div className="relative group">
                       <img
-                        src={product.image || '/placeholder.png'}
+                        src={product.images?.[0]?.image_url || '/placeholder.png'}
                         alt={product.name || 'Product image'}
                         className="w-full h-72 object-cover rounded-lg transition-transform duration-300 group-hover:scale-105"
                       />
-                      {product.isNew && (
+                      {product.is_new && (
                         <span className="absolute top-3 right-3 bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-md">
                           New
                         </span>
                       )}
-                      {product.isSale && (
+                      {product.is_sale && (
                         <span className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-md">
                           Sale
                         </span>
@@ -417,16 +256,16 @@ export default function CrudPage() {
                         <span className="text-3xl font-bold text-gray-900">
                           ${(product.price || 0).toFixed(2)}
                         </span>
-                        {product.originalPrice && product.originalPrice > 0 && (
+                        {product.original_price && product.original_price > 0 && (
                           <span className="ml-3 text-xl text-gray-500 line-through">
-                            ${product.originalPrice.toFixed(2)}
+                            ${product.original_price.toFixed(2)}
                           </span>
                         )}
                       </div>
                       <div className="flex items-center">
                         <span className="text-yellow-400 text-2xl">★</span>
                         <span className="ml-2 text-gray-600 text-lg">
-                          {(product.rating || 0).toFixed(1)} ({product.reviewCount || 0} reviews)
+                          {(product.rating || 0).toFixed(1)} ({product.review_count || 0} reviews)
                         </span>
                       </div>
                     </div>
@@ -458,29 +297,35 @@ export default function CrudPage() {
                       <div className="mb-6">
                         <h3 className="text-xl font-semibold mb-3 text-gray-900">Features</h3>
                         <ul className="grid grid-cols-2 gap-3">
-                          {product.features.map((feature) => (
-                            <li key={feature.id} className="flex items-center text-gray-600">
-                              <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                              </svg>
-                              {feature.feature}
-                            </li>
-                          ))}
+                          {product.features.map((feature, index) => {
+                            const featureText = typeof feature === 'string' ? feature : feature.name;
+                            return (
+                              <li key={index} className="flex items-center text-gray-600">
+                                <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                {featureText}
+                              </li>
+                            );
+                          })}
                         </ul>
                       </div>
                     )}
 
                     {/* Specifications */}
-                    {product.specifications && product.specifications.length > 0 && (
+                    {product.specifications && Object.keys(product.specifications).length > 0 && (
                       <div className="mb-6">
                         <h3 className="text-xl font-semibold mb-3 text-gray-900">Specifications</h3>
                         <div className="grid grid-cols-2 gap-4">
-                          {product.specifications.map((spec) => (
-                            <div key={spec.id} className="bg-gray-50 p-3 rounded-lg">
-                              <span className="font-medium text-gray-900">{spec.name}:</span>{' '}
-                              <span className="text-gray-600">{spec.value}</span>
-                            </div>
-                          ))}
+                          {Object.entries(product.specifications).map(([key, value]) => {
+                            const valueText = typeof value === 'string' ? value : value.value;
+                            return (
+                              <div key={key} className="bg-gray-50 p-3 rounded-lg">
+                                <span className="font-medium text-gray-900">{key}:</span>{' '}
+                                <span className="text-gray-600">{valueText}</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -523,142 +368,6 @@ export default function CrudPage() {
           ))}
         </div>
       </div>
-
-      {/* Edit Modal */}
-      {isModalOpen && editingProduct && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all duration-300 ease-in-out">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl transform transition-all duration-300 ease-in-out scale-100 animate-fadeIn">
-            <div className="px-8 py-6 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">Edit Product</h2>
-              <button
-                onClick={() => {
-                  setIsModalOpen(false);
-                  setEditingProduct(null);
-                }}
-                className="text-gray-400 hover:text-gray-500 transition-colors duration-200"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <form onSubmit={handleSave} className="p-8 space-y-6">
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={editingProduct.name}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea
-                    name="description"
-                    value={editingProduct.description}
-                    onChange={handleInputChange}
-                    rows={2}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white resize-none"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Price</label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={editingProduct.price}
-                    onChange={handleInputChange}
-                    step="0.01"
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Original Price</label>
-                  <input
-                    type="number"
-                    name="originalPrice"
-                    value={editingProduct.originalPrice || ''}
-                    onChange={handleInputChange}
-                    step="0.01"
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">SKU</label>
-                  <input
-                    type="text"
-                    name="sku"
-                    value={editingProduct.sku}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Stock</label>
-                  <input
-                    type="number"
-                    name="stock"
-                    value={editingProduct.stock}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-6 pt-4">
-                <label className="flex items-center space-x-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    name="isNew"
-                    checked={editingProduct.isNew}
-                    onChange={handleInputChange}
-                    className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
-                  />
-                  <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">New Product</span>
-                </label>
-
-                <label className="flex items-center space-x-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    name="isSale"
-                    checked={editingProduct.isSale}
-                    onChange={handleInputChange}
-                    className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
-                  />
-                  <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">On Sale</span>
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-4 pt-6 border-t">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsModalOpen(false);
-                    setEditingProduct(null);
-                  }}
-                  className="px-6 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 text-sm font-medium text-black bg-green-500 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 transform hover:scale-105"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && productToDelete && (
@@ -724,19 +433,18 @@ export default function CrudPage() {
                     name: '',
                     description: '',
                     price: 0,
-                    originalPrice: null,
+                    original_price: undefined,
                     sku: '',
                     stock: 0,
-                    isNew: false,
-                    isSale: false,
+                    is_new: false,
+                    is_sale: false,
                     images: [],
-                    specifications: [],
+                    specifications: {},
                     features: [],
                     brand: '',
                     category: '',
                     rating: 0,
-                    reviewCount: 0,
-                    reviews: []
+                    review_count: 0
                   });
                 }}
                 className="text-gray-400 hover:text-gray-500 transition-colors duration-200"
@@ -815,8 +523,8 @@ export default function CrudPage() {
                       <label className="block text-sm font-medium text-gray-700">Original Price</label>
                       <input
                         type="number"
-                        name="originalPrice"
-                        value={newProduct.originalPrice || ''}
+                        name="original_price"
+                        value={newProduct.original_price || ''}
                         onChange={handleCreateInputChange}
                         step="0.01"
                         className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
@@ -870,8 +578,8 @@ export default function CrudPage() {
                       <label className="block text-sm font-medium text-gray-700">Review Count</label>
                       <input
                         type="number"
-                        name="reviewCount"
-                        value={newProduct.reviewCount}
+                        name="review_count"
+                        value={newProduct.review_count}
                         onChange={handleCreateInputChange}
                         min="0"
                         className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
@@ -883,8 +591,8 @@ export default function CrudPage() {
                     <label className="flex items-center space-x-3 cursor-pointer group">
                       <input
                         type="checkbox"
-                        name="isNew"
-                        checked={newProduct.isNew}
+                        name="is_new"
+                        checked={newProduct.is_new}
                         onChange={handleCreateInputChange}
                         className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
                       />
@@ -894,8 +602,8 @@ export default function CrudPage() {
                     <label className="flex items-center space-x-3 cursor-pointer group">
                       <input
                         type="checkbox"
-                        name="isSale"
-                        checked={newProduct.isSale}
+                        name="is_sale"
+                        checked={newProduct.is_sale}
                         onChange={handleCreateInputChange}
                         className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
                       />
@@ -914,19 +622,18 @@ export default function CrudPage() {
                       name: '',
                       description: '',
                       price: 0,
-                      originalPrice: null,
+                      original_price: undefined,
                       sku: '',
                       stock: 0,
-                      isNew: false,
-                      isSale: false,
+                      is_new: false,
+                      is_sale: false,
                       images: [],
-                      specifications: [],
+                      specifications: {},
                       features: [],
                       brand: '',
                       category: '',
                       rating: 0,
-                      reviewCount: 0,
-                      reviews: []
+                      review_count: 0
                     });
                   }}
                   className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
