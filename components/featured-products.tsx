@@ -9,13 +9,14 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useCart } from "@/lib/hooks/use-cart"
 import ProductCard from "@/components/product-card"
-import { productsApi } from "../app/lib/api/products"
+import { productsApi } from "@/app/lib/api/products"
 import ProductsLoading from "@/components/products-loading"
+import { Product } from "@/app/lib/api/products"
 
 export default function FeaturedProducts() {
-  const [products, setProducts] = useState([])
+  const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   const getErrorMessage = (err) => {
     if (!err.response) {
@@ -34,14 +35,11 @@ export default function FeaturedProducts() {
     try {
       setLoading(true)
       setError(null)
-      const response = await productsApi.getAll({
-        limit: 4,
-        sort: 'featured'
-      })
+      const response = await productsApi.getAll({ is_new: true })
       setProducts(response.products)
     } catch (err) {
       console.error('Error fetching featured products:', err)
-      setError(getErrorMessage(err))
+      setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setLoading(false)
     }
@@ -65,7 +63,7 @@ export default function FeaturedProducts() {
   )
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import apiClient, { Category } from '../lib/api';
+import { apiClient, Category } from '@/app/lib/api';
 
 interface UseCategoriesResult {
   categories: Category[];

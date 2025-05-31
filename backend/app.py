@@ -9,13 +9,13 @@ from decimal import Decimal
 
 app = Flask(__name__, static_folder='static')
 
-# Configure CORS - Completely permissive for development
+# Configure CORS - More permissive for development
 CORS(app, 
      resources={r"/*": {
-         "origins": "*",
+         "origins": ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000", "http://127.0.0.1:3001"],
          "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-         "allow_headers": "*",
-         "expose_headers": "*",
+         "allow_headers": ["Content-Type", "Authorization", "Accept"],
+         "expose_headers": ["Content-Type", "Authorization"],
          "supports_credentials": False,
          "max_age": 3600
      }},
@@ -339,26 +339,55 @@ def get_category(id):
         return jsonify({'error': 'Category not found'}), 404
     return jsonify(category.to_dict())
 
-@app.route('/api/categories/<int:id>/products', methods=['GET'])
-def get_category_products(id):
+@app.route('/api/categories', methods=['POST'])
+def create_category():
+    data = request.get_json()
+    
+    if not data.get('name'):
+        return jsonify({'error': 'Category name is required'}), 400
+    
+    category = Category(
+        name=data['name'],
+        slug=data.get('slug', data['name'].lower().replace(' ', '-')),
+        description=data.get('description'),
+        image_url=data.get('image_url')
+    )
+    
+    db.session.add(category)
+    db.session.commit()
+    return jsonify(category.to_dict()), 201
+
+@app.route('/api/categories/<int:id>', methods=['PUT'])
+def update_category(id):
     category = db.session.get(Category, id)
     if category is None:
         return jsonify({'error': 'Category not found'}), 404
     
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('limit', 12, type=int)
+    data = request.get_json()
     
-    query = Product.query.filter_by(category_id=id)
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-    products = pagination.items
+    if 'name' in data:
+        category.name = data['name']
+        if 'slug' not in data:
+            category.slug = data['name'].lower().replace(' ', '-')
+    if 'slug' in data:
+        category.slug = data['slug']
+    if 'description' in data:
+        category.description = data['description']
+    if 'image_url' in data:
+        category.image_url = data['image_url']
     
-    return jsonify({
-        'products': [product.to_dict() for product in products],
-        'total': pagination.total,
-        'pages': pagination.pages,
-        'current_page': page,
-        'per_page': per_page
-    })
+    db.session.commit()
+    return jsonify(category.to_dict())
+
+@app.route('/api/categories/<int:id>', methods=['DELETE'])
+def delete_category(id):
+    category = db.session.get(Category, id)
+    if category is None:
+        return jsonify({'error': 'Category not found'}), 404
+    
+    db.session.delete(category)
+    db.session.commit()
+    return '', 204
 
 # Brands Routes
 @app.route('/api/brands', methods=['GET'])
@@ -373,26 +402,55 @@ def get_brand(id):
         return jsonify({'error': 'Brand not found'}), 404
     return jsonify(brand.to_dict())
 
-@app.route('/api/brands/<int:id>/products', methods=['GET'])
-def get_brand_products(id):
+@app.route('/api/brands', methods=['POST'])
+def create_brand():
+    data = request.get_json()
+    
+    if not data.get('name'):
+        return jsonify({'error': 'Brand name is required'}), 400
+    
+    brand = Brand(
+        name=data['name'],
+        slug=data.get('slug', data['name'].lower().replace(' ', '-')),
+        description=data.get('description'),
+        logo_url=data.get('logo_url')
+    )
+    
+    db.session.add(brand)
+    db.session.commit()
+    return jsonify(brand.to_dict()), 201
+
+@app.route('/api/brands/<int:id>', methods=['PUT'])
+def update_brand(id):
     brand = db.session.get(Brand, id)
     if brand is None:
         return jsonify({'error': 'Brand not found'}), 404
     
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('limit', 12, type=int)
+    data = request.get_json()
     
-    query = Product.query.filter_by(brand_id=id)
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-    products = pagination.items
+    if 'name' in data:
+        brand.name = data['name']
+        if 'slug' not in data:
+            brand.slug = data['name'].lower().replace(' ', '-')
+    if 'slug' in data:
+        brand.slug = data['slug']
+    if 'description' in data:
+        brand.description = data['description']
+    if 'logo_url' in data:
+        brand.logo_url = data['logo_url']
     
-    return jsonify({
-        'products': [product.to_dict() for product in products],
-        'total': pagination.total,
-        'pages': pagination.pages,
-        'current_page': page,
-        'per_page': per_page
-    })
+    db.session.commit()
+    return jsonify(brand.to_dict())
+
+@app.route('/api/brands/<int:id>', methods=['DELETE'])
+def delete_brand(id):
+    brand = db.session.get(Brand, id)
+    if brand is None:
+        return jsonify({'error': 'Brand not found'}), 404
+    
+    db.session.delete(brand)
+    db.session.commit()
+    return '', 204
 
 # Reviews Routes
 @app.route('/api/products/<int:id>/reviews', methods=['GET'])
