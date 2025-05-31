@@ -37,7 +37,7 @@ export default function CrudPage() {
     is_new: false,
     is_sale: false,
     images: [],
-    specifications: {},
+    specifications: [],
     features: [],
     brand: '',
     category: '',
@@ -117,7 +117,7 @@ export default function CrudPage() {
         is_new: false,
         is_sale: false,
         images: [],
-        specifications: {},
+        specifications: [],
         features: [],
         brand: '',
         category: '',
@@ -297,35 +297,29 @@ export default function CrudPage() {
                       <div className="mb-6">
                         <h3 className="text-xl font-semibold mb-3 text-gray-900">Features</h3>
                         <ul className="grid grid-cols-2 gap-3">
-                          {product.features.map((feature, index) => {
-                            const featureText = typeof feature === 'string' ? feature : feature.name;
-                            return (
-                              <li key={index} className="flex items-center text-gray-600">
-                                <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                {featureText}
-                              </li>
-                            );
-                          })}
+                          {product.features.map((feature, index) => (
+                            <li key={index} className="flex items-center text-black">
+                              <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                              </svg>
+                              {feature.feature}
+                            </li>
+                          ))}
                         </ul>
                       </div>
                     )}
 
                     {/* Specifications */}
-                    {product.specifications && Object.keys(product.specifications).length > 0 && (
+                    {product.specifications && product.specifications.length > 0 && (
                       <div className="mb-6">
                         <h3 className="text-xl font-semibold mb-3 text-gray-900">Specifications</h3>
                         <div className="grid grid-cols-2 gap-4">
-                          {Object.entries(product.specifications).map(([key, value]) => {
-                            const valueText = typeof value === 'string' ? value : value.value;
-                            return (
-                              <div key={key} className="bg-gray-50 p-3 rounded-lg">
-                                <span className="font-medium text-gray-900">{key}:</span>{' '}
-                                <span className="text-gray-600">{valueText}</span>
-                              </div>
-                            );
-                          })}
+                          {product.specifications.map((spec, index) => (
+                            <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                              <span className="font-medium text-gray-900">{spec.name}:</span>{' '}
+                              <span className="text-gray-600">{spec.value}</span>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )}
@@ -439,7 +433,7 @@ export default function CrudPage() {
                     is_new: false,
                     is_sale: false,
                     images: [],
-                    specifications: {},
+                    specifications: [],
                     features: [],
                     brand: '',
                     category: '',
@@ -628,7 +622,7 @@ export default function CrudPage() {
                       is_new: false,
                       is_sale: false,
                       images: [],
-                      specifications: {},
+                      specifications: [],
                       features: [],
                       brand: '',
                       category: '',

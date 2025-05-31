@@ -1,19 +1,26 @@
 import apiClient from './client';
 
-interface ProductFeature {
+export interface ProductFeature {
   id: number;
-  name: string;
-  value: string;
-  display_order: number;
   product_id: number;
+  feature: string;
+  display_order: number;
 }
 
-interface ProductSpecification {
+export interface ProductSpecification {
   id: number;
+  product_id: number;
   name: string;
   value: string;
   display_order: number;
+}
+
+export interface ProductImage {
+  id: number;
   product_id: number;
+  image_url: string;
+  is_primary: boolean;
+  display_order: number;
 }
 
 export interface Product {
@@ -35,30 +42,6 @@ export interface Product {
   review_count: number;
   category_id?: number;
   brand_id?: number;
-}
-
-export interface ProductSpecification {
-  id: number;
-  product_id: number;
-  name: string;
-  value: string;
-  display_order: number;
-}
-
-export interface ProductFeature {
-  id: number;
-  product_id: number;
-  name: string;
-  value: string;
-  display_order: number;
-}
-
-export interface ProductImage {
-  id: number;
-  product_id: number;
-  image_url: string;
-  is_primary: boolean;
-  display_order: number;
 }
 
 export interface ProductsResponse {
@@ -86,6 +69,16 @@ export const productsApi = {
 
   getById: async (id: number): Promise<Product> => {
     const response = await apiClient.get(`/products/${id}`);
+    return response.data;
+  },
+
+  getBrands: async (): Promise<{ id: number; name: string }[]> => {
+    const response = await apiClient.get('/brands');
+    return response.data;
+  },
+
+  getCategories: async (): Promise<{ id: number; name: string }[]> => {
+    const response = await apiClient.get('/categories');
     return response.data;
   },
 
