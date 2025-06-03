@@ -35,7 +35,7 @@ export default function FeaturedProducts() {
     try {
       setLoading(true)
       setError(null)
-      const response = await productsApi.getAll({ is_new: true })
+      const response = await productsApi.getAll({ is_featured: true })
       setProducts(response.products)
     } catch (err) {
       console.error('Error fetching featured products:', err)

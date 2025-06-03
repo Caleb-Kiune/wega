@@ -63,6 +63,7 @@ class Product(db.Model):
     review_count = db.Column(db.Integer, default=0)
     is_new = db.Column(db.Boolean, default=False)
     is_sale = db.Column(db.Boolean, default=False)
+    is_featured = db.Column(db.Boolean, default=False)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
     brand_id = db.Column(db.Integer, db.ForeignKey('brands.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -89,6 +90,7 @@ class Product(db.Model):
             'images': [img.to_dict() for img in self.images],
             'isNew': self.is_new,
             'isSale': self.is_sale,
+            'isFeatured': self.is_featured,
             'category': self.category.name if self.category else None,
             'brand': self.brand.name if self.brand else None,
             'rating': float(self.rating) if self.rating else None,

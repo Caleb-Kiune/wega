@@ -75,6 +75,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Product badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-2">
+          {product.is_featured && <Badge className="bg-purple-600">Featured</Badge>}
           {product.is_new && <Badge className="bg-green-600">New</Badge>}
           {product.is_sale && <Badge className="bg-orange-500">Sale</Badge>}
         </div>

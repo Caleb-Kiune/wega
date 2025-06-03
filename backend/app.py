@@ -110,6 +110,9 @@ def get_products():
     max_price = request.args.get('maxPrice', type=float)
     sort = request.args.get('sort', 'featured')
     search = request.args.get('search')
+    is_featured = request.args.get('is_featured', type=bool)
+    is_new = request.args.get('is_new', type=bool)
+    is_sale = request.args.get('is_sale', type=bool)
 
     # Base query with joins
     query = Product.query.join(Category).join(Brand)
@@ -123,6 +126,12 @@ def get_products():
         query = query.filter(Product.price >= min_price)
     if max_price is not None:
         query = query.filter(Product.price <= max_price)
+    if is_featured is not None:
+        query = query.filter(Product.is_featured == is_featured)
+    if is_new is not None:
+        query = query.filter(Product.is_new == is_new)
+    if is_sale is not None:
+        query = query.filter(Product.is_sale == is_sale)
     if search:
         search_term = f"%{search}%"
         query = query.filter(
@@ -144,7 +153,7 @@ def get_products():
     elif sort == 'rating':
         query = query.order_by(Product.rating.desc())
     else:  # featured
-        query = query.order_by(Product.is_new.desc(), Product.is_sale.desc())
+        query = query.order_by(Product.is_featured.desc(), Product.is_new.desc(), Product.is_sale.desc())
 
     # Get paginated results
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)

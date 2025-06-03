@@ -27,6 +27,7 @@ type CreateProductData = {
   review_count: number;
   category_id?: number;
   brand_id?: number;
+  is_featured: boolean;
 };
 
 interface Brand {
@@ -94,7 +95,8 @@ export default function CreateProductPage() {
     brand: '',
     category: '',
     rating: 0,
-    review_count: 0
+    review_count: 0,
+    is_featured: false
   });
 
   const [newImage, setNewImage] = useState<NewProductImage>({
@@ -668,6 +670,17 @@ export default function CreateProductPage() {
                         className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
                       />
                       <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">On Sale</span>
+                    </label>
+
+                    <label className="flex items-center space-x-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        name="is_featured"
+                        checked={newProduct.is_featured}
+                        onChange={handleInputChange}
+                        className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
+                      />
+                      <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">Featured Product</span>
                     </label>
                   </div>
                 </div>

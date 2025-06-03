@@ -17,6 +17,7 @@ interface Review {
 
 interface ProductWithReviews extends Product {
   reviews: Review[];
+  isFeatured: boolean;
 }
 
 const initialProductState: ProductWithReviews = {
@@ -27,8 +28,9 @@ const initialProductState: ProductWithReviews = {
   original_price: undefined,
   sku: '',
   stock: 0,
-  is_new: false,
-  is_sale: false,
+  isNew: false,
+  isSale: false,
+  isFeatured: false,
   images: [],
   specifications: [],
   features: [],
@@ -119,8 +121,9 @@ export default function EditProductPage() {
         original_price: product.original_price ? Number(product.original_price) : undefined,
         sku: product.sku,
         stock: Number(product.stock),
-        is_new: product.is_new,
-        is_sale: product.is_sale,
+        is_new: product.isNew,
+        is_sale: product.isSale,
+        is_featured: product.isFeatured,
         images: product.images,
         specifications: product.specifications.map(spec => ({
           ...spec,
@@ -405,8 +408,8 @@ export default function EditProductPage() {
               <label className="flex items-center space-x-3 cursor-pointer group">
                 <input
                   type="checkbox"
-                  name="is_new"
-                  checked={product.is_new}
+                  name="isNew"
+                  checked={product.isNew}
                   onChange={handleInputChange}
                   className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
                 />
@@ -416,12 +419,23 @@ export default function EditProductPage() {
               <label className="flex items-center space-x-3 cursor-pointer group">
                 <input
                   type="checkbox"
-                  name="is_sale"
-                  checked={product.is_sale}
+                  name="isSale"
+                  checked={product.isSale}
                   onChange={handleInputChange}
                   className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
                 />
                 <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">On Sale</span>
+              </label>
+
+              <label className="flex items-center space-x-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  name="isFeatured"
+                  checked={product.isFeatured}
+                  onChange={handleInputChange}
+                  className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
+                />
+                <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">Featured Product</span>
               </label>
             </div>
 

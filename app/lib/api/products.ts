@@ -31,8 +31,9 @@ export interface Product {
   original_price?: number;
   sku?: string;
   stock: number;
-  is_new: boolean;
-  is_sale: boolean;
+  isNew: boolean;
+  isSale: boolean;
+  isFeatured: boolean;
   images: ProductImage[];
   specifications: ProductSpecification[];
   features: ProductFeature[];
