@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { productsApi, Product, ProductImage, ProductSpecification, ProductFeature } from '../../lib/api/products';
+import apiClient from '../../lib/api/client';
 
 type NewProductImage = Omit<ProductImage, 'id' | 'product_id'>;
 type NewProductSpecification = Omit<ProductSpecification, 'id' | 'product_id'>;
@@ -31,11 +32,31 @@ type CreateProductData = {
 interface Brand {
   id: number;
   name: string;
+  slug: string;
+  description?: string;
+  logo_url?: string;
+}
+
+interface NewBrand {
+  name: string;
+  slug: string;
+  description?: string;
+  logo_url?: string;
 }
 
 interface Category {
   id: number;
   name: string;
+  slug: string;
+  description?: string;
+  image_url?: string;
+}
+
+interface NewCategory {
+  name: string;
+  slug: string;
+  description?: string;
+  image_url?: string;
 }
 
 export default function CreateProductPage() {
@@ -45,8 +66,18 @@ export default function CreateProductPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isCreatingNewBrand, setIsCreatingNewBrand] = useState(false);
   const [isCreatingNewCategory, setIsCreatingNewCategory] = useState(false);
-  const [newBrandName, setNewBrandName] = useState('');
-  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newBrand, setNewBrand] = useState<NewBrand>({
+    name: '',
+    slug: '',
+    description: '',
+    logo_url: ''
+  });
+  const [newCategory, setNewCategory] = useState<NewCategory>({
+    name: '',
+    slug: '',
+    description: '',
+    image_url: ''
+  });
 
   const [newProduct, setNewProduct] = useState<CreateProductData>({
     name: '',
@@ -87,8 +118,8 @@ export default function CreateProductPage() {
     const fetchBrandsAndCategories = async () => {
       try {
         const [brandsData, categoriesData] = await Promise.all([
-          productsApi.getBrands(),
-          productsApi.getCategories()
+          apiClient.get('/brands').then(res => res.data),
+          apiClient.get('/categories').then(res => res.data)
         ]);
         setBrands(brandsData);
         setCategories(categoriesData);
@@ -212,14 +243,76 @@ export default function CreateProductPage() {
     }
   };
 
-  const handleNewBrandChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewBrandName(e.target.value);
-    setNewProduct(prev => ({ ...prev, brand: e.target.value }));
+  const handleNewBrandChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setNewBrand(prev => {
+      const updated = { ...prev, [name]: value };
+      // Auto-generate slug from name if name is being changed
+      if (name === 'name') {
+        updated.slug = value.toLowerCase().replace(/\s+/g, '-');
+      }
+      return updated;
+    });
   };
 
-  const handleNewCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewCategoryName(e.target.value);
-    setNewProduct(prev => ({ ...prev, category: e.target.value }));
+  const handleNewCategoryChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setNewCategory(prev => {
+      const updated = { ...prev, [name]: value };
+      // Auto-generate slug from name if name is being changed
+      if (name === 'name') {
+        updated.slug = value.toLowerCase().replace(/\s+/g, '-');
+      }
+      return updated;
+    });
+  };
+
+  const handleCreateBrand = async () => {
+    try {
+      if (!newBrand.name) {
+        setError('Brand name is required');
+        return;
+      }
+
+      const response = await apiClient.post('/brands', newBrand);
+      const createdBrand = response.data;
+      
+      setBrands(prev => [...prev, createdBrand]);
+      setNewProduct(prev => ({
+        ...prev,
+        brand: createdBrand.name,
+        brand_id: createdBrand.id
+      }));
+      setIsCreatingNewBrand(false);
+      setNewBrand({ name: '', slug: '', description: '', logo_url: '' });
+    } catch (err) {
+      console.error('Error creating brand:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create brand');
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    try {
+      if (!newCategory.name) {
+        setError('Category name is required');
+        return;
+      }
+
+      const response = await apiClient.post('/categories', newCategory);
+      const createdCategory = response.data;
+      
+      setCategories(prev => [...prev, createdCategory]);
+      setNewProduct(prev => ({
+        ...prev,
+        category: createdCategory.name,
+        category_id: createdCategory.id
+      }));
+      setIsCreatingNewCategory(false);
+      setNewCategory({ name: '', slug: '', description: '', image_url: '' });
+    } catch (err) {
+      console.error('Error creating category:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create category');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -304,21 +397,70 @@ export default function CreateProductPage() {
                     <div className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700">Brand</label>
                       {isCreatingNewBrand ? (
-                        <div className="space-y-2">
-                          <input
-                            type="text"
-                            value={newBrandName}
-                            onChange={handleNewBrandChange}
-                            placeholder="Enter new brand name"
-                            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setIsCreatingNewBrand(false)}
-                            className="text-sm text-indigo-600 hover:text-indigo-700"
-                          >
-                            Cancel
-                          </button>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Brand Name</label>
+                            <input
+                              type="text"
+                              name="name"
+                              value={newBrand.name}
+                              onChange={handleNewBrandChange}
+                              placeholder="Enter brand name"
+                              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Slug</label>
+                            <input
+                              type="text"
+                              name="slug"
+                              value={newBrand.slug}
+                              onChange={handleNewBrandChange}
+                              placeholder="brand-slug"
+                              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Description</label>
+                            <textarea
+                              name="description"
+                              value={newBrand.description}
+                              onChange={handleNewBrandChange}
+                              placeholder="Enter brand description"
+                              rows={3}
+                              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white resize-none"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Logo URL</label>
+                            <input
+                              type="text"
+                              name="logo_url"
+                              value={newBrand.logo_url}
+                              onChange={handleNewBrandChange}
+                              placeholder="Enter logo URL"
+                              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
+                            />
+                          </div>
+                          <div className="flex gap-4">
+                            <button
+                              type="button"
+                              onClick={handleCreateBrand}
+                              className="px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+                            >
+                              Create Brand
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsCreatingNewBrand(false);
+                                setNewBrand({ name: '', slug: '', description: '', logo_url: '' });
+                              }}
+                              className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
+                            >
+                              Cancel
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <select
@@ -340,21 +482,70 @@ export default function CreateProductPage() {
                     <div className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700">Category</label>
                       {isCreatingNewCategory ? (
-                        <div className="space-y-2">
-                          <input
-                            type="text"
-                            value={newCategoryName}
-                            onChange={handleNewCategoryChange}
-                            placeholder="Enter new category name"
-                            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setIsCreatingNewCategory(false)}
-                            className="text-sm text-indigo-600 hover:text-indigo-700"
-                          >
-                            Cancel
-                          </button>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Category Name</label>
+                            <input
+                              type="text"
+                              name="name"
+                              value={newCategory.name}
+                              onChange={handleNewCategoryChange}
+                              placeholder="Enter category name"
+                              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Slug</label>
+                            <input
+                              type="text"
+                              name="slug"
+                              value={newCategory.slug}
+                              onChange={handleNewCategoryChange}
+                              placeholder="category-slug"
+                              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Description</label>
+                            <textarea
+                              name="description"
+                              value={newCategory.description}
+                              onChange={handleNewCategoryChange}
+                              placeholder="Enter category description"
+                              rows={3}
+                              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white resize-none"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Image URL</label>
+                            <input
+                              type="text"
+                              name="image_url"
+                              value={newCategory.image_url}
+                              onChange={handleNewCategoryChange}
+                              placeholder="Enter image URL"
+                              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
+                            />
+                          </div>
+                          <div className="flex gap-4">
+                            <button
+                              type="button"
+                              onClick={handleCreateCategory}
+                              className="px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+                            >
+                              Create Category
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsCreatingNewCategory(false);
+                                setNewCategory({ name: '', slug: '', description: '', image_url: '' });
+                              }}
+                              className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
+                            >
+                              Cancel
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <select
