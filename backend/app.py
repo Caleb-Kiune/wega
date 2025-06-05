@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_migrate import Migrate
 import os
-from models import db, Product, Category, Brand, ProductImage, ProductSpecification, ProductFeature, Review
+from models import db, Product, Category, Brand, ProductImage, ProductSpecification, ProductFeature, Review, Cart, CartItem, DeliveryLocation
 from sqlalchemy import or_, and_
 from decimal import Decimal
 
@@ -93,6 +93,16 @@ def index():
 @app.route('/static/<path:filename>')
 def serve_static(filename):
     return send_from_directory(app.static_folder, filename)
+
+# Serve images from the products directory
+@app.route('/images/products/<path:filename>')
+def serve_product_image(filename):
+    return send_from_directory(os.path.join(app.static_folder, 'images', 'products'), filename)
+
+# Serve images from the root images directory
+@app.route('/images/<path:filename>')
+def serve_image(filename):
+    return send_from_directory(os.path.join(app.static_folder, 'images'), filename)
 
 # Helper function for pagination
 def paginate(query, page=1, per_page=10):
@@ -735,6 +745,146 @@ def delete_product_feature(product_id, feature_id):
     db.session.delete(feature)
     db.session.commit()
     return '', 204
+
+# Cart Routes
+@app.route('/api/cart', methods=['GET'])
+def get_cart():
+    session_id = request.args.get('session_id')
+    if not session_id:
+        return jsonify({'error': 'Session ID is required'}), 400
+    
+    cart = Cart.query.filter_by(session_id=session_id).first()
+    if not cart:
+        cart = Cart(session_id=session_id)
+        db.session.add(cart)
+        db.session.commit()
+    
+    return jsonify(cart.to_dict())
+
+@app.route('/api/cart/items', methods=['POST'])
+def add_to_cart():
+    print("Received add_to_cart request")
+    session_id = request.args.get('session_id')
+    print(f"Session ID: {session_id}")
+    
+    if not session_id:
+        return jsonify({'error': 'Session ID is required'}), 400
+    
+    data = request.get_json()
+    print(f"Request data: {data}")
+    
+    if not data or 'product_id' not in data or 'quantity' not in data:
+        return jsonify({'error': 'Product ID and quantity are required'}), 400
+    
+    cart = Cart.query.filter_by(session_id=session_id).first()
+    print(f"Existing cart: {cart}")
+    
+    if not cart:
+        print("Creating new cart")
+        cart = Cart(session_id=session_id)
+        db.session.add(cart)
+        db.session.commit()
+        print(f"New cart created with ID: {cart.id}")
+    
+    # Check if product exists
+    product = Product.query.get(data['product_id'])
+    print(f"Product found: {product}")
+    
+    if not product:
+        return jsonify({'error': 'Product not found'}), 404
+    
+    # Check if item already in cart
+    cart_item = CartItem.query.filter_by(cart_id=cart.id, product_id=data['product_id']).first()
+    print(f"Existing cart item: {cart_item}")
+    
+    if cart_item:
+        print(f"Updating quantity from {cart_item.quantity} to {cart_item.quantity + data['quantity']}")
+        cart_item.quantity += data['quantity']
+    else:
+        print("Creating new cart item")
+        cart_item = CartItem(
+            cart_id=cart.id,
+            product_id=data['product_id'],
+            quantity=data['quantity']
+        )
+        db.session.add(cart_item)
+    
+    try:
+        db.session.commit()
+        print("Successfully committed changes to database")
+    except Exception as e:
+        print(f"Error committing to database: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': 'Failed to update cart'}), 500
+    
+    return jsonify(cart.to_dict())
+
+@app.route('/api/cart/items/<int:item_id>', methods=['PUT'])
+def update_cart_item(item_id):
+    session_id = request.args.get('session_id')
+    if not session_id:
+        return jsonify({'error': 'Session ID is required'}), 400
+    
+    data = request.get_json()
+    if not data or 'quantity' not in data:
+        return jsonify({'error': 'Quantity is required'}), 400
+    
+    cart = Cart.query.filter_by(session_id=session_id).first()
+    if not cart:
+        return jsonify({'error': 'Cart not found'}), 404
+    
+    cart_item = CartItem.query.filter_by(id=item_id, cart_id=cart.id).first()
+    if not cart_item:
+        return jsonify({'error': 'Cart item not found'}), 404
+    
+    cart_item.quantity = data['quantity']
+    db.session.commit()
+    return jsonify(cart.to_dict())
+
+@app.route('/api/cart/items/<int:item_id>', methods=['DELETE'])
+def remove_from_cart(item_id):
+    session_id = request.args.get('session_id')
+    if not session_id:
+        return jsonify({'error': 'Session ID is required'}), 400
+    
+    cart = Cart.query.filter_by(session_id=session_id).first()
+    if not cart:
+        return jsonify({'error': 'Cart not found'}), 404
+    
+    cart_item = CartItem.query.filter_by(id=item_id, cart_id=cart.id).first()
+    if not cart_item:
+        return jsonify({'error': 'Cart item not found'}), 404
+    
+    db.session.delete(cart_item)
+    db.session.commit()
+    return jsonify(cart.to_dict())
+
+@app.route('/api/cart', methods=['DELETE'])
+def clear_cart():
+    session_id = request.args.get('session_id')
+    if not session_id:
+        return jsonify({'error': 'Session ID is required'}), 400
+    
+    cart = Cart.query.filter_by(session_id=session_id).first()
+    if not cart:
+        return jsonify({'error': 'Cart not found'}), 404
+    
+    CartItem.query.filter_by(cart_id=cart.id).delete()
+    db.session.commit()
+    return jsonify(cart.to_dict())
+
+# Delivery Locations Routes
+@app.route('/api/delivery-locations', methods=['GET'])
+def get_delivery_locations():
+    locations = DeliveryLocation.query.filter_by(is_active=True).order_by(DeliveryLocation.city, DeliveryLocation.name).all()
+    return jsonify([location.to_dict() for location in locations])
+
+@app.route('/api/delivery-locations/<int:id>', methods=['GET'])
+def get_delivery_location(id):
+    location = DeliveryLocation.query.get(id)
+    if not location:
+        return jsonify({'error': 'Delivery location not found'}), 404
+    return jsonify(location.to_dict())
 
 if __name__ == '__main__':
     with app.app_context():

@@ -1,10 +1,10 @@
 "use client"
 
-import type React from "react"
+import { createContext, useContext, useState, useEffect, ReactNode } from "react"
+import { useToast } from "@/hooks/use-toast"
+import { cartApi, Cart, CartItem } from "@/app/lib/api/cart"
 
-import { createContext, useContext, useState, useEffect } from "react"
-
-type Product = {
+interface Product {
   id: number
   name: string
   price: number
@@ -13,78 +13,104 @@ type Product = {
 }
 
 interface CartContextType {
-  cartItems: Product[]
+  cart: Cart | null
   cartCount: number
-  addToCart: (product: Product) => void
-  removeFromCart: (productId: number) => void
-  updateQuantity: (productId: number, quantity: number) => void
-  clearCart: () => void
+  addToCart: (product: Product) => Promise<void>
+  removeFromCart: (productId: number) => Promise<void>
+  updateQuantity: (productId: number, quantity: number) => Promise<void>
+  clearCart: () => Promise<void>
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [cartItems, setCartItems] = useState<Product[]>([])
+export function CartProvider({ children }: { children: ReactNode }) {
+  const [cart, setCart] = useState<Cart | null>(null)
   const [cartCount, setCartCount] = useState(0)
+  const { toast } = useToast()
 
-  // Load cart from localStorage on initial render
+  // Load cart from server on initial render
   useEffect(() => {
-    const storedCart = localStorage.getItem("cart")
-    if (storedCart) {
+    const loadCart = async () => {
       try {
-        const parsedCart = JSON.parse(storedCart)
-        setCartItems(parsedCart)
-        setCartCount(parsedCart.reduce((total: number, item: Product) => total + (item.quantity || 1), 0))
+        const cartData = await cartApi.getCart()
+        setCart(cartData)
+        setCartCount(cartData.items.reduce((total, item) => total + item.quantity, 0))
       } catch (error) {
-        console.error("Failed to parse cart from localStorage:", error)
+        console.error("Failed to load cart:", error)
       }
     }
+    loadCart()
   }, [])
 
-  // Update localStorage whenever cart changes
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cartItems))
-    setCartCount(cartItems.reduce((total, item) => total + (item.quantity || 1), 0))
-  }, [cartItems])
-
-  const addToCart = (product: Product) => {
-    setCartItems((prevItems) => {
-      const existingItemIndex = prevItems.findIndex((item) => item.id === product.id)
-
-      if (existingItemIndex > -1) {
-        // Item exists, update quantity
-        const updatedItems = [...prevItems]
-        const currentQuantity = updatedItems[existingItemIndex].quantity || 1
-        updatedItems[existingItemIndex] = {
-          ...updatedItems[existingItemIndex],
-          quantity: currentQuantity + 1,
-        }
-        return updatedItems
-      } else {
-        // Item doesn't exist, add new item
-        return [...prevItems, { ...product, quantity: 1 }]
-      }
-    })
+  const addToCart = async (product: Product) => {
+    try {
+      const updatedCart = await cartApi.addItem(product.id, product.quantity || 1)
+      setCart(updatedCart)
+      setCartCount(updatedCart.items.reduce((total, item) => total + item.quantity, 0))
+      toast({
+        title: "Added to cart",
+        description: `${product.name} has been added to your cart.`,
+      })
+    } catch (error) {
+      console.error("Failed to add item to cart:", error)
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
-  const removeFromCart = (productId: number) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== productId))
+  const removeFromCart = async (productId: number) => {
+    try {
+      const updatedCart = await cartApi.removeItem(productId)
+      setCart(updatedCart)
+      setCartCount(updatedCart.items.reduce((total, item) => total + item.quantity, 0))
+    } catch (error) {
+      console.error("Failed to remove item from cart:", error)
+      toast({
+        title: "Error",
+        description: "Failed to remove item from cart. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
-  const updateQuantity = (productId: number, quantity: number) => {
+  const updateQuantity = async (productId: number, quantity: number) => {
     if (quantity < 1) return
-
-    setCartItems((prevItems) => prevItems.map((item) => (item.id === productId ? { ...item, quantity } : item)))
+    try {
+      const updatedCart = await cartApi.updateItem(productId, quantity)
+      setCart(updatedCart)
+      setCartCount(updatedCart.items.reduce((total, item) => total + item.quantity, 0))
+    } catch (error) {
+      console.error("Failed to update cart item quantity:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update quantity. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
-  const clearCart = () => {
-    setCartItems([])
+  const clearCart = async () => {
+    try {
+      const updatedCart = await cartApi.clearCart()
+      setCart(updatedCart)
+      setCartCount(0)
+    } catch (error) {
+      console.error("Failed to clear cart:", error)
+      toast({
+        title: "Error",
+        description: "Failed to clear cart. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
     <CartContext.Provider
       value={{
-        cartItems,
+        cart,
         cartCount,
         addToCart,
         removeFromCart,

@@ -31,8 +31,8 @@ export default function FeaturedProducts() {
     try {
       setLoading(true)
       setError(null)
-      const response = await productsApi.getAll({ sort: "featured" })
-      setProducts(response.products)
+      const products = await productsApi.getAll({ sort: "featured" })
+      setProducts(products)
     } catch (err) {
       console.error('Error fetching featured products:', err)
       setError(err instanceof Error ? err.message : 'An error occurred')

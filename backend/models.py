@@ -180,4 +180,68 @@ class Review(db.Model):
             'rating': self.rating,
             'date': self.date.isoformat() if self.date else None,
             'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class Cart(db.Model):
+    __tablename__ = 'carts'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.String(100), unique=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    items = db.relationship('CartItem', backref='cart', lazy=True, cascade='all, delete-orphan')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'session_id': self.session_id,
+            'items': [item.to_dict() for item in self.items],
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class CartItem(db.Model):
+    __tablename__ = 'cart_items'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    cart_id = db.Column(db.Integer, db.ForeignKey('carts.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    quantity = db.Column(db.Integer, default=1)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship
+    product = db.relationship('Product', backref='cart_items')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'cart_id': self.cart_id,
+            'product_id': self.product_id,
+            'quantity': self.quantity,
+            'product': self.product.to_dict() if self.product else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class DeliveryLocation(db.Model):
+    __tablename__ = 'delivery_locations'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    slug = db.Column(db.String(100), unique=True, nullable=False)
+    city = db.Column(db.String(100), nullable=False)
+    shipping_price = db.Column(db.Numeric(10, 2), nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'slug': self.slug,
+            'city': self.city,
+            'shippingPrice': float(self.shipping_price),
+            'isActive': self.is_active
         } 

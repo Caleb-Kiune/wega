@@ -2,7 +2,6 @@
 
 import { ShoppingCart } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/hooks/use-toast"
 import { useCart } from "@/lib/hooks/use-cart"
 
 interface AddToCartButtonProps {
@@ -17,20 +16,15 @@ interface AddToCartButtonProps {
 }
 
 export default function AddToCartButton({ product, quantity = 1, className }: AddToCartButtonProps) {
-  const { toast } = useToast()
   const { addToCart } = useCart()
 
-  const handleAddToCart = () => {
-    addToCart({
-      ...product,
+  const handleAddToCart = async () => {
+    await addToCart({
       id: Number(product.id),
+      name: product.name,
+      price: product.price,
+      image: product.image || "/placeholder.svg",
       quantity,
-      image: product.image || "/placeholder.svg?height=400&width=400",
-    })
-
-    toast({
-      title: "Added to cart",
-      description: `${product.name} has been added to your cart.`,
     })
   }
 

@@ -1,5 +1,5 @@
 from app import app, db
-from models import Category, Brand, Product, ProductImage, ProductSpecification, ProductFeature, Review
+from models import Category, Brand, Product, ProductImage, ProductSpecification, ProductFeature, Review, DeliveryLocation
 from datetime import datetime
 
 def seed_database():
@@ -12,7 +12,144 @@ def seed_database():
         Product.query.delete()
         Category.query.delete()
         Brand.query.delete()
+        DeliveryLocation.query.delete()
         
+        # Create delivery locations
+        locations = [
+            {
+                'name': 'Nairobi CBD',
+                'slug': 'nairobi-cbd',
+                'city': 'Nairobi',
+                'shipping_price': 250,
+                'is_active': True
+            },
+            {
+                'name': 'Nairobi Westlands',
+                'slug': 'nairobi-westlands',
+                'city': 'Nairobi',
+                'shipping_price': 300,
+                'is_active': True
+            },
+            {
+                'name': 'Nairobi Karen',
+                'slug': 'nairobi-karen',
+                'city': 'Nairobi',
+                'shipping_price': 350,
+                'is_active': True
+            },
+            {
+                'name': 'Nairobi Langata',
+                'slug': 'nairobi-langata',
+                'city': 'Nairobi',
+                'shipping_price': 300,
+                'is_active': True
+            },
+            {
+                'name': 'Nairobi Kilimani',
+                'slug': 'nairobi-kilimani',
+                'city': 'Nairobi',
+                'shipping_price': 250,
+                'is_active': True
+            },
+            {
+                'name': 'Nairobi Lavington',
+                'slug': 'nairobi-lavington',
+                'city': 'Nairobi',
+                'shipping_price': 300,
+                'is_active': True
+            },
+            {
+                'name': 'Nairobi Runda',
+                'slug': 'nairobi-runda',
+                'city': 'Nairobi',
+                'shipping_price': 350,
+                'is_active': True
+            },
+            {
+                'name': 'Nairobi Other Areas',
+                'slug': 'nairobi-other',
+                'city': 'Nairobi',
+                'shipping_price': 400,
+                'is_active': True
+            },
+            {
+                'name': 'Mombasa',
+                'slug': 'mombasa',
+                'city': 'Mombasa',
+                'shipping_price': 800,
+                'is_active': True
+            },
+            {
+                'name': 'Kisumu',
+                'slug': 'kisumu',
+                'city': 'Kisumu',
+                'shipping_price': 750,
+                'is_active': True
+            },
+            {
+                'name': 'Nakuru',
+                'slug': 'nakuru',
+                'city': 'Nakuru',
+                'shipping_price': 600,
+                'is_active': True
+            },
+            {
+                'name': 'Eldoret',
+                'slug': 'eldoret',
+                'city': 'Eldoret',
+                'shipping_price': 700,
+                'is_active': True
+            },
+            {
+                'name': 'Thika',
+                'slug': 'thika',
+                'city': 'Thika',
+                'shipping_price': 500,
+                'is_active': True
+            },
+            {
+                'name': 'Naivasha',
+                'slug': 'naivasha',
+                'city': 'Naivasha',
+                'shipping_price': 550,
+                'is_active': True
+            },
+            {
+                'name': 'Nyeri',
+                'slug': 'nyeri',
+                'city': 'Nyeri',
+                'shipping_price': 650,
+                'is_active': True
+            },
+            {
+                'name': 'Meru',
+                'slug': 'meru',
+                'city': 'Meru',
+                'shipping_price': 750,
+                'is_active': True
+            },
+            {
+                'name': 'Kakamega',
+                'slug': 'kakamega',
+                'city': 'Kakamega',
+                'shipping_price': 800,
+                'is_active': True
+            },
+            {
+                'name': 'Other Locations',
+                'slug': 'other',
+                'city': 'Other',
+                'shipping_price': 1000,
+                'is_active': True
+            }
+        ]
+
+        for location_data in locations:
+            location = DeliveryLocation(**location_data)
+            db.session.add(location)
+        
+        db.session.commit()
+
         # Create categories
         categories = {
             'cookware': Category(name='Cookware', slug='cookware', description='High-quality cookware for your kitchen'),

@@ -1,8 +1,8 @@
-"""Initial migration
+"""Add cart and delivery location models
 
-Revision ID: 8eda62cf31e4
+Revision ID: 824ce3ca0ffe
 Revises: 
-Create Date: 2025-05-29 17:19:51.869890
+Create Date: 2025-06-05 13:20:16.644805
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '8eda62cf31e4'
+revision = '824ce3ca0ffe'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -28,6 +28,14 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('slug')
     )
+    op.create_table('carts',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('session_id', sa.String(length=100), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('session_id')
+    )
     op.create_table('categories',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
@@ -35,6 +43,18 @@ def upgrade():
     sa.Column('description', sa.Text(), nullable=True),
     sa.Column('image_url', sa.String(length=255), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('slug')
+    )
+    op.create_table('delivery_locations',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(length=100), nullable=False),
+    sa.Column('slug', sa.String(length=100), nullable=False),
+    sa.Column('city', sa.String(length=100), nullable=False),
+    sa.Column('shipping_price', sa.Numeric(precision=10, scale=2), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('slug')
     )
@@ -50,6 +70,7 @@ def upgrade():
     sa.Column('review_count', sa.Integer(), nullable=True),
     sa.Column('is_new', sa.Boolean(), nullable=True),
     sa.Column('is_sale', sa.Boolean(), nullable=True),
+    sa.Column('is_featured', sa.Boolean(), nullable=True),
     sa.Column('category_id', sa.Integer(), nullable=True),
     sa.Column('brand_id', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
@@ -58,6 +79,17 @@ def upgrade():
     sa.ForeignKeyConstraint(['category_id'], ['categories.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('sku')
+    )
+    op.create_table('cart_items',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('cart_id', sa.Integer(), nullable=False),
+    sa.Column('product_id', sa.Integer(), nullable=False),
+    sa.Column('quantity', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.ForeignKeyConstraint(['cart_id'], ['carts.id'], ),
+    sa.ForeignKeyConstraint(['product_id'], ['products.id'], ),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('product_features',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -108,7 +140,10 @@ def downgrade():
     op.drop_table('product_specifications')
     op.drop_table('product_images')
     op.drop_table('product_features')
+    op.drop_table('cart_items')
     op.drop_table('products')
+    op.drop_table('delivery_locations')
     op.drop_table('categories')
+    op.drop_table('carts')
     op.drop_table('brands')
     # ### end Alembic commands ###

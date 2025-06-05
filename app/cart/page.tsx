@@ -1,59 +1,71 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Minus, Plus, X, ArrowRight, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useCart } from "@/lib/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
-
-// Location data with shipping prices
-const locations = [
-  { id: "nairobi-cbd", name: "Nairobi CBD", shippingPrice: 250 },
-  { id: "nairobi-westlands", name: "Nairobi Westlands", shippingPrice: 300 },
-  { id: "nairobi-karen", name: "Nairobi Karen", shippingPrice: 350 },
-  { id: "nairobi-langata", name: "Nairobi Langata", shippingPrice: 300 },
-  { id: "nairobi-kilimani", name: "Nairobi Kilimani", shippingPrice: 250 },
-  { id: "nairobi-lavington", name: "Nairobi Lavington", shippingPrice: 300 },
-  { id: "nairobi-runda", name: "Nairobi Runda", shippingPrice: 350 },
-  { id: "nairobi-other", name: "Nairobi Other Areas", shippingPrice: 400 },
-  { id: "mombasa", name: "Mombasa", shippingPrice: 800 },
-  { id: "kisumu", name: "Kisumu", shippingPrice: 750 },
-  { id: "nakuru", name: "Nakuru", shippingPrice: 600 },
-  { id: "eldoret", name: "Eldoret", shippingPrice: 700 },
-  { id: "thika", name: "Thika", shippingPrice: 500 },
-  { id: "naivasha", name: "Naivasha", shippingPrice: 550 },
-  { id: "nyeri", name: "Nyeri", shippingPrice: 650 },
-  { id: "meru", name: "Meru", shippingPrice: 750 },
-  { id: "kakamega", name: "Kakamega", shippingPrice: 800 },
-  { id: "other", name: "Other Locations", shippingPrice: 1000 },
-]
+import { deliveryLocationsApi, DeliveryLocation } from "@/app/lib/api/cart"
+import { useCart } from "@/lib/hooks/use-cart"
 
 export default function CartPage() {
-  const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart()
   const { toast } = useToast()
+  const { cart, updateQuantity, removeFromCart, clearCart } = useCart()
+  const [locations, setLocations] = useState<DeliveryLocation[]>([])
+  const [selectedLocation, setSelectedLocation] = useState<string>("")
   const [promoCode, setPromoCode] = useState("")
-  const [selectedLocation, setSelectedLocation] = useState("nairobi-cbd")
+  const [loading, setLoading] = useState(true)
+
+  // Fetch locations
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        setLoading(true)
+        const locationsData = await deliveryLocationsApi.getAll()
+        setLocations(locationsData)
+      } catch (error) {
+        console.error('Error fetching locations:', error)
+        toast({
+          title: "Error",
+          description: "Failed to load delivery locations. Please try again.",
+          variant: "destructive",
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchLocations()
+  }, [toast])
 
   // Calculate totals
-  const subtotal = cartItems.reduce((total, item) => total + item.price * (item.quantity || 1), 0)
-  const location = locations.find(loc => loc.id === selectedLocation)
-  const shipping = subtotal > 5000 ? 0 : (location?.shippingPrice || 350)
+  const subtotal = cart?.items?.reduce((total, item) => 
+    total + (item.product.price * item.quantity), 0) || 0
+  const location = locations.find(loc => loc.slug === selectedLocation)
+  const shipping = selectedLocation ? (location?.shippingPrice || 0) : 0
   const total = subtotal + shipping
 
-  const handleQuantityChange = (productId: number, newQuantity: number) => {
+  const handleQuantityChange = async (itemId: number, newQuantity: number) => {
     if (newQuantity < 1) return
-    updateQuantity(productId, newQuantity)
+    await updateQuantity(itemId, newQuantity)
   }
 
-  const handleRemoveItem = (productId: number, productName: string) => {
-    removeFromCart(productId)
+  const handleRemoveItem = async (itemId: number, productName: string) => {
+    await removeFromCart(itemId)
     toast({
       title: "Item removed",
       description: `${productName} has been removed from your cart.`,
+    })
+  }
+
+  const handleClearCart = async () => {
+    await clearCart()
+    toast({
+      title: "Cart cleared",
+      description: "All items have been removed from your cart.",
     })
   }
 
@@ -75,12 +87,22 @@ export default function CartPage() {
     })
   }
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    )
+  }
+
+  const hasItems = cart?.items && cart.items.length > 0
+
   return (
     <div className="bg-gray-50 min-h-screen py-8 px-4">
       <div className="container mx-auto max-w-7xl">
         <h1 className="text-3xl font-bold text-gray-800 mb-8">Your Shopping Cart</h1>
 
-        {cartItems.length > 0 ? (
+        {hasItems ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cart Items */}
             <div className="lg:col-span-2">
@@ -94,24 +116,24 @@ export default function CartPage() {
                   </div>
 
                   <div className="divide-y">
-                    {cartItems.map((item) => (
+                    {cart?.items.map((item) => (
                       <div key={item.id} className="py-6 grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
                         {/* Product */}
                         <div className="col-span-2 flex items-center">
                           <div className="relative h-20 w-20 rounded-md overflow-hidden mr-4">
                             <Image
-                              src={item.image || "/placeholder.svg"}
-                              alt={item.name}
+                              src={item.product.image || "/placeholder.svg"}
+                              alt={item.product.name}
                               fill
                               className="object-cover"
                             />
                           </div>
                           <div>
                             <Link
-                              href={`/products/${item.id}`}
+                              href={`/products/${item.product.id}`}
                               className="font-medium text-gray-800 hover:text-green-600"
                             >
-                              {item.name}
+                              {item.product.name}
                             </Link>
                           </div>
                         </div>
@@ -119,7 +141,7 @@ export default function CartPage() {
                         {/* Price */}
                         <div className="text-gray-800">
                           <span className="md:hidden font-medium text-gray-500 mr-2">Price:</span>
-                          KES {item.price.toLocaleString()}
+                          KES {item.product.price.toLocaleString()}
                         </div>
 
                         {/* Quantity */}
@@ -128,14 +150,14 @@ export default function CartPage() {
                           <div className="flex items-center border rounded-md w-fit">
                             <button
                               className="px-2 py-1 text-gray-600 hover:text-gray-800"
-                              onClick={() => handleQuantityChange(item.id, (item.quantity || 1) - 1)}
+                              onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                             >
                               <Minus className="h-4 w-4" />
                             </button>
-                            <span className="px-4 py-1 border-x">{item.quantity || 1}</span>
+                            <span className="px-4 py-1 border-x">{item.quantity}</span>
                             <button
                               className="px-2 py-1 text-gray-600 hover:text-gray-800"
-                              onClick={() => handleQuantityChange(item.id, (item.quantity || 1) + 1)}
+                              onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
                             >
                               <Plus className="h-4 w-4" />
                             </button>
@@ -147,12 +169,12 @@ export default function CartPage() {
                           <div>
                             <span className="md:hidden font-medium text-gray-500 mr-2">Total:</span>
                             <span className="font-medium text-gray-800">
-                              KES {(item.price * (item.quantity || 1)).toLocaleString()}
+                              KES {(item.product.price * item.quantity).toLocaleString()}
                             </span>
                           </div>
                           <button
                             className="text-gray-400 hover:text-red-500"
-                            onClick={() => handleRemoveItem(item.id, item.name)}
+                            onClick={() => handleRemoveItem(item.id, item.product.name)}
                           >
                             <X className="h-5 w-5" />
                           </button>
@@ -174,13 +196,7 @@ export default function CartPage() {
                 <Button
                   variant="outline"
                   className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                  onClick={() => {
-                    clearCart()
-                    toast({
-                      title: "Cart cleared",
-                      description: "All items have been removed from your cart.",
-                    })
-                  }}
+                  onClick={handleClearCart}
                 >
                   Clear Cart
                 </Button>
@@ -200,12 +216,12 @@ export default function CartPage() {
                     </label>
                     <Select value={selectedLocation} onValueChange={setSelectedLocation}>
                       <SelectTrigger id="location">
-                        <SelectValue placeholder="Select location" />
+                        <SelectValue placeholder="Select your delivery location" />
                       </SelectTrigger>
                       <SelectContent>
                         {locations.map((location) => (
-                          <SelectItem key={location.id} value={location.id}>
-                            {location.name}
+                          <SelectItem key={location.id} value={location.slug}>
+                            {location.name} - KES {location.shippingPrice.toLocaleString()}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -220,7 +236,7 @@ export default function CartPage() {
                     <div className="flex justify-between">
                       <span className="text-gray-600">Shipping</span>
                       <span className="font-medium text-gray-800">
-                        {shipping === 0 ? "Free" : `KES ${shipping.toLocaleString()}`}
+                        KES {shipping.toLocaleString()}
                       </span>
                     </div>
                     <div className="border-t pt-4 flex justify-between">
