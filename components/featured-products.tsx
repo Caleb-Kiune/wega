@@ -1,19 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { ShoppingCart, Heart, Eye } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { useToast } from "@/hooks/use-toast"
-import { useCart } from "@/lib/hooks/use-cart"
+import { useState, useRef, useEffect } from "react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import ProductCard from "@/components/product-card"
 import { productsApi } from "@/app/lib/api/products"
-import ProductsLoading from "@/components/products-loading"
 import { Product } from "@/app/lib/api/products"
 
 export default function FeaturedProducts() {
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(true)
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -35,7 +31,7 @@ export default function FeaturedProducts() {
     try {
       setLoading(true)
       setError(null)
-      const response = await productsApi.getAll({ is_featured: true })
+      const response = await productsApi.getAll({ sort: "featured" })
       setProducts(response.products)
     } catch (err) {
       console.error('Error fetching featured products:', err)
@@ -49,24 +45,85 @@ export default function FeaturedProducts() {
     fetchProducts()
   }, [])
 
-  if (loading) return <ProductsLoading />
-  if (error) return (
-    <div className="text-center py-8">
-      <p className="text-red-500 mb-4">{error}</p>
-      <button 
-        onClick={fetchProducts} 
-        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-      >
-        Retry
-      </button>
-    </div>
-  )
+  const checkScrollButtons = () => {
+    if (carouselRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current
+      setCanScrollLeft(scrollLeft > 0)
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10) // 10px buffer
+    }
+  }
+
+  useEffect(() => {
+    const carousel = carouselRef.current
+    if (carousel) {
+      carousel.addEventListener("scroll", checkScrollButtons)
+      // Initial check
+      checkScrollButtons()
+      return () => carousel.removeEventListener("scroll", checkScrollButtons)
+    }
+  }, [products]) // Re-check when products change
+
+  const scroll = (direction: "left" | "right") => {
+    if (carouselRef.current) {
+      const { clientWidth } = carouselRef.current
+      const scrollAmount = direction === "left" ? -clientWidth / 2 : clientWidth / 2
+      carouselRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" })
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-500 mb-4">{error}</p>
+        <button 
+          onClick={fetchProducts} 
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+        >
+          Retry
+        </button>
+      </div>
+    )
+  }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
+    <div className="relative">
+      {/* Scroll Buttons */}
+      {canScrollLeft && (
+        <button
+          onClick={() => scroll("left")}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 focus:outline-none"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+      )}
+      {canScrollRight && (
+        <button
+          onClick={() => scroll("right")}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 focus:outline-none"
+        >
+          <ChevronRight className="h-6 w-6" />
+        </button>
+      )}
+
+      {/* Product Carousel */}
+      <div
+        ref={carouselRef}
+        className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+      >
+        {products.map((product) => (
+          <div key={product.id} className="flex-none w-[280px]">
+            <ProductCard product={product} />
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

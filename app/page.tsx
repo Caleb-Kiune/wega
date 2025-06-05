@@ -24,7 +24,7 @@ export default function Home() {
               <p className="text-gray-600">Discover our most popular kitchenware items</p>
             </div>
             <Link
-              href="/products"
+              href="/products?sort=featured"
               className="inline-flex items-center text-green-600 font-medium mt-4 md:mt-0 hover:text-green-700"
             >
               View all products
@@ -44,7 +44,7 @@ export default function Home() {
               <p className="text-gray-600">Check out our latest kitchenware additions</p>
             </div>
             <Link
-              href="/products?category=new-arrivals"
+              href="/products?sort=newest"
               className="inline-flex items-center text-green-600 font-medium mt-4 md:mt-0 hover:text-green-700"
             >
               View all new arrivals
@@ -64,7 +64,7 @@ export default function Home() {
               <p className="text-gray-600">Limited time deals on premium kitchenware</p>
             </div>
             <Link
-              href="/products?category=special-offers"
+              href="/products?sort=offers"
               className="inline-flex items-center text-green-600 font-medium mt-4 md:mt-0 hover:text-green-700"
             >
               View all offers

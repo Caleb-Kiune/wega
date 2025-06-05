@@ -22,8 +22,7 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
       try {
         setLoading(true)
         const response = await productsApi.getAll({
-          is_new: category === "new-arrivals" ? "true" : undefined,
-          is_sale: category === "special-offers" ? "true" : undefined
+          sort: category === "new-arrivals" ? "newest" : "offers"
         })
         setProducts(response.products)
       } catch (err) {

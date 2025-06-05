@@ -52,6 +52,7 @@ def seed_database():
                 'brand': brands['wega'],
                 'is_new': True,
                 'is_sale': False,
+                'is_featured': True,
                 'features': [
                     'Premium non-stick coating',
                     'Even heat distribution',
@@ -113,6 +114,7 @@ def seed_database():
                 'brand': brands['kitchenaid'],
                 'is_new': False,
                 'is_sale': True,
+                'is_featured': False,
                 'features': [
                     'Premium stainless steel construction',
                     'Set includes 3 pots with lids (2L, 4L, 6L)',
@@ -149,6 +151,7 @@ def seed_database():
                 'brand': brands['cuisinart'],
                 'is_new': True,
                 'is_sale': False,
+                'is_featured': True,
                 'features': [
                     'Programmable brewing',
                     '12-cup thermal carafe',
@@ -184,6 +187,7 @@ def seed_database():
                 'brand': brands['wega'],
                 'is_new': False,
                 'is_sale': True,
+                'is_featured': False,
                 'features': [
                     'Set of 12 essential utensils',
                     'Stainless steel construction',
@@ -219,6 +223,7 @@ def seed_database():
                 'brand': brands['pyrex'],
                 'is_new': True,
                 'is_sale': False,
+                'is_featured': False,
                 'features': [
                     'Set of 5 containers with lids',
                     'BPA-free plastic lids',
@@ -254,6 +259,7 @@ def seed_database():
                 'brand': brands['wega'],
                 'is_new': True,
                 'is_sale': False,
+                'is_featured': True,
                 'features': [
                     'Set of 4 dinner plates',
                     'Premium ceramic construction',
@@ -289,6 +295,7 @@ def seed_database():
                 'brand': brands['wega'],
                 'is_new': True,
                 'is_sale': False,
+                'is_featured': False,
                 'features': [
                     'High-carbon stainless steel blade',
                     'Ergonomic handle',
@@ -324,6 +331,7 @@ def seed_database():
                 'brand': brands['tefal'],
                 'is_new': False,
                 'is_sale': True,
+                'is_featured': False,
                 'features': [
                     '5 speed settings',
                     'Includes 2 beaters and 2 dough hooks',
@@ -359,6 +367,7 @@ def seed_database():
                 'brand': brands['wega'],
                 'is_new': False,
                 'is_sale': True,
+                'is_featured': True,
                 'features': [
                     'Pre-seasoned cast iron construction',
                     '12-inch cooking surface',
@@ -412,6 +421,7 @@ def seed_database():
                 'brand': brands['cuisinart'],
                 'is_new': True,
                 'is_sale': False,
+                'is_featured': False,
                 'features': [
                     'Digital display with large numbers',
                     'Strong magnetic back',
@@ -444,6 +454,352 @@ def seed_database():
                         'date': datetime(2023, 11, 10)
                     }
                 ]
+            },
+            {
+                'name': 'Stainless Steel Mixing Bowls (Set of 3)',
+                'description': 'These durable stainless steel mixing bowls are perfect for all your cooking and baking needs. The set includes three sizes for versatility.',
+                'price': 1499,
+                'original_price': None,
+                'sku': 'KA-SB-3-SET',
+                'stock': 22,
+                'category': categories['utensils'],
+                'brand': brands['kitchenaid'],
+                'is_new': True,
+                'is_sale': False,
+                'is_featured': False,
+                'features': [
+                    'Set of 3 mixing bowls',
+                    'Stainless steel construction',
+                    'Non-slip base',
+                    'Dishwasher safe',
+                    'Stackable for easy storage',
+                    'Lifetime warranty'
+                ],
+                'specifications': {
+                    'Material': 'Stainless steel',
+                    'Set Includes': '3 bowls (small, medium, large)',
+                    'Weight': '1.5 kg (total)',
+                    'Dishwasher Safe': 'Yes',
+                    'Warranty': 'Lifetime'
+                },
+                'images': [
+                    '/images/tableware1.jpeg',
+                    '/images/tableware2.jpeg',
+                    '/images/tableware3.jpeg',
+                    '/images/tableware4.jpeg'
+                ],
+                'reviews': []
+            },
+            {
+                'name': 'Electric Kettle',
+                'description': 'Boil water quickly and efficiently with this sleek electric kettle. Features auto-shutoff and a removable filter for easy cleaning.',
+                'price': 1999,
+                'original_price': None,
+                'sku': 'CU-EK-1.7-BLK',
+                'stock': 18,
+                'category': categories['appliances'],
+                'brand': brands['cuisinart'],
+                'is_new': True,
+                'is_sale': False,
+                'is_featured': False,
+                'features': [
+                    '1.7L capacity',
+                    'Auto-shutoff feature',
+                    'Removable filter',
+                    'Concealed heating element',
+                    '360-degree swivel base',
+                    '2-year warranty'
+                ],
+                'specifications': {
+                    'Capacity': '1.7L',
+                    'Power': '1500W',
+                    'Material': 'Stainless steel and plastic',
+                    'Dimensions': '8 x 6 x 10 inches',
+                    'Warranty': '2 years',
+                    'Color': 'Black'
+                },
+                'images': [
+                    '/images/appliances3.jpeg',
+                    '/images/appliances1.jpeg',
+                    '/images/appliances2.jpeg',
+                    '/images/appliances4.jpeg'
+                ],
+                'reviews': []
+            },
+            {
+                'name': 'Bamboo Cutting Board',
+                'description': 'This eco-friendly bamboo cutting board is perfect for all your chopping needs. Durable, easy to clean, and gentle on your knives.',
+                'price': 799,
+                'original_price': None,
+                'sku': 'WG-CB-18-BAM',
+                'stock': 25,
+                'category': categories['utensils'],
+                'brand': brands['wega'],
+                'is_new': True,
+                'is_sale': False,
+                'is_featured': True,
+                'features': [
+                    'Eco-friendly bamboo construction',
+                    'Reversible design',
+                    'Juice groove to catch liquids',
+                    'Dishwasher safe',
+                    'Non-slip feet',
+                    '1-year warranty'
+                ],
+                'specifications': {
+                    'Material': 'Bamboo',
+                    'Dimensions': '18 x 12 x 1.5 inches',
+                    'Weight': '1.0 kg',
+                    'Dishwasher Safe': 'Yes',
+                    'Warranty': '1 year'
+                },
+                'images': [
+                    '/images/tableware2.jpeg',
+                    '/images/tableware1.jpeg',
+                    '/images/tableware3.jpeg',
+                    '/images/tableware4.jpeg'
+                ],
+                'reviews': []
+            },
+            {
+                'name': 'Stainless Steel Food Storage Containers (Set of 4)',
+                'description': 'Keep your food fresh and organized with these premium stainless steel storage containers. Perfect for meal prep and leftovers.',
+                'price': 1799,
+                'original_price': None,
+                'sku': 'PY-SC-4-SET',
+                'stock': 20,
+                'category': categories['storage'],
+                'brand': brands['pyrex'],
+                'is_new': True,
+                'is_sale': False,
+                'is_featured': False,
+                'features': [
+                    'Set of 4 containers with lids',
+                    'Stainless steel construction',
+                    'Airtight seal',
+                    'Stackable design',
+                    'Dishwasher safe',
+                    '1-year warranty'
+                ],
+                'specifications': {
+                    'Material': 'Stainless steel',
+                    'Set Includes': '4 containers with lids',
+                    'Sizes': '0.5L, 1L, 1.5L, 2L',
+                    'Dishwasher Safe': 'Yes',
+                    'Warranty': '1 year'
+                },
+                'images': [
+                    '/images/homeessentials4.jpeg',
+                    '/images/homeessentials1.jpeg',
+                    '/images/homeessentials2.jpeg',
+                    '/images/homeessentials3.jpeg'
+                ],
+                'reviews': []
+            },
+            {
+                'name': 'Ceramic Coffee Mugs (Set of 4)',
+                'description': 'Enjoy your favorite beverages with these elegant ceramic coffee mugs. Perfect for everyday use and special occasions.',
+                'price': 1299,
+                'original_price': None,
+                'sku': 'WG-CM-4-SET',
+                'stock': 30,
+                'category': categories['home'],
+                'brand': brands['wega'],
+                'is_new': True,
+                'is_sale': False,
+                'is_featured': False,
+                'features': [
+                    'Set of 4 coffee mugs',
+                    'Premium ceramic construction',
+                    'Microwave and dishwasher safe',
+                    'Chip-resistant design',
+                    'Elegant pattern',
+                    'Stackable for easy storage'
+                ],
+                'specifications': {
+                    'Material': 'Premium ceramic',
+                    'Set Includes': '4 coffee mugs',
+                    'Capacity': '12 oz each',
+                    'Microwave Safe': 'Yes',
+                    'Dishwasher Safe': 'Yes',
+                    'Warranty': '1 year'
+                },
+                'images': [
+                    '/images/homeessentials1.jpeg',
+                    '/images/homeessentials2.jpeg',
+                    '/images/homeessentials3.jpeg',
+                    '/images/homeessentials4.jpeg'
+                ],
+                'reviews': []
+            },
+            {
+                'name': 'Stainless Steel Measuring Cups (Set of 4)',
+                'description': 'Accurate measurements every time with these durable stainless steel measuring cups. Perfect for cooking and baking.',
+                'price': 899,
+                'original_price': None,
+                'sku': 'KA-MC-4-SET',
+                'stock': 25,
+                'category': categories['utensils'],
+                'brand': brands['kitchenaid'],
+                'is_new': True,
+                'is_sale': False,
+                'is_featured': False,
+                'features': [
+                    'Set of 4 measuring cups',
+                    'Stainless steel construction',
+                    'Engraved measurements',
+                    'Dishwasher safe',
+                    'Stackable for easy storage',
+                    'Lifetime warranty'
+                ],
+                'specifications': {
+                    'Material': 'Stainless steel',
+                    'Set Includes': '4 cups (1/4, 1/3, 1/2, 1 cup)',
+                    'Dishwasher Safe': 'Yes',
+                    'Warranty': 'Lifetime'
+                },
+                'images': [
+                    '/images/tableware3.jpeg',
+                    '/images/tableware1.jpeg',
+                    '/images/tableware2.jpeg',
+                    '/images/tableware4.jpeg'
+                ],
+                'reviews': []
+            },
+            {
+                'name': 'Electric Can Opener',
+                'description': 'Open cans effortlessly with this electric can opener. Features a sleek design and easy-to-use operation.',
+                'price': 1499,
+                'original_price': None,
+                'sku': 'CU-CO-1-BLK',
+                'stock': 15,
+                'category': categories['appliances'],
+                'brand': brands['cuisinart'],
+                'is_new': True,
+                'is_sale': False,
+                'is_featured': False,
+                'features': [
+                    'Electric operation',
+                    'Sleek design',
+                    'Easy to use',
+                    'Dishwasher safe parts',
+                    '2-year warranty'
+                ],
+                'specifications': {
+                    'Power': '120V',
+                    'Material': 'Plastic and metal',
+                    'Dimensions': '6 x 4 x 3 inches',
+                    'Warranty': '2 years',
+                    'Color': 'Black'
+                },
+                'images': [
+                    '/images/appliances4.jpeg',
+                    '/images/appliances1.jpeg',
+                    '/images/appliances2.jpeg',
+                    '/images/appliances3.jpeg'
+                ],
+                'reviews': []
+            },
+            {
+                'name': 'Stainless Steel Spatula Set',
+                'description': 'Complete your kitchen with this premium spatula set. Includes all essential tools for cooking and baking, made from high-quality materials for durability and performance.',
+                'price': 1299,
+                'original_price': None,
+                'sku': 'WG-SP-3-SET',
+                'stock': 20,
+                'category': categories['utensils'],
+                'brand': brands['wega'],
+                'is_new': True,
+                'is_sale': False,
+                'is_featured': False,
+                'features': [
+                    'Set of 3 spatulas',
+                    'Stainless steel construction',
+                    'Heat-resistant handles',
+                    'Dishwasher safe',
+                    'Lifetime warranty'
+                ],
+                'specifications': {
+                    'Material': 'Stainless steel and silicone',
+                    'Set Includes': '3 spatulas',
+                    'Dishwasher Safe': 'Yes',
+                    'Warranty': 'Lifetime'
+                },
+                'images': [
+                    '/images/tableware4.jpeg',
+                    '/images/tableware1.jpeg',
+                    '/images/tableware2.jpeg',
+                    '/images/tableware3.jpeg'
+                ],
+                'reviews': []
+            },
+            {
+                'name': 'Glass Baking Dish (9x13)',
+                'description': 'Perfect for baking casseroles, lasagnas, and more with this durable glass baking dish. Microwave and dishwasher safe for easy cleaning.',
+                'price': 999,
+                'original_price': None,
+                'sku': 'PY-GB-9X13',
+                'stock': 18,
+                'category': categories['home'],
+                'brand': brands['pyrex'],
+                'is_new': True,
+                'is_sale': False,
+                'is_featured': False,
+                'features': [
+                    'Durable glass construction',
+                    'Microwave and dishwasher safe',
+                    'Oven safe up to 400°F',
+                    'Lid included',
+                    '1-year warranty'
+                ],
+                'specifications': {
+                    'Material': 'Tempered glass',
+                    'Dimensions': '9 x 13 inches',
+                    'Microwave Safe': 'Yes',
+                    'Dishwasher Safe': 'Yes',
+                    'Warranty': '1 year'
+                },
+                'images': [
+                    '/images/homeessentials2.jpeg',
+                    '/images/homeessentials1.jpeg',
+                    '/images/homeessentials3.jpeg',
+                    '/images/homeessentials4.jpeg'
+                ],
+                'reviews': []
+            },
+            {
+                'name': 'Stainless Steel Measuring Spoons (Set of 4)',
+                'description': 'Accurate measurements every time with these durable stainless steel measuring spoons. Perfect for cooking and baking.',
+                'price': 699,
+                'original_price': None,
+                'sku': 'KA-MS-4-SET',
+                'stock': 25,
+                'category': categories['utensils'],
+                'brand': brands['kitchenaid'],
+                'is_new': True,
+                'is_sale': False,
+                'is_featured': False,
+                'features': [
+                    'Set of 4 measuring spoons',
+                    'Stainless steel construction',
+                    'Engraved measurements',
+                    'Dishwasher safe',
+                    'Stackable for easy storage',
+                    'Lifetime warranty'
+                ],
+                'specifications': {
+                    'Material': 'Stainless steel',
+                    'Set Includes': '4 spoons (1/4, 1/2, 1, 1/2 tsp)',
+                    'Dishwasher Safe': 'Yes',
+                    'Warranty': 'Lifetime'
+                },
+                'images': [
+                    '/images/tableware1.jpeg',
+                    '/images/tableware2.jpeg',
+                    '/images/tableware3.jpeg',
+                    '/images/tableware4.jpeg'
+                ],
+                'reviews': []
             }
         ]
         
@@ -459,7 +815,8 @@ def seed_database():
                 category_id=product_data['category'].id,
                 brand_id=product_data['brand'].id,
                 is_new=product_data['is_new'],
-                is_sale=product_data['is_sale']
+                is_sale=product_data['is_sale'],
+                is_featured=product_data['is_featured']
             )
             db.session.add(product)
             db.session.flush()
