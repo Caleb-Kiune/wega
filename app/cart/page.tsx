@@ -19,6 +19,23 @@ export default function CartPage() {
   const [promoCode, setPromoCode] = useState("")
   const [loading, setLoading] = useState(true)
 
+  // Load selected location from localStorage on mount
+  useEffect(() => {
+    // Clear any existing location from localStorage
+    localStorage.removeItem('selectedDeliveryLocation')
+    setSelectedLocation("")
+  }, [])
+
+  // Save selected location to localStorage when it changes
+  const handleLocationChange = (value: string) => {
+    setSelectedLocation(value)
+    if (value) {
+      localStorage.setItem('selectedDeliveryLocation', value)
+    } else {
+      localStorage.removeItem('selectedDeliveryLocation')
+    }
+  }
+
   // Fetch locations
   useEffect(() => {
     const fetchLocations = async () => {
@@ -214,7 +231,7 @@ export default function CartPage() {
                     <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
                       Delivery Location
                     </label>
-                    <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                    <Select value={selectedLocation} onValueChange={handleLocationChange}>
                       <SelectTrigger id="location">
                         <SelectValue placeholder="Select your delivery location" />
                       </SelectTrigger>

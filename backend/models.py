@@ -244,4 +244,81 @@ class DeliveryLocation(db.Model):
             'city': self.city,
             'shippingPrice': float(self.shipping_price),
             'isActive': self.is_active
+        }
+
+class Order(db.Model):
+    __tablename__ = 'orders'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.String(100), nullable=False)
+    first_name = db.Column(db.String(100), nullable=False)
+    last_name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(255), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    address = db.Column(db.String(255), nullable=False)
+    city = db.Column(db.String(100), nullable=False)
+    county = db.Column(db.String(100), nullable=False)
+    postal_code = db.Column(db.String(20), nullable=False)
+    delivery_location_id = db.Column(db.Integer, db.ForeignKey('delivery_locations.id'))
+    subtotal = db.Column(db.Numeric(10, 2), nullable=False)
+    shipping_fee = db.Column(db.Numeric(10, 2), nullable=False)
+    total = db.Column(db.Numeric(10, 2), nullable=False)
+    payment_method = db.Column(db.String(50), nullable=False)
+    payment_status = db.Column(db.String(50), default='pending')
+    order_status = db.Column(db.String(50), default='pending')
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    items = db.relationship('OrderItem', backref='order', lazy=True, cascade='all, delete-orphan')
+    delivery_location = db.relationship('DeliveryLocation', backref='orders')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'session_id': self.session_id,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'email': self.email,
+            'phone': self.phone,
+            'address': self.address,
+            'city': self.city,
+            'county': self.county,
+            'postal_code': self.postal_code,
+            'delivery_location': self.delivery_location.to_dict() if self.delivery_location else None,
+            'subtotal': float(self.subtotal),
+            'shipping_fee': float(self.shipping_fee),
+            'total': float(self.total),
+            'payment_method': self.payment_method,
+            'payment_status': self.payment_status,
+            'order_status': self.order_status,
+            'notes': self.notes,
+            'items': [item.to_dict() for item in self.items],
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class OrderItem(db.Model):
+    __tablename__ = 'order_items'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Numeric(10, 2), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship
+    product = db.relationship('Product', backref='order_items')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'order_id': self.order_id,
+            'product_id': self.product_id,
+            'quantity': self.quantity,
+            'price': float(self.price),
+            'product': self.product.to_dict() if self.product else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         } 

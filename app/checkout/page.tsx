@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Truck, ShieldCheck, Copy, Check, AlertCircle, Lock, CreditCard, Eye, EyeOff } from "lucide-react"
@@ -14,9 +14,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useCart } from "@/lib/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
+import { deliveryLocationsApi, DeliveryLocation } from "@/app/lib/api/cart"
 
 export default function CheckoutPage() {
-  const { cartItems } = useCart()
+  const { cart } = useCart()
   const { toast } = useToast()
   const [paymentMethod, setPaymentMethod] = useState("mpesa")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -30,10 +31,59 @@ export default function CheckoutPage() {
   })
   const [showCvv, setShowCvv] = useState(false)
   const [cardType, setCardType] = useState<string | null>(null)
+  const [locations, setLocations] = useState<DeliveryLocation[]>([])
+  const [selectedLocation, setSelectedLocation] = useState<string>("")
+  const [location, setLocation] = useState<DeliveryLocation | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  // Load selected location from localStorage on mount
+  useEffect(() => {
+    const savedLocation = localStorage.getItem('selectedDeliveryLocation')
+    if (savedLocation) {
+      setSelectedLocation(savedLocation)
+      // Find the location object from the locations array
+      const location = locations.find(loc => loc.slug === savedLocation)
+      if (location) {
+        setLocation(location)
+      }
+    }
+  }, [locations]) // Add locations as a dependency
+
+  // Fetch locations
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        setLoading(true)
+        const locationsData = await deliveryLocationsApi.getAll()
+        setLocations(locationsData)
+        
+        // After fetching locations, check if we have a saved location
+        const savedLocation = localStorage.getItem('selectedDeliveryLocation')
+        if (savedLocation) {
+          const location = locationsData.find(loc => loc.slug === savedLocation)
+          if (location) {
+            setSelectedLocation(savedLocation)
+            setLocation(location)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching locations:', error)
+        toast({
+          title: "Error",
+          description: "Failed to load delivery locations. Please try again.",
+          variant: "destructive",
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchLocations()
+  }, [toast])
 
   // Calculate totals
-  const subtotal = cartItems.reduce((total, item) => total + item.price * (item.quantity || 1), 0)
-  const shipping = subtotal > 5000 ? 0 : 350
+  const subtotal = cart?.items?.reduce((total, item) => total + (item.product.price * item.quantity), 0) || 0
+  const shipping = selectedLocation ? (location?.shippingPrice || 0) : 0
   const total = subtotal + shipping
 
   const copyToClipboard = (text: string, field: string) => {
@@ -106,21 +156,70 @@ export default function CheckoutPage() {
     setCardDetails(prev => ({ ...prev, expiry: value }))
   }
 
-  const handleSubmitOrder = (e: React.FormEvent) => {
+  const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Simulate order processing
-    setTimeout(() => {
+    if (!selectedLocation) {
+      toast({
+        title: "Error",
+        description: "Please select a delivery location",
+        variant: "destructive",
+      })
       setIsSubmitting(false)
+      return
+    }
+
+    const formData = new FormData(e.target as HTMLFormElement)
+    const orderData = {
+      first_name: formData.get('firstName'),
+      last_name: formData.get('lastName'),
+      email: formData.get('email'),
+      phone: formData.get('phone'),
+      address: formData.get('address'),
+      city: formData.get('city'),
+      county: formData.get('county'),
+      postal_code: formData.get('postalCode'),
+      delivery_location_id: location?.id,
+      payment_method: paymentMethod,
+      notes: formData.get('notes')
+    }
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders?session_id=${cart?.session_id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create order')
+      }
+
+      const order = await response.json()
+      
       toast({
         title: "Order placed successfully!",
         description: "Thank you for your purchase. We'll process your order shortly.",
       })
-    }, 2000)
+
+      // Redirect to order confirmation page
+      window.location.href = `/orders/${order.id}`
+    } catch (error) {
+      console.error('Error creating order:', error)
+      toast({
+        title: "Error",
+        description: "Failed to place order. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  if (cartItems.length === 0) {
+  if (!cart?.items || cart.items.length === 0) {
     return (
       <div className="bg-gray-50 min-h-screen py-8 px-4">
         <div className="container mx-auto max-w-7xl">
@@ -199,6 +298,25 @@ export default function CheckoutPage() {
                     <div>
                       <Label htmlFor="postalCode">Postal Code</Label>
                       <Input id="postalCode" className="mt-1" required />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label htmlFor="location">Delivery Location</Label>
+                      <Select
+                        value={selectedLocation}
+                        onValueChange={setSelectedLocation}
+                        required
+                      >
+                        <SelectTrigger id="location" className="mt-1">
+                          <SelectValue placeholder="Select your delivery location" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {locations.map((location) => (
+                            <SelectItem key={location.id} value={location.slug}>
+                              {location.name} - KES {location.shippingPrice.toLocaleString()}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
@@ -442,16 +560,16 @@ export default function CheckoutPage() {
                   <h2 className="text-xl font-bold text-gray-800 mb-6">Order Summary</h2>
 
                   <div className="space-y-4 mb-6">
-                    {cartItems.map((item) => (
+                    {cart.items.map((item) => (
                       <div key={item.id} className="flex items-center">
                         <div className="relative h-16 w-16 rounded-md overflow-hidden mr-4">
-                          <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover" />
+                          <Image src={item.product.image || "/placeholder.svg"} alt={item.product.name} fill className="object-cover" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-sm font-medium text-gray-800">{item.name}</h3>
-                          <p className="text-sm text-gray-500">Qty: {item.quantity || 1}</p>
+                          <h3 className="text-sm font-medium text-gray-800">{item.product.name}</h3>
+                          <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                         </div>
-                        <div className="text-sm font-medium text-gray-800">KES {item.price.toLocaleString()}</div>
+                        <div className="text-sm font-medium text-gray-800">KES {(item.product.price * item.quantity).toLocaleString()}</div>
                       </div>
                     ))}
                   </div>
@@ -464,9 +582,14 @@ export default function CheckoutPage() {
                     <div className="flex justify-between">
                       <span className="text-gray-600">Shipping</span>
                       <span className="font-medium text-gray-800">
-                        {shipping === 0 ? "Free" : `KES ${shipping.toLocaleString()}`}
+                        KES {shipping.toLocaleString()}
                       </span>
                     </div>
+                    {selectedLocation && (
+                      <div className="text-sm text-gray-600">
+                        Delivery to: {location?.name}
+                      </div>
+                    )}
                     <div className="border-t pt-4 flex justify-between">
                       <span className="font-medium text-gray-800">Total</span>
                       <span className="font-bold text-xl text-gray-800">KES {total.toLocaleString()}</span>

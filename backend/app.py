@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_migrate import Migrate
 import os
-from models import db, Product, Category, Brand, ProductImage, ProductSpecification, ProductFeature, Review, Cart, CartItem, DeliveryLocation
+from models import db, Product, Category, Brand, ProductImage, ProductSpecification, ProductFeature, Review, Cart, CartItem, DeliveryLocation, Order, OrderItem
 from sqlalchemy import or_, and_
 from decimal import Decimal
 
@@ -885,6 +885,94 @@ def get_delivery_location(id):
     if not location:
         return jsonify({'error': 'Delivery location not found'}), 404
     return jsonify(location.to_dict())
+
+# Order Routes
+@app.route('/api/orders', methods=['POST'])
+def create_order():
+    session_id = request.args.get('session_id')
+    if not session_id:
+        return jsonify({'error': 'Session ID is required'}), 400
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Order data is required'}), 400
+
+    # Get cart items
+    cart = Cart.query.filter_by(session_id=session_id).first()
+    if not cart or not cart.items:
+        return jsonify({'error': 'Cart is empty'}), 400
+
+    # Calculate totals
+    subtotal = sum(item.product.price * item.quantity for item in cart.items)
+    delivery_location = DeliveryLocation.query.get(data.get('delivery_location_id'))
+    if not delivery_location:
+        return jsonify({'error': 'Invalid delivery location'}), 400
+    
+    shipping_fee = delivery_location.shipping_price
+    total = subtotal + shipping_fee
+
+    # Create order
+    order = Order(
+        session_id=session_id,
+        first_name=data['first_name'],
+        last_name=data['last_name'],
+        email=data['email'],
+        phone=data['phone'],
+        address=data['address'],
+        city=data['city'],
+        county=data['county'],
+        postal_code=data['postal_code'],
+        delivery_location_id=data['delivery_location_id'],
+        subtotal=subtotal,
+        shipping_fee=shipping_fee,
+        total=total,
+        payment_method=data['payment_method'],
+        notes=data.get('notes')
+    )
+
+    # Create order items
+    for cart_item in cart.items:
+        order_item = OrderItem(
+            order=order,
+            product_id=cart_item.product_id,
+            quantity=cart_item.quantity,
+            price=cart_item.product.price
+        )
+        db.session.add(order_item)
+
+    try:
+        db.session.add(order)
+        db.session.commit()
+
+        # Clear the cart after successful order creation
+        CartItem.query.filter_by(cart_id=cart.id).delete()
+        db.session.commit()
+
+        return jsonify(order.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/orders/<int:id>', methods=['GET'])
+def get_order(id):
+    session_id = request.args.get('session_id')
+    if not session_id:
+        return jsonify({'error': 'Session ID is required'}), 400
+
+    order = Order.query.filter_by(id=id, session_id=session_id).first()
+    if not order:
+        return jsonify({'error': 'Order not found'}), 404
+
+    return jsonify(order.to_dict())
+
+@app.route('/api/orders', methods=['GET'])
+def get_orders():
+    session_id = request.args.get('session_id')
+    if not session_id:
+        return jsonify({'error': 'Session ID is required'}), 400
+
+    orders = Order.query.filter_by(session_id=session_id).order_by(Order.created_at.desc()).all()
+    return jsonify([order.to_dict() for order in orders])
 
 if __name__ == '__main__':
     with app.app_context():

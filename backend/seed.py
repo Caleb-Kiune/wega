@@ -1008,5 +1008,79 @@ def seed_database():
         db.session.commit()
         print("Database seeded successfully!")
 
+def seed_delivery_locations():
+    locations = [
+        {
+            'name': 'Nairobi CBD',
+            'slug': 'nairobi-cbd',
+            'city': 'Nairobi',
+            'shipping_price': 350.00,
+            'is_active': True
+        },
+        {
+            'name': 'Westlands',
+            'slug': 'westlands',
+            'city': 'Nairobi',
+            'shipping_price': 350.00,
+            'is_active': True
+        },
+        {
+            'name': 'Mombasa CBD',
+            'slug': 'mombasa-cbd',
+            'city': 'Mombasa',
+            'shipping_price': 700.00,
+            'is_active': True
+        },
+        {
+            'name': 'Kisumu CBD',
+            'slug': 'kisumu-cbd',
+            'city': 'Kisumu',
+            'shipping_price': 600.00,
+            'is_active': True
+        },
+        {
+            'name': 'Nakuru CBD',
+            'slug': 'nakuru-cbd',
+            'city': 'Nakuru',
+            'shipping_price': 500.00,
+            'is_active': True
+        },
+        {
+            'name': 'Eldoret CBD',
+            'slug': 'eldoret-cbd',
+            'city': 'Eldoret',
+            'shipping_price': 700.00,
+            'is_active': True
+        },
+        {
+            'name': 'Thika CBD',
+            'slug': 'thika-cbd',
+            'city': 'Thika',
+            'shipping_price': 400.00,
+            'is_active': True
+        },
+        {
+            'name': 'Nyeri CBD',
+            'slug': 'nyeri-cbd',
+            'city': 'Nyeri',
+            'shipping_price': 550.00,
+            'is_active': True
+        }
+    ]
+
+    with app.app_context():
+        # Clear existing locations
+        DeliveryLocation.query.delete()
+        
+        # Add new locations
+        for location_data in locations:
+            location = DeliveryLocation(**location_data)
+            db.session.add(location)
+        
+        # Commit the changes
+        db.session.commit()
+        print("Delivery locations seeded successfully!")
+
 if __name__ == '__main__':
-    seed_database() 
+    seed_database()
+    seed_delivery_locations() 
