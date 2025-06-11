@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { productsApi, Product, ProductImage, ProductSpecification, ProductFeature } from '../../lib/api/products';
 import apiClient from '../../lib/api/client';
+import { toast } from 'react-hot-toast';
 
 type NewProductImage = Omit<ProductImage, 'id' | 'product_id'>;
 type NewProductSpecification = Omit<ProductSpecification, 'id' | 'product_id'>;
@@ -13,21 +14,20 @@ type CreateProductData = {
   name: string;
   description: string;
   price: number;
-  original_price?: number;
-  sku?: string;
+  originalPrice?: number;
+  sku: string;
   stock: number;
-  is_new: boolean;
-  is_sale: boolean;
+  isNew: boolean;
+  isSale: boolean;
+  isFeatured: boolean;
+  image: string;
   images: NewProductImage[];
   specifications: NewProductSpecification[];
   features: NewProductFeature[];
-  brand?: string;
-  category?: string;
-  rating?: number;
-  review_count: number;
-  category_id?: number;
-  brand_id?: number;
-  is_featured: boolean;
+  brand: string;
+  category: string;
+  rating: number;
+  reviewCount: number;
 };
 
 interface Brand {
@@ -63,40 +63,33 @@ interface NewCategory {
 export default function CreateProductPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [brands, setBrands] = useState<Brand[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Array<{ id: number; name: string }>>([]);
+  const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([]);
+  const [selectedBrand, setSelectedBrand] = useState<number | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [isCreatingNewBrand, setIsCreatingNewBrand] = useState(false);
   const [isCreatingNewCategory, setIsCreatingNewCategory] = useState(false);
-  const [newBrand, setNewBrand] = useState<NewBrand>({
-    name: '',
-    slug: '',
-    description: '',
-    logo_url: ''
-  });
-  const [newCategory, setNewCategory] = useState<NewCategory>({
-    name: '',
-    slug: '',
-    description: '',
-    image_url: ''
-  });
+  const [newBrandName, setNewBrandName] = useState('');
+  const [newCategoryName, setNewCategoryName] = useState('');
 
   const [newProduct, setNewProduct] = useState<CreateProductData>({
     name: '',
     description: '',
     price: 0,
-    original_price: undefined,
+    originalPrice: undefined,
     sku: '',
     stock: 0,
-    is_new: false,
-    is_sale: false,
+    isNew: false,
+    isSale: false,
+    isFeatured: false,
+    image: '',
     images: [],
     specifications: [],
     features: [],
     brand: '',
     category: '',
     rating: 0,
-    review_count: 0,
-    is_featured: false
+    reviewCount: 0
   });
 
   const [newImage, setNewImage] = useState<NewProductImage>({
@@ -247,36 +240,22 @@ export default function CreateProductPage() {
 
   const handleNewBrandChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setNewBrand(prev => {
-      const updated = { ...prev, [name]: value };
-      // Auto-generate slug from name if name is being changed
-      if (name === 'name') {
-        updated.slug = value.toLowerCase().replace(/\s+/g, '-');
-      }
-      return updated;
-    });
+    setNewBrandName(value);
   };
 
   const handleNewCategoryChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setNewCategory(prev => {
-      const updated = { ...prev, [name]: value };
-      // Auto-generate slug from name if name is being changed
-      if (name === 'name') {
-        updated.slug = value.toLowerCase().replace(/\s+/g, '-');
-      }
-      return updated;
-    });
+    setNewCategoryName(value);
   };
 
   const handleCreateBrand = async () => {
     try {
-      if (!newBrand.name) {
+      if (!newBrandName) {
         setError('Brand name is required');
         return;
       }
 
-      const response = await apiClient.post('/brands', newBrand);
+      const response = await apiClient.post('/brands', { name: newBrandName });
       const createdBrand = response.data;
       
       setBrands(prev => [...prev, createdBrand]);
@@ -286,7 +265,7 @@ export default function CreateProductPage() {
         brand_id: createdBrand.id
       }));
       setIsCreatingNewBrand(false);
-      setNewBrand({ name: '', slug: '', description: '', logo_url: '' });
+      setNewBrandName('');
     } catch (err) {
       console.error('Error creating brand:', err);
       setError(err instanceof Error ? err.message : 'Failed to create brand');
@@ -295,12 +274,12 @@ export default function CreateProductPage() {
 
   const handleCreateCategory = async () => {
     try {
-      if (!newCategory.name) {
+      if (!newCategoryName) {
         setError('Category name is required');
         return;
       }
 
-      const response = await apiClient.post('/categories', newCategory);
+      const response = await apiClient.post('/categories', { name: newCategoryName });
       const createdCategory = response.data;
       
       setCategories(prev => [...prev, createdCategory]);
@@ -310,7 +289,7 @@ export default function CreateProductPage() {
         category_id: createdCategory.id
       }));
       setIsCreatingNewCategory(false);
-      setNewCategory({ name: '', slug: '', description: '', image_url: '' });
+      setNewCategoryName('');
     } catch (err) {
       console.error('Error creating category:', err);
       setError(err instanceof Error ? err.message : 'Failed to create category');
@@ -319,17 +298,54 @@ export default function CreateProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
-      await productsApi.create({
-        ...newProduct,
-        images: newProduct.images as ProductImage[],
-        specifications: newProduct.specifications as ProductSpecification[],
-        features: newProduct.features as ProductFeature[],
-      });
+      const selectedBrandObj = brands.find(b => b.id === selectedBrand);
+      const selectedCategoryObj = categories.find(c => c.id === selectedCategory);
+
+      const productData: Omit<Product, 'id'> = {
+        name: newProduct.name,
+        description: newProduct.description,
+        price: newProduct.price,
+        originalPrice: newProduct.originalPrice,
+        sku: newProduct.sku,
+        stock: newProduct.stock,
+        isNew: newProduct.isNew,
+        isSale: newProduct.isSale,
+        isFeatured: newProduct.isFeatured,
+        image: newProduct.image,
+        images: newProduct.images.map(img => ({
+          id: 0,
+          product_id: 0,
+          image_url: img.image_url,
+          is_primary: img.is_primary,
+          display_order: img.display_order
+        })),
+        specifications: newProduct.specifications.map(spec => ({
+          id: 0,
+          product_id: 0,
+          name: spec.name,
+          value: spec.value,
+          display_order: spec.display_order
+        })),
+        features: newProduct.features.map(feature => ({
+          id: 0,
+          product_id: 0,
+          feature: feature.feature,
+          display_order: feature.display_order
+        })),
+        brand: selectedBrandObj?.name || '',
+        category: selectedCategoryObj?.name || '',
+        rating: newProduct.rating,
+        reviewCount: newProduct.reviewCount,
+        reviews: []
+      };
+
+      await productsApi.create(productData);
+      toast.success('Product created successfully');
       router.push('/crud');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+    } catch (error) {
+      console.error('Error creating product:', error);
+      toast.error('Failed to create product');
     }
   };
 
@@ -405,7 +421,7 @@ export default function CreateProductPage() {
                             <input
                               type="text"
                               name="name"
-                              value={newBrand.name}
+                              value={newBrandName}
                               onChange={handleNewBrandChange}
                               placeholder="Enter brand name"
                               className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
@@ -416,7 +432,7 @@ export default function CreateProductPage() {
                             <input
                               type="text"
                               name="slug"
-                              value={newBrand.slug}
+                              value={newBrandName}
                               onChange={handleNewBrandChange}
                               placeholder="brand-slug"
                               className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
@@ -426,7 +442,7 @@ export default function CreateProductPage() {
                             <label className="block text-sm font-medium text-gray-700">Description</label>
                             <textarea
                               name="description"
-                              value={newBrand.description}
+                              value={newBrandName}
                               onChange={handleNewBrandChange}
                               placeholder="Enter brand description"
                               rows={3}
@@ -438,7 +454,7 @@ export default function CreateProductPage() {
                             <input
                               type="text"
                               name="logo_url"
-                              value={newBrand.logo_url}
+                              value={newBrandName}
                               onChange={handleNewBrandChange}
                               placeholder="Enter logo URL"
                               className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
@@ -456,7 +472,7 @@ export default function CreateProductPage() {
                               type="button"
                               onClick={() => {
                                 setIsCreatingNewBrand(false);
-                                setNewBrand({ name: '', slug: '', description: '', logo_url: '' });
+                                setNewBrandName('');
                               }}
                               className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
                             >
@@ -466,8 +482,8 @@ export default function CreateProductPage() {
                         </div>
                       ) : (
                         <select
-                          value={newProduct.brand_id?.toString() || ''}
-                          onChange={handleBrandChange}
+                          value={selectedBrand?.toString() || ''}
+                          onChange={(e) => setSelectedBrand(e.target.value ? Number(e.target.value) : null)}
                           className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                         >
                           <option value="">Select a brand</option>
@@ -490,7 +506,7 @@ export default function CreateProductPage() {
                             <input
                               type="text"
                               name="name"
-                              value={newCategory.name}
+                              value={newCategoryName}
                               onChange={handleNewCategoryChange}
                               placeholder="Enter category name"
                               className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
@@ -501,7 +517,7 @@ export default function CreateProductPage() {
                             <input
                               type="text"
                               name="slug"
-                              value={newCategory.slug}
+                              value={newCategoryName}
                               onChange={handleNewCategoryChange}
                               placeholder="category-slug"
                               className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
@@ -511,7 +527,7 @@ export default function CreateProductPage() {
                             <label className="block text-sm font-medium text-gray-700">Description</label>
                             <textarea
                               name="description"
-                              value={newCategory.description}
+                              value={newCategoryName}
                               onChange={handleNewCategoryChange}
                               placeholder="Enter category description"
                               rows={3}
@@ -523,7 +539,7 @@ export default function CreateProductPage() {
                             <input
                               type="text"
                               name="image_url"
-                              value={newCategory.image_url}
+                              value={newCategoryName}
                               onChange={handleNewCategoryChange}
                               placeholder="Enter image URL"
                               className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
@@ -541,7 +557,7 @@ export default function CreateProductPage() {
                               type="button"
                               onClick={() => {
                                 setIsCreatingNewCategory(false);
-                                setNewCategory({ name: '', slug: '', description: '', image_url: '' });
+                                setNewCategoryName('');
                               }}
                               className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
                             >
@@ -551,8 +567,8 @@ export default function CreateProductPage() {
                         </div>
                       ) : (
                         <select
-                          value={newProduct.category_id?.toString() || ''}
-                          onChange={handleCategoryChange}
+                          value={selectedCategory?.toString() || ''}
+                          onChange={(e) => setSelectedCategory(e.target.value ? Number(e.target.value) : null)}
                           className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                         >
                           <option value="">Select a category</option>
@@ -585,8 +601,8 @@ export default function CreateProductPage() {
                       <label className="block text-sm font-medium text-gray-700">Original Price</label>
                       <input
                         type="number"
-                        name="original_price"
-                        value={newProduct.original_price || ''}
+                        name="originalPrice"
+                        value={newProduct.originalPrice || ''}
                         onChange={handleInputChange}
                         step="0.01"
                         className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
@@ -640,8 +656,8 @@ export default function CreateProductPage() {
                       <label className="block text-sm font-medium text-gray-700">Review Count</label>
                       <input
                         type="number"
-                        name="review_count"
-                        value={newProduct.review_count}
+                        name="reviewCount"
+                        value={newProduct.reviewCount}
                         onChange={handleInputChange}
                         min="0"
                         className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
@@ -653,8 +669,8 @@ export default function CreateProductPage() {
                     <label className="flex items-center space-x-3 cursor-pointer group">
                       <input
                         type="checkbox"
-                        name="is_new"
-                        checked={newProduct.is_new}
+                        name="isNew"
+                        checked={newProduct.isNew}
                         onChange={handleInputChange}
                         className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
                       />
@@ -664,8 +680,8 @@ export default function CreateProductPage() {
                     <label className="flex items-center space-x-3 cursor-pointer group">
                       <input
                         type="checkbox"
-                        name="is_sale"
-                        checked={newProduct.is_sale}
+                        name="isSale"
+                        checked={newProduct.isSale}
                         onChange={handleInputChange}
                         className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
                       />
@@ -675,8 +691,8 @@ export default function CreateProductPage() {
                     <label className="flex items-center space-x-3 cursor-pointer group">
                       <input
                         type="checkbox"
-                        name="is_featured"
-                        checked={newProduct.is_featured}
+                        name="isFeatured"
+                        checked={newProduct.isFeatured}
                         onChange={handleInputChange}
                         className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
                       />

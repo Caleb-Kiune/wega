@@ -1,6 +1,7 @@
 from app import app, db
-from models import Category, Brand, Product, ProductImage, ProductSpecification, ProductFeature, Review, DeliveryLocation
-from datetime import datetime
+from models import Category, Brand, Product, ProductImage, ProductSpecification, ProductFeature, Review, DeliveryLocation, Order, OrderItem
+from datetime import datetime, timedelta
+import random
 
 def seed_database():
     with app.app_context():
@@ -1007,6 +1008,80 @@ def seed_database():
         
         db.session.commit()
         print("Database seeded successfully!")
+
+        # --- Add sample orders and order items ---
+        # Get some products for order items
+        all_products = Product.query.all()
+        if len(all_products) >= 3:
+            # Sample customers
+            customers = [
+                {
+                    'first_name': 'Alice',
+                    'last_name': 'Wanjiku',
+                    'email': 'alice@example.com',
+                    'phone': '0712345678',
+                    'address': '123 Nairobi St',
+                    'city': 'Nairobi',
+                    'state': 'Nairobi',
+                    'postal_code': '00100',
+                },
+                {
+                    'first_name': 'Brian',
+                    'last_name': 'Otieno',
+                    'email': 'brian@example.com',
+                    'phone': '0722123456',
+                    'address': '456 Mombasa Ave',
+                    'city': 'Mombasa',
+                    'state': 'Mombasa',
+                    'postal_code': '80100',
+                },
+                {
+                    'first_name': 'Carol',
+                    'last_name': 'Mutua',
+                    'email': 'carol@example.com',
+                    'phone': '0733123456',
+                    'address': '789 Kisumu Rd',
+                    'city': 'Kisumu',
+                    'state': 'Kisumu',
+                    'postal_code': '40100',
+                },
+            ]
+            for i, customer in enumerate(customers):
+                order_number = f"ORD-20240{i+1}"
+                created_at = datetime.utcnow() - timedelta(days=(i*2))
+                shipping_cost = random.choice([250, 350, 400])
+                # Pick 2 random products for each order
+                order_products = random.sample(all_products, 2)
+                total_amount = sum([float(p.price) for p in order_products])
+                order = Order(
+                    order_number=order_number,
+                    first_name=customer['first_name'],
+                    last_name=customer['last_name'],
+                    email=customer['email'],
+                    phone=customer['phone'],
+                    address=customer['address'],
+                    city=customer['city'],
+                    state=customer['state'],
+                    postal_code=customer['postal_code'],
+                    total_amount=total_amount,
+                    shipping_cost=shipping_cost,
+                    status=random.choice(['pending', 'processing', 'shipped', 'delivered']),
+                    payment_status=random.choice(['pending', 'paid']),
+                    created_at=created_at,
+                    updated_at=created_at
+                )
+                db.session.add(order)
+                db.session.flush()  # get order.id
+                for p in order_products:
+                    order_item = OrderItem(
+                        order_id=order.id,
+                        product_id=p.id,
+                        quantity=random.randint(1, 3),
+                        price=p.price
+                    )
+                    db.session.add(order_item)
+            db.session.commit()
+            print("Sample orders and order items seeded!")
 
 def seed_delivery_locations():
     locations = [

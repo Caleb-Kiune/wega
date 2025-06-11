@@ -31,27 +31,31 @@ export default function CrudPage() {
     name: '',
     description: '',
     price: 0,
-    original_price: undefined,
+    originalPrice: undefined,
     sku: '',
     stock: 0,
-    is_new: false,
-    is_sale: false,
+    isNew: false,
+    isSale: false,
+    isFeatured: false,
+    image: '',
     images: [],
     specifications: [],
     features: [],
     brand: '',
     category: '',
     rating: 0,
-    review_count: 0
+    reviewCount: 0,
+    reviews: []
   });
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await productsApi.getAll();
-        setProducts(response.products.map(p => ({ ...p, reviews: [] })));
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        setProducts(response.map((p: Product) => ({ ...p, reviews: [] } as ProductWithReviews)));
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setError('Failed to fetch products');
       } finally {
         setLoading(false);
       }
@@ -77,7 +81,7 @@ export default function CrudPage() {
 
       // Refresh the products list
       const response = await productsApi.getAll();
-      setProducts(response.products.map(p => ({ ...p, reviews: [] })));
+      setProducts(response.map((p: Product) => ({ ...p, reviews: [] } as ProductWithReviews)));
       setIsDeleteModalOpen(false);
       setProductToDelete(null);
     } catch (err) {
@@ -97,32 +101,35 @@ export default function CrudPage() {
     }));
   };
 
-  const handleCreateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleAddProduct = async () => {
     try {
-      await productsApi.create(newProduct);
-
-      // Refresh the products list
-      const response = await productsApi.getAll();
-      setProducts(response.products.map(p => ({ ...p, reviews: [] })));
-      setIsCreateModalOpen(false);
+      const productData: Omit<Product, 'id'> = {
+        ...newProduct,
+        image: newProduct.image || '',
+        reviews: []
+      };
+      await productsApi.create(productData);
+      const products = await productsApi.getAll();
+      setProducts(products.map((p: Product) => ({ ...p, reviews: [] } as ProductWithReviews)));
       setNewProduct({
         name: '',
         description: '',
         price: 0,
-        original_price: undefined,
+        originalPrice: undefined,
         sku: '',
         stock: 0,
-        is_new: false,
-        is_sale: false,
+        isNew: false,
+        isSale: false,
+        isFeatured: false,
+        image: '',
         images: [],
         specifications: [],
         features: [],
         brand: '',
         category: '',
         rating: 0,
-        review_count: 0
+        reviewCount: 0,
+        reviews: []
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -157,15 +164,26 @@ export default function CrudPage() {
             <h1 className="text-4xl font-bold text-gray-900">Product Management</h1>
             <p className="mt-2 text-gray-600">Manage your product catalog with ease</p>
           </div>
-          <button
-            onClick={handleCreate}
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 ease-in-out transform hover:scale-105"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Create Product
-          </button>
+          <div className="flex gap-4">
+            <button
+              onClick={() => router.push('/crud/orders')}
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 ease-in-out transform hover:scale-105"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+              </svg>
+              Manage Orders
+            </button>
+            <button
+              onClick={handleCreate}
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 ease-in-out transform hover:scale-105"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Create Product
+            </button>
+          </div>
         </div>
         
         {successMessage && (
@@ -212,12 +230,12 @@ export default function CrudPage() {
                         alt={product.name || 'Product image'}
                         className="w-full h-72 object-cover rounded-lg transition-transform duration-300 group-hover:scale-105"
                       />
-                      {product.is_new && (
+                      {product.isNew && (
                         <span className="absolute top-3 right-3 bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-md">
                           New
                         </span>
                       )}
-                      {product.is_sale && (
+                      {product.isSale && (
                         <span className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-md">
                           Sale
                         </span>
@@ -256,16 +274,16 @@ export default function CrudPage() {
                         <span className="text-3xl font-bold text-gray-900">
                           ${(product.price || 0).toFixed(2)}
                         </span>
-                        {product.original_price && product.original_price > 0 && (
+                        {product.originalPrice && product.originalPrice > 0 && (
                           <span className="ml-3 text-xl text-gray-500 line-through">
-                            ${product.original_price.toFixed(2)}
+                            ${product.originalPrice.toFixed(2)}
                           </span>
                         )}
                       </div>
                       <div className="flex items-center">
                         <span className="text-yellow-400 text-2xl">★</span>
                         <span className="ml-2 text-gray-600 text-lg">
-                          {(product.rating || 0).toFixed(1)} ({product.review_count || 0} reviews)
+                          {(product.rating || 0).toFixed(1)} ({product.reviewCount || 0} reviews)
                         </span>
                       </div>
                     </div>

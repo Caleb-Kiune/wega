@@ -15,9 +15,26 @@ interface Review {
   date: string;
 }
 
+interface ProductFeature {
+  id: number;
+  feature: string;
+  display_order: number;
+}
+
+interface ProductSpecification {
+  id: number;
+  name: string;
+  value: string;
+  display_order: number;
+}
+
 interface ProductWithReviews extends Product {
   reviews: Review[];
   isFeatured: boolean;
+  brand_id?: number;
+  category_id?: number;
+  features: ProductFeature[];
+  specifications: ProductSpecification[];
 }
 
 const initialProductState: ProductWithReviews = {
@@ -25,19 +42,20 @@ const initialProductState: ProductWithReviews = {
   name: '',
   description: '',
   price: 0,
-  original_price: undefined,
+  originalPrice: undefined,
   sku: '',
   stock: 0,
   isNew: false,
   isSale: false,
   isFeatured: false,
+  image: '',
   images: [],
   specifications: [],
   features: [],
   brand: '',
   category: '',
   rating: 0,
-  review_count: 0,
+  reviewCount: 0,
   reviews: []
 };
 
@@ -63,14 +81,12 @@ export default function EditProductPage() {
         // Ensure all arrays are initialized
         const features = productData.features?.map(feature => ({
           id: feature.id || 0,
-          product_id: productData.id,
           feature: feature.feature || '',
           display_order: feature.display_order || 0
         })) || [];
 
         const specifications = productData.specifications?.map(spec => ({
           id: spec.id || 0,
-          product_id: productData.id,
           name: spec.name || '',
           value: spec.value || '',
           display_order: spec.display_order || 0
@@ -79,7 +95,7 @@ export default function EditProductPage() {
         setProduct({
           ...initialProductState,
           ...productData,
-          original_price: productData.original_price ?? undefined,
+          originalPrice: productData.originalPrice ?? undefined,
           features,
           specifications,
           images: productData.images || [],
@@ -118,21 +134,19 @@ export default function EditProductPage() {
         name: product.name,
         description: product.description,
         price: Number(product.price),
-        original_price: product.original_price ? Number(product.original_price) : undefined,
+        originalPrice: product.originalPrice ? Number(product.originalPrice) : undefined,
         sku: product.sku,
         stock: Number(product.stock),
-        is_new: product.isNew,
-        is_sale: product.isSale,
-        is_featured: product.isFeatured,
+        isNew: product.isNew,
+        isSale: product.isSale,
+        isFeatured: product.isFeatured,
         images: product.images,
         specifications: product.specifications.map(spec => ({
           ...spec,
-          product_id: product.id,
           display_order: spec.display_order || 0
         })),
         features: product.features.map(feature => ({
           id: feature.id,
-          product_id: product.id,
           feature: feature.feature,
           display_order: feature.display_order || 0
         })),
@@ -167,7 +181,6 @@ export default function EditProductPage() {
         ...(prev.specifications || []),
         {
           id: 0,
-          product_id: prev.id,
           name: '',
           value: '',
           display_order: (prev.specifications || []).length
@@ -188,7 +201,6 @@ export default function EditProductPage() {
       const newFeatures = [...(prev.features || [])];
       newFeatures[index] = {
         id: newFeatures[index]?.id || 0,
-        product_id: prev.id,
         feature: value,
         display_order: index
       };
@@ -203,7 +215,6 @@ export default function EditProductPage() {
         ...(prev.features || []),
         {
           id: 0,
-          product_id: prev.id,
           feature: '',
           display_order: (prev.features || []).length
         }
@@ -339,8 +350,8 @@ export default function EditProductPage() {
                 <label className="block text-sm font-medium text-gray-700">Original Price</label>
                 <input
                   type="number"
-                  name="original_price"
-                  value={product.original_price || ''}
+                  name="originalPrice"
+                  value={product.originalPrice || ''}
                   onChange={handleInputChange}
                   step="0.01"
                   className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"

@@ -145,12 +145,11 @@ export default function Header() {
 
   const categories = []
 
-  const navLinks = [
+  const navigation = [
     { name: "Home", href: "/" },
-    { name: "Shop", href: "/products" },
+    { name: "Products", href: "/products" },
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
-    { name: "Admin", href: "/admin/products" },
     { name: "CRUD", href: "/crud" },
   ]
 
@@ -237,18 +236,15 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-600 hover:text-green-600">
-              Home
-            </Link>
-            <Link href="/products" className="text-gray-600 hover:text-green-600">
-              Products
-            </Link>
-            <Link href="/admin" className="text-gray-600 hover:text-green-600">
-              Admin
-            </Link>
-            <Link href="/crud" className="text-gray-600 hover:text-green-600">
-              CRUD
-            </Link>
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="text-gray-600 hover:text-green-600"
+              >
+                {item.name}
+              </Link>
+            ))}
           </nav>
 
           {/* User Actions */}
@@ -318,15 +314,17 @@ export default function Header() {
               <SheetContent side="right">
                 <SheetTitle className="sr-only">Mobile Menu</SheetTitle>
                 <div className="flex flex-col space-y-4 mt-8">
-                  {navLinks.map((link) => (
-                    <Link
-                      key={link.name}
-                      href={link.href}
-                      className={cn("text-lg font-medium", pathname === link.href && "text-green-600")}
-                    >
-                      {link.name}
-                    </Link>
-                  ))}
+                  <div className="space-y-1 px-2 pb-3 pt-2">
+                    {navigation.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-green-600"
+                      >
+                        {item.name}
+                      </Link>
+                    ))}
+                  </div>
                   <div className="border-t pt-4">
                     <p className="font-medium mb-2">Shop by Category</p>
                     {categories.map((category) => (

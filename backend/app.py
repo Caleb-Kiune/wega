@@ -6,6 +6,7 @@ import os
 from models import db, Product, Category, Brand, ProductImage, ProductSpecification, ProductFeature, Review, Cart, CartItem, DeliveryLocation, Order, OrderItem
 from sqlalchemy import or_, and_
 from decimal import Decimal
+import datetime
 
 app = Flask(__name__, static_folder='static')
 
@@ -13,13 +14,29 @@ app = Flask(__name__, static_folder='static')
 CORS(app, 
      resources={r"/*": {
          "origins": ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://127.0.0.1:3000", "http://127.0.0.1:3001", "http://127.0.0.1:3002"],
-         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-         "allow_headers": ["Content-Type", "Authorization", "Accept"],
+         "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+         "allow_headers": ["Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With"],
          "expose_headers": ["Content-Type", "Authorization"],
-         "supports_credentials": False,
-         "max_age": 3600
+         "supports_credentials": True,
+         "max_age": 3600,
+         "send_wildcard": False,
+         "vary_header": True
      }},
-     supports_credentials=False)
+     supports_credentials=True)
+
+# Add request logging
+@app.before_request
+def log_request_info():
+    print('Headers:', dict(request.headers))
+    print('Body:', request.get_data())
+    print('Args:', request.args)
+    print('Method:', request.method)
+    print('URL:', request.url)
+
+@app.after_request
+def after_request(response):
+    print('Response:', response.status, response.headers)
+    return response
 
 # Database configuration
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -897,6 +914,8 @@ def create_order():
     if not data:
         return jsonify({'error': 'Order data is required'}), 400
 
+    print("Received order data:", data)
+
     # Get cart items
     cart = Cart.query.filter_by(session_id=session_id).first()
     if not cart or not cart.items:
@@ -904,43 +923,52 @@ def create_order():
 
     # Calculate totals
     subtotal = sum(item.product.price * item.quantity for item in cart.items)
-    delivery_location = DeliveryLocation.query.get(data.get('delivery_location_id'))
+    
+    # Validate delivery location
+    delivery_location_id = data.get('delivery_location_id')
+    if not delivery_location_id:
+        return jsonify({'error': 'Delivery location is required'}), 400
+        
+    delivery_location = DeliveryLocation.query.get(delivery_location_id)
     if not delivery_location:
+        print(f"Delivery location not found for ID: {delivery_location_id}")
         return jsonify({'error': 'Invalid delivery location'}), 400
     
-    shipping_fee = delivery_location.shipping_price
-    total = subtotal + shipping_fee
+    shipping_cost = delivery_location.shipping_price
+    total_amount = subtotal + shipping_cost
 
-    # Create order
-    order = Order(
-        session_id=session_id,
-        first_name=data['first_name'],
-        last_name=data['last_name'],
-        email=data['email'],
-        phone=data['phone'],
-        address=data['address'],
-        city=data['city'],
-        county=data['county'],
-        postal_code=data['postal_code'],
-        delivery_location_id=data['delivery_location_id'],
-        subtotal=subtotal,
-        shipping_fee=shipping_fee,
-        total=total,
-        payment_method=data['payment_method'],
-        notes=data.get('notes')
-    )
-
-    # Create order items
-    for cart_item in cart.items:
-        order_item = OrderItem(
-            order=order,
-            product_id=cart_item.product_id,
-            quantity=cart_item.quantity,
-            price=cart_item.product.price
-        )
-        db.session.add(order_item)
+    # Generate order number
+    order_number = f"ORD-{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}-{cart.id}"
 
     try:
+        # Create order
+        order = Order(
+            order_number=order_number,
+            first_name=data['first_name'],
+            last_name=data['last_name'],
+            email=data['email'],
+            phone=data['phone'],
+            address=data['address'],
+            city=data['city'],
+            state=data['state'],
+            postal_code=data['postal_code'],
+            total_amount=total_amount,
+            shipping_cost=shipping_cost,
+            status='pending',
+            payment_status='pending',
+            notes=data.get('notes')
+        )
+
+        # Create order items
+        for cart_item in cart.items:
+            order_item = OrderItem(
+                order=order,
+                product_id=cart_item.product_id,
+                quantity=cart_item.quantity,
+                price=cart_item.product.price
+            )
+            db.session.add(order_item)
+
         db.session.add(order)
         db.session.commit()
 
@@ -950,29 +978,70 @@ def create_order():
 
         return jsonify(order.to_dict()), 201
     except Exception as e:
+        print(f"Error creating order: {str(e)}")
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/orders/<int:id>', methods=['GET'])
-def get_order(id):
-    session_id = request.args.get('session_id')
-    if not session_id:
-        return jsonify({'error': 'Session ID is required'}), 400
-
-    order = Order.query.filter_by(id=id, session_id=session_id).first()
-    if not order:
-        return jsonify({'error': 'Order not found'}), 404
-
-    return jsonify(order.to_dict())
-
 @app.route('/api/orders', methods=['GET'])
 def get_orders():
-    session_id = request.args.get('session_id')
-    if not session_id:
-        return jsonify({'error': 'Session ID is required'}), 400
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    status = request.args.get('status')
 
-    orders = Order.query.filter_by(session_id=session_id).order_by(Order.created_at.desc()).all()
-    return jsonify([order.to_dict() for order in orders])
+    query = Order.query
+
+    if status and status != 'all':
+        query = query.filter(Order.status == status)
+
+    query = query.order_by(Order.created_at.desc())
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+
+    return jsonify({
+        'orders': [order.to_dict() for order in pagination.items],
+        'total': pagination.total,
+        'pages': pagination.pages,
+        'current_page': page,
+        'per_page': per_page
+    })
+
+@app.route('/api/orders/<int:id>', methods=['GET'])
+def get_order(id):
+    order = Order.query.get_or_404(id)
+    return jsonify(order.to_dict())
+
+@app.route('/api/orders/<int:id>/status', methods=['PATCH'])
+def update_order_status(id):
+    order = Order.query.get_or_404(id)
+    data = request.get_json()
+    
+    if 'status' not in data:
+        return jsonify({'error': 'Status is required'}), 400
+        
+    valid_statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled']
+    if data['status'] not in valid_statuses:
+        return jsonify({'error': 'Invalid status'}), 400
+        
+    order.status = data['status']
+    db.session.commit()
+    
+    return jsonify(order.to_dict())
+
+@app.route('/api/orders/<int:id>/payment-status', methods=['PATCH'])
+def update_payment_status(id):
+    order = Order.query.get_or_404(id)
+    data = request.get_json()
+    
+    if 'payment_status' not in data:
+        return jsonify({'error': 'Payment status is required'}), 400
+        
+    valid_statuses = ['pending', 'paid', 'failed']
+    if data['payment_status'] not in valid_statuses:
+        return jsonify({'error': 'Invalid payment status'}), 400
+        
+    order.payment_status = data['payment_status']
+    db.session.commit()
+    
+    return jsonify(order.to_dict())
 
 if __name__ == '__main__':
     with app.app_context():

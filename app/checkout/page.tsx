@@ -32,19 +32,17 @@ export default function CheckoutPage() {
   const [showCvv, setShowCvv] = useState(false)
   const [cardType, setCardType] = useState<string | null>(null)
   const [locations, setLocations] = useState<DeliveryLocation[]>([])
-  const [selectedLocation, setSelectedLocation] = useState<string>("")
-  const [location, setLocation] = useState<DeliveryLocation | null>(null)
+  const [selectedLocation, setSelectedLocation] = useState<DeliveryLocation | null>(null)
   const [loading, setLoading] = useState(true)
 
   // Load selected location from localStorage on mount
   useEffect(() => {
-    const savedLocation = localStorage.getItem('selectedDeliveryLocation')
-    if (savedLocation) {
-      setSelectedLocation(savedLocation)
+    const savedLocationSlug = localStorage.getItem('selectedDeliveryLocation')
+    if (savedLocationSlug) {
       // Find the location object from the locations array
-      const location = locations.find(loc => loc.slug === savedLocation)
+      const location = locations.find(loc => loc.slug === savedLocationSlug)
       if (location) {
-        setLocation(location)
+        setSelectedLocation(location)
       }
     }
   }, [locations]) // Add locations as a dependency
@@ -58,12 +56,11 @@ export default function CheckoutPage() {
         setLocations(locationsData)
         
         // After fetching locations, check if we have a saved location
-        const savedLocation = localStorage.getItem('selectedDeliveryLocation')
-        if (savedLocation) {
-          const location = locationsData.find(loc => loc.slug === savedLocation)
+        const savedLocationSlug = localStorage.getItem('selectedDeliveryLocation')
+        if (savedLocationSlug) {
+          const location = locationsData.find(loc => loc.slug === savedLocationSlug)
           if (location) {
-            setSelectedLocation(savedLocation)
-            setLocation(location)
+            setSelectedLocation(location)
           }
         }
       } catch (error) {
@@ -83,7 +80,7 @@ export default function CheckoutPage() {
 
   // Calculate totals
   const subtotal = cart?.items?.reduce((total, item) => total + (item.product.price * item.quantity), 0) || 0
-  const shipping = selectedLocation ? (location?.shippingPrice || 0) : 0
+  const shipping = selectedLocation ? selectedLocation.shippingPrice : 0
   const total = subtotal + shipping
 
   const copyToClipboard = (text: string, field: string) => {
@@ -170,35 +167,69 @@ export default function CheckoutPage() {
       return
     }
 
-    const formData = new FormData(e.target as HTMLFormElement)
+    const form = e.target as HTMLFormElement
+    const formData = new FormData(form)
+
+    // Validate required fields
+    const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'county', 'postalCode']
+    const missingFields = requiredFields.filter(field => !formData.get(field))
+    
+    if (missingFields.length > 0) {
+      toast({
+        title: "Error",
+        description: `Please fill in all required fields: ${missingFields.join(', ')}`,
+        variant: "destructive",
+      })
+      setIsSubmitting(false)
+      return
+    }
+
     const orderData = {
-      first_name: formData.get('firstName'),
-      last_name: formData.get('lastName'),
-      email: formData.get('email'),
-      phone: formData.get('phone'),
-      address: formData.get('address'),
-      city: formData.get('city'),
-      county: formData.get('county'),
-      postal_code: formData.get('postalCode'),
-      delivery_location_id: location?.id,
+      first_name: formData.get('firstName') as string,
+      last_name: formData.get('lastName') as string,
+      email: formData.get('email') as string,
+      phone: formData.get('phone') as string,
+      address: formData.get('address') as string,
+      city: formData.get('city') as string,
+      state: formData.get('county') as string,
+      postal_code: formData.get('postalCode') as string,
+      delivery_location_id: selectedLocation.id,
       payment_method: paymentMethod,
-      notes: formData.get('notes')
+      notes: formData.get('notes') as string || undefined
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders?session_id=${cart?.session_id}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      console.log('API URL:', `${apiUrl}/orders?session_id=${cart?.session_id}`)
+      console.log('Order data:', orderData)
+      console.log('Cart session ID:', cart?.session_id)
+
+      if (!cart?.session_id) {
+        throw new Error('Cart session ID is missing')
+      }
+
+      const response = await fetch(`${apiUrl}/orders?session_id=${cart.session_id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Origin': window.location.origin
         },
+        credentials: 'include',
         body: JSON.stringify(orderData),
       })
 
+      console.log('Response status:', response.status)
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()))
+
       if (!response.ok) {
-        throw new Error('Failed to create order')
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Error response:', errorData)
+        throw new Error(errorData.error || `Failed to create order: ${response.status} ${response.statusText}`)
       }
 
       const order = await response.json()
+      console.log('Order created:', order)
       
       toast({
         title: "Order placed successfully!",
@@ -211,7 +242,7 @@ export default function CheckoutPage() {
       console.error('Error creating order:', error)
       toast({
         title: "Error",
-        description: "Failed to place order. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to place order. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -258,31 +289,31 @@ export default function CheckoutPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <Label htmlFor="firstName">First Name</Label>
-                      <Input id="firstName" className="mt-1" required />
+                      <Input id="firstName" name="firstName" className="mt-1" required />
                     </div>
                     <div>
                       <Label htmlFor="lastName">Last Name</Label>
-                      <Input id="lastName" className="mt-1" required />
+                      <Input id="lastName" name="lastName" className="mt-1" required />
                     </div>
                     <div>
                       <Label htmlFor="email">Email Address</Label>
-                      <Input id="email" type="email" className="mt-1" required />
+                      <Input id="email" name="email" type="email" className="mt-1" required />
                     </div>
                     <div>
                       <Label htmlFor="phone">Phone Number</Label>
-                      <Input id="phone" type="tel" className="mt-1" required />
+                      <Input id="phone" name="phone" type="tel" className="mt-1" required />
                     </div>
                     <div className="md:col-span-2">
                       <Label htmlFor="address">Street Address</Label>
-                      <Input id="address" className="mt-1" required />
+                      <Input id="address" name="address" className="mt-1" required />
                     </div>
                     <div>
                       <Label htmlFor="city">City</Label>
-                      <Input id="city" className="mt-1" required />
+                      <Input id="city" name="city" className="mt-1" required />
                     </div>
                     <div>
                       <Label htmlFor="county">County</Label>
-                      <Select required>
+                      <Select name="county" required>
                         <SelectTrigger id="county" className="mt-1">
                           <SelectValue placeholder="Select county" />
                         </SelectTrigger>
@@ -297,26 +328,7 @@ export default function CheckoutPage() {
                     </div>
                     <div>
                       <Label htmlFor="postalCode">Postal Code</Label>
-                      <Input id="postalCode" className="mt-1" required />
-                    </div>
-                    <div className="md:col-span-2">
-                      <Label htmlFor="location">Delivery Location</Label>
-                      <Select
-                        value={selectedLocation}
-                        onValueChange={setSelectedLocation}
-                        required
-                      >
-                        <SelectTrigger id="location" className="mt-1">
-                          <SelectValue placeholder="Select your delivery location" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {locations.map((location) => (
-                            <SelectItem key={location.id} value={location.slug}>
-                              {location.name} - KES {location.shippingPrice.toLocaleString()}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Input id="postalCode" name="postalCode" className="mt-1" required />
                     </div>
                   </div>
                 </div>
@@ -587,7 +599,7 @@ export default function CheckoutPage() {
                     </div>
                     {selectedLocation && (
                       <div className="text-sm text-gray-600">
-                        Delivery to: {location?.name}
+                        Delivery to: {selectedLocation.name}
                       </div>
                     )}
                     <div className="border-t pt-4 flex justify-between">
@@ -599,7 +611,7 @@ export default function CheckoutPage() {
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="notes">Order Notes (Optional)</Label>
-                      <Textarea id="notes" placeholder="Special instructions for delivery" className="mt-1" />
+                      <Textarea id="notes" name="notes" placeholder="Special instructions for delivery" className="mt-1" />
                     </div>
 
                     <Button
