@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-
-const API_BASE_URL = 'http://localhost:5000';
+import { API_BASE_URL } from './config';
 
 // Get or create session ID
 const getSessionId = () => {
@@ -64,7 +63,7 @@ export const cartApi = {
   getCart: async (): Promise<Cart> => {
     const sessionId = getSessionId();
     console.log('Getting cart with session ID:', sessionId);
-    const response = await fetch(`${API_BASE_URL}/api/cart?session_id=${sessionId}`);
+    const response = await fetch(`${API_BASE_URL}/cart?session_id=${sessionId}`);
     if (!response.ok) {
       console.error('Failed to fetch cart:', response.status, response.statusText);
       throw new Error('Failed to fetch cart');
@@ -87,7 +86,7 @@ export const cartApi = {
   addItem: async (productId: number, quantity: number): Promise<Cart> => {
     const sessionId = getSessionId();
     console.log('Adding item to cart:', { sessionId, productId, quantity });
-    const response = await fetch(`${API_BASE_URL}/api/cart/items?session_id=${sessionId}`, {
+    const response = await fetch(`${API_BASE_URL}/cart/items?session_id=${sessionId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ product_id: productId, quantity }),
@@ -103,7 +102,7 @@ export const cartApi = {
 
   updateItem: async (itemId: number, quantity: number): Promise<Cart> => {
     const sessionId = getSessionId();
-    const response = await fetch(`${API_BASE_URL}/api/cart/items/${itemId}?session_id=${sessionId}`, {
+    const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}?session_id=${sessionId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ quantity }),
@@ -114,7 +113,7 @@ export const cartApi = {
 
   removeItem: async (itemId: number): Promise<Cart> => {
     const sessionId = getSessionId();
-    const response = await fetch(`${API_BASE_URL}/api/cart/items/${itemId}?session_id=${sessionId}`, {
+    const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}?session_id=${sessionId}`, {
       method: 'DELETE',
     });
     if (!response.ok) throw new Error('Failed to remove item from cart');
@@ -123,7 +122,7 @@ export const cartApi = {
 
   clearCart: async (): Promise<Cart> => {
     const sessionId = getSessionId();
-    const response = await fetch(`${API_BASE_URL}/api/cart?session_id=${sessionId}`, {
+    const response = await fetch(`${API_BASE_URL}/cart?session_id=${sessionId}`, {
       method: 'DELETE',
     });
     if (!response.ok) throw new Error('Failed to clear cart');
@@ -133,13 +132,13 @@ export const cartApi = {
 
 export const deliveryLocationsApi = {
   getAll: async (): Promise<DeliveryLocation[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/delivery-locations`);
+    const response = await fetch(`${API_BASE_URL}/delivery-locations`);
     if (!response.ok) throw new Error('Failed to fetch delivery locations');
     return response.json();
   },
 
   getById: async (id: number): Promise<DeliveryLocation> => {
-    const response = await fetch(`${API_BASE_URL}/api/delivery-locations/${id}`);
+    const response = await fetch(`${API_BASE_URL}/delivery-locations/${id}`);
     if (!response.ok) throw new Error('Failed to fetch delivery location');
     return response.json();
   },

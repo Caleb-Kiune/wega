@@ -35,7 +35,7 @@ export default function FeaturedProducts() {
       setProducts(products)
     } catch (err) {
       console.error('Error fetching featured products:', err)
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : 'An error occurred while fetching products')
     } finally {
       setLoading(false)
     }
@@ -83,12 +83,19 @@ export default function FeaturedProducts() {
     return (
       <div className="text-center py-8">
         <p className="text-red-500 mb-4">{error}</p>
-        <button 
-          onClick={fetchProducts} 
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-        >
-          Retry
-        </button>
+        <div className="space-y-2">
+          <button 
+            onClick={fetchProducts} 
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            Retry
+          </button>
+          {error.includes('Unable to connect to the API') && (
+            <p className="text-sm text-gray-600 mt-2">
+              Make sure your backend server is running at {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}
+            </p>
+          )}
+        </div>
       </div>
     )
   }

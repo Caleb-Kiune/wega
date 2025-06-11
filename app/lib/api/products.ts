@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "./cart";
+import { API_BASE_URL } from './config';
 
 // Helper function to get full image URL
 const getImageUrl = (path: string) => {
@@ -88,22 +88,43 @@ export interface ProductsResponse {
 
 export const productsApi = {
   getAll: async (params?: { sort?: string }): Promise<Product[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/products${params?.sort ? `?sort=${params.sort}` : ''}`);
-    if (!response.ok) throw new Error('Failed to fetch products');
-    const data = await response.json();
-    // Update image URLs in the response
-    return data.products.map((product: Product) => ({
-      ...product,
-      image: getImageUrl(product.image),
-      images: product.images.map(img => ({
-        ...img,
-        image_url: getImageUrl(img.image_url)
-      }))
-    }));
+    try {
+      const url = `${API_BASE_URL}/products${params?.sort ? `?sort=${params.sort}&is_featured=true` : ''}`;
+      console.log('Fetching products from:', url);
+      
+      const response = await fetch(url, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error || `Failed to fetch products: ${response.status} ${response.statusText}`);
+      }
+      
+      const data: ProductsResponse = await response.json();
+      // Update image URLs in the response
+      return data.products.map((product: Product) => ({
+        ...product,
+        image: getImageUrl(product.image),
+        images: product.images.map(img => ({
+          ...img,
+          image_url: getImageUrl(img.image_url)
+        }))
+      }));
+    } catch (error) {
+      console.error('Error in getAll:', error);
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new Error(`Unable to connect to the API at ${API_BASE_URL}. Please make sure the backend server is running.`);
+      }
+      throw error;
+    }
   },
 
   getById: async (id: number): Promise<Product> => {
-    const response = await fetch(`${API_BASE_URL}/api/products/${id}`);
+    const response = await fetch(`${API_BASE_URL}/products/${id}`);
     if (!response.ok) throw new Error('Failed to fetch product');
     const data = await response.json();
     // Update image URLs in the response

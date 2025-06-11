@@ -21,10 +21,10 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
     const fetchProducts = async () => {
       try {
         setLoading(true)
-        const response = await productsApi.getAll({
+        const products = await productsApi.getAll({
           sort: category === "new-arrivals" ? "newest" : "offers"
         })
-        setProducts(response.products)
+        setProducts(products)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch products')
       } finally {
