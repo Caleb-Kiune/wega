@@ -116,18 +116,69 @@ export default function CrudPage() {
   };
 
   const handleDelete = (product: Product) => {
-    setSelectedProducts([product.id]);
-    setShowDeleteDialog(true);
+    setProductToDelete(product);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!productToDelete) return;
+
+    try {
+      setLoading(true);
+      console.log('Deleting product:', productToDelete.id);
+      await productsApi.delete(productToDelete.id);
+      setProducts(products.filter(p => p.id !== productToDelete.id));
+      toast.success('Product deleted successfully');
+    } catch (err) {
+      console.error('Error deleting product:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete product';
+      if (errorMessage.includes('associated orders')) {
+        toast.error('This product cannot be deleted because it has associated orders. Please archive it instead.');
+      } else {
+        toast.error(errorMessage);
+      }
+    } finally {
+      setLoading(false);
+      setIsDeleteModalOpen(false);
+      setProductToDelete(null);
+    }
   };
 
   const handleBulkDelete = async () => {
     try {
       setLoading(true);
-      await Promise.all(selectedProducts.map(id => productsApi.delete(id)));
-      setProducts(products.filter(p => !selectedProducts.includes(p.id)));
+      const results = await Promise.allSettled(
+        selectedProducts.map(id => productsApi.delete(id))
+      );
+      
+      // Check results
+      const successfulDeletes = results.filter(
+        (result): result is PromiseFulfilledResult<void> => result.status === 'fulfilled'
+      );
+      const failedDeletes = results.filter(
+        (result): result is PromiseRejectedResult => result.status === 'rejected'
+      );
+      
+      // Update products list for successful deletes
+      if (successfulDeletes.length > 0) {
+        setProducts(products.filter(p => !selectedProducts.includes(p.id)));
+        toast.success(`Successfully deleted ${successfulDeletes.length} product(s)`);
+      }
+      
+      // Show error for failed deletes
+      if (failedDeletes.length > 0) {
+        const hasOrderErrors = failedDeletes.some(
+          result => result.reason?.message?.includes('associated orders')
+        );
+        if (hasOrderErrors) {
+          toast.error('Some products could not be deleted because they have associated orders. Please archive them instead.');
+        } else {
+          toast.error(`Failed to delete ${failedDeletes.length} product(s)`);
+        }
+      }
+      
       setSelectedProducts([]);
       setShowDeleteDialog(false);
-      toast.success('Selected products deleted successfully');
     } catch (err) {
       console.error('Error deleting products:', err);
       toast.error('Failed to delete products');
@@ -212,7 +263,7 @@ export default function CrudPage() {
             </Button>
           </div>
         </div>
-
+        
         {/* Filters and Search */}
         <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -273,7 +324,7 @@ export default function CrudPage() {
               </Button>
             </div>
           </div>
-        </div>
+              </div>
 
         {/* Bulk Actions */}
         {selectedProducts.length > 0 && (
@@ -332,18 +383,18 @@ export default function CrudPage() {
                   onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
                   className="absolute top-2 left-2 z-10"
                 />
-                <img
-                  src={product.images?.[0]?.image_url || '/placeholder.png'}
+                      <img
+                        src={product.images?.[0]?.image_url || '/placeholder.png'}
                   alt={product.name}
                   className={`w-full ${viewMode === 'list' ? 'h-48' : 'h-64'} object-cover`}
-                />
+                      />
                 {product.is_new && (
                   <Badge className="absolute top-2 right-2 bg-blue-500">New</Badge>
-                )}
+                      )}
                 {product.is_sale && (
                   <Badge className="absolute top-2 right-2 bg-red-500">Sale</Badge>
-                )}
-              </div>
+                      )}
+                    </div>
               <div className={`p-4 ${viewMode === 'list' ? 'flex-1' : ''}`}>
                 <div className="flex justify-between items-start mb-2">
                   <div>
@@ -374,7 +425,7 @@ export default function CrudPage() {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                </div>
+                    </div>
                 <p className="text-sm text-gray-600 mb-2 line-clamp-2">{product.description}</p>
                 <div className="flex items-center justify-between">
                   <div>
@@ -394,28 +445,28 @@ export default function CrudPage() {
               </div>
             </div>
           ))}
-        </div>
+      </div>
 
-        {/* Delete Confirmation Modal */}
-        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      {/* Delete Confirmation Modal */}
+        <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Delete Products</DialogTitle>
+              <DialogTitle>Delete Product</DialogTitle>
               <DialogDescription>
-                Are you sure you want to delete these products? This action cannot be undone.
+                Are you sure you want to delete {productToDelete?.name}? This action cannot be undone.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-                Cancel
+              <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
+                  Cancel
               </Button>
-              <Button variant="destructive" onClick={handleBulkDelete}>
-                Delete
+              <Button variant="destructive" onClick={handleConfirmDelete}>
+                  Delete
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+        </div>
     </div>
   );
 } 

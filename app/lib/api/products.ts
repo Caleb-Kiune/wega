@@ -240,9 +240,27 @@ export const productsApi = {
   },
 
   delete: async (id: number): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/products/${id}`, {
-      method: 'DELETE',
-    });
-    if (!response.ok) throw new Error('Failed to delete product');
+    try {
+      console.log(`Attempting to delete product ${id}`);
+      const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log('Delete response status:', response.status);
+      
+      if (!response.ok && response.status !== 204) {
+        const errorData = await response.json().catch(() => null);
+        console.error('Delete error response:', errorData);
+        throw new Error(errorData?.error || 'Failed to delete product');
+      }
+      
+      console.log('Product deleted successfully');
+    } catch (error) {
+      console.error('Error in delete:', error);
+      throw error;
+    }
   },
 };

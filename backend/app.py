@@ -374,9 +374,20 @@ def delete_product(id):
     if product is None:
         return jsonify({'error': 'Product not found'}), 404
     
-    db.session.delete(product)
-    db.session.commit()
-    return '', 204
+    # Check if product has associated orders
+    order_items = OrderItem.query.filter_by(product_id=id).first()
+    if order_items:
+        return jsonify({
+            'error': 'Cannot delete product because it has associated orders. Please archive the product instead.'
+        }), 400
+    
+    try:
+        db.session.delete(product)
+        db.session.commit()
+        return '', 204
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 # Categories Routes
 @app.route('/api/categories', methods=['GET'])
