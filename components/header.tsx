@@ -72,8 +72,8 @@ export default function Header() {
     if (query.trim()) {
       try {
         // Fetch products from API with search query
-        const results = await productsApi.getAll({ search: query })
-        setSearchResults(results)
+        const response = await productsApi.getAll({ search: query })
+        setSearchResults(response.products)
         setShowResults(true)
       } catch (error) {
         console.error('Error searching products:', error)
@@ -416,21 +416,6 @@ export default function Header() {
             </form>
           </div>
         )}
-
-        {/* Categories Navigation (Desktop) */}
-        <div className="hidden md:block border-t">
-          <div className="flex justify-center space-x-8 py-3">
-            {categories.map((category) => (
-              <Link
-                key={category.name}
-                href={category.href}
-                className="text-gray-600 hover:text-green-600 font-medium text-sm"
-              >
-                {category.name}
-              </Link>
-            ))}
-          </div>
-        </div>
       </div>
     </header>
   )

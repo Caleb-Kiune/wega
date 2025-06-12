@@ -43,13 +43,25 @@ export interface OrdersResponse {
   per_page: number;
 }
 
+export interface OrdersParams {
+  status?: string;
+  payment_status?: string;
+  page?: number;
+  search?: string;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
+}
+
 export const ordersApi = {
-  getAll: async (params?: { status?: string; page?: number; search?: string }): Promise<OrdersResponse> => {
+  getAll: async (params?: OrdersParams): Promise<OrdersResponse> => {
     try {
       const queryParams = new URLSearchParams();
       if (params?.status) queryParams.append('status', params.status);
+      if (params?.payment_status) queryParams.append('payment_status', params.payment_status);
       if (params?.page) queryParams.append('page', params.page.toString());
       if (params?.search) queryParams.append('search', params.search);
+      if (params?.sort_by) queryParams.append('sort_by', params.sort_by);
+      if (params?.sort_order) queryParams.append('sort_order', params.sort_order);
 
       const url = `${API_BASE_URL}/orders?${queryParams.toString()}`;
       const response = await fetch(url);
@@ -73,33 +85,39 @@ export const ordersApi = {
 
   updateStatus: async (id: number, status: Order['status']): Promise<Order> => {
     try {
-      console.log(`Updating order ${id} status to ${status}`);
       const url = `${API_BASE_URL}/orders/${id}/status`;
-      console.log('Request URL:', url);
+      console.log('Making request to:', url);
+      
+      const requestBody = { status };
+      console.log('Request body:', requestBody);
       
       const response = await fetch(url, {
-        method: 'PATCH',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Origin': window.location.origin,
         },
-        credentials: 'include',
-        body: JSON.stringify({ status }),
+        body: JSON.stringify(requestBody),
+      }).catch(error => {
+        console.error('Network error:', error);
+        throw new Error(`Network error: ${error.message}`);
       });
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('Server response:', errorData);
-        throw new Error(errorData.error || `Failed to update order status: ${response.status} ${response.statusText}`);
+        console.error('Server error response:', errorData);
+        throw new Error(errorData.error || `Server error: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
-      console.log('Update successful:', data);
+      console.log('Success response:', data);
       return data;
     } catch (error) {
-      console.error('Error updating order status:', error);
-      throw error;
+      console.error('Error in updateStatus:', error);
+      if (error instanceof Error) {
+        throw new Error(`Failed to update order status: ${error.message}`);
+      }
+      throw new Error('Failed to update order status: Unknown error');
     }
   },
 
@@ -114,6 +132,14 @@ export const ordersApi = {
     
     if (!response.ok) throw new Error('Failed to update payment status');
     return await response.json();
+  },
+
+  delete: async (id: number): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) throw new Error('Failed to delete order');
   },
 
   getByOrderNumber: async (orderNumber: string, email: string): Promise<Order> => {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { productsApi, Product, ProductImage, ProductSpecification, ProductFeature } from '../../lib/api/products';
+import { productsApi, Product, ProductImage, ProductSpecification, ProductFeature, Review } from '../../lib/api/products';
 import apiClient from '../../lib/api/client';
 import { toast } from 'react-hot-toast';
 
@@ -14,19 +14,21 @@ type CreateProductData = {
   name: string;
   description: string;
   price: number;
-  originalPrice?: number;
+  original_price?: number;
   sku: string;
   stock: number;
-  isNew: boolean;
-  isSale: boolean;
-  isFeatured: boolean;
+  is_new: boolean;
+  is_sale: boolean;
+  is_featured: boolean;
   images: NewProductImage[];
   specifications: NewProductSpecification[];
   features: NewProductFeature[];
-  brand: string;
-  category: string;
+  brand_id?: number;
+  category_id?: number;
   rating: number;
-  reviewCount: number;
+  review_count: number;
+  image_url: string;
+  reviews: Review[];
 };
 
 interface Brand {
@@ -75,19 +77,21 @@ export default function CreateProductPage() {
     name: '',
     description: '',
     price: 0,
-    originalPrice: undefined,
+    original_price: undefined,
     sku: '',
     stock: 0,
-    isNew: false,
-    isSale: false,
-    isFeatured: false,
+    is_new: false,
+    is_sale: false,
+    is_featured: false,
     images: [],
     specifications: [],
     features: [],
-    brand: '',
-    category: '',
+    brand_id: undefined,
+    category_id: undefined,
     rating: 0,
-    reviewCount: 0
+    review_count: 0,
+    image_url: '',
+    reviews: []
   });
 
   const [newImage, setNewImage] = useState<NewProductImage>({
@@ -208,13 +212,12 @@ export default function CreateProductPage() {
     const value = e.target.value;
     if (value === 'new') {
       setIsCreatingNewBrand(true);
-      setNewProduct(prev => ({ ...prev, brand: '', brand_id: undefined }));
+      setNewProduct(prev => ({ ...prev, brand_id: undefined }));
     } else {
       setIsCreatingNewBrand(false);
       const selectedBrand = brands.find(b => b.id === Number(value));
       setNewProduct(prev => ({
         ...prev,
-        brand: selectedBrand?.name || '',
         brand_id: selectedBrand?.id
       }));
     }
@@ -224,13 +227,12 @@ export default function CreateProductPage() {
     const value = e.target.value;
     if (value === 'new') {
       setIsCreatingNewCategory(true);
-      setNewProduct(prev => ({ ...prev, category: '', category_id: undefined }));
+      setNewProduct(prev => ({ ...prev, category_id: undefined }));
     } else {
       setIsCreatingNewCategory(false);
       const selectedCategory = categories.find(c => c.id === Number(value));
       setNewProduct(prev => ({
         ...prev,
-        category: selectedCategory?.name || '',
         category_id: selectedCategory?.id
       }));
     }
@@ -259,7 +261,6 @@ export default function CreateProductPage() {
       setBrands(prev => [...prev, createdBrand]);
       setNewProduct(prev => ({
         ...prev,
-        brand: createdBrand.name,
         brand_id: createdBrand.id
       }));
       setIsCreatingNewBrand(false);
@@ -283,7 +284,6 @@ export default function CreateProductPage() {
       setCategories(prev => [...prev, createdCategory]);
       setNewProduct(prev => ({
         ...prev,
-        category: createdCategory.name,
         category_id: createdCategory.id
       }));
       setIsCreatingNewCategory(false);
@@ -297,43 +297,104 @@ export default function CreateProductPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const selectedBrandObj = brands.find(b => b.id === selectedBrand);
-      const selectedCategoryObj = categories.find(c => c.id === selectedCategory);
+      // Validate required fields
+      if (!newProduct.name) {
+        toast.error('Product name is required');
+        return;
+      }
+      if (!newProduct.price || newProduct.price < 0) {
+        toast.error('Valid price is required');
+        return;
+      }
+      if (!newProduct.stock || newProduct.stock < 0) {
+        toast.error('Valid stock quantity is required');
+        return;
+      }
+      if (!newProduct.brand_id) {
+        toast.error('Brand is required');
+        return;
+      }
+      if (!newProduct.category_id) {
+        toast.error('Category is required');
+        return;
+      }
+
+      // Get brand and category names
+      const selectedBrand = brands.find(b => b.id === newProduct.brand_id);
+      const selectedCategory = categories.find(c => c.id === newProduct.category_id);
+
+      if (!selectedBrand || !selectedCategory) {
+        toast.error('Invalid brand or category selected');
+        return;
+      }
+
+      // Validate images
+      if (newProduct.images.length === 0) {
+        toast.error('At least one product image is required');
+        return;
+      }
+      for (const image of newProduct.images) {
+        if (!image.image_url) {
+          toast.error('All images must have a URL');
+          return;
+        }
+      }
+
+      // Validate specifications
+      for (const spec of newProduct.specifications) {
+        if (!spec.name || !spec.value) {
+          toast.error('All specifications must have a name and value');
+          return;
+        }
+      }
+
+      // Validate features
+      for (const feature of newProduct.features) {
+        if (!feature.feature) {
+          toast.error('All features must have text');
+          return;
+        }
+      }
+
+      // Get the primary image URL or first image URL
+      const primaryImage = newProduct.images.find(img => img.is_primary)?.image_url || newProduct.images[0]?.image_url;
+      if (!primaryImage) {
+        toast.error('At least one image URL is required');
+        return;
+      }
 
       const productData: Omit<Product, 'id'> = {
         name: newProduct.name,
         description: newProduct.description,
-        price: newProduct.price,
-        originalPrice: newProduct.originalPrice,
+        price: Number(newProduct.price),
+        original_price: newProduct.original_price ? Number(newProduct.original_price) : undefined,
         sku: newProduct.sku,
-        stock: newProduct.stock,
-        isNew: newProduct.isNew,
-        isSale: newProduct.isSale,
-        isFeatured: newProduct.isFeatured,
+        stock: Number(newProduct.stock),
+        is_new: newProduct.is_new,
+        is_sale: newProduct.is_sale,
+        is_featured: newProduct.is_featured,
+        brand: selectedBrand.name,
+        category: selectedCategory.name,
+        brand_id: newProduct.brand_id,
+        category_id: newProduct.category_id,
+        rating: newProduct.rating,
+        review_count: newProduct.review_count,
+        image_url: primaryImage,
         images: newProduct.images.map(img => ({
-          id: 0,
-          product_id: 0,
           image_url: img.image_url,
           is_primary: img.is_primary,
           display_order: img.display_order
         })),
         specifications: newProduct.specifications.map(spec => ({
-          id: 0,
-          product_id: 0,
           name: spec.name,
           value: spec.value,
           display_order: spec.display_order
         })),
         features: newProduct.features.map(feature => ({
-          id: 0,
-          product_id: 0,
           feature: feature.feature,
           display_order: feature.display_order
         })),
-        brand: selectedBrandObj?.name || '',
-        category: selectedCategoryObj?.name || '',
-        rating: newProduct.rating,
-        reviewCount: newProduct.reviewCount
+        reviews: []
       };
 
       await productsApi.create(productData);
@@ -478,8 +539,8 @@ export default function CreateProductPage() {
                         </div>
                       ) : (
                         <select
-                          value={selectedBrand?.toString() || ''}
-                          onChange={(e) => setSelectedBrand(e.target.value ? Number(e.target.value) : null)}
+                          value={newProduct.brand_id?.toString() || ''}
+                          onChange={handleBrandChange}
                           className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                         >
                           <option value="">Select a brand</option>
@@ -563,8 +624,8 @@ export default function CreateProductPage() {
                         </div>
                       ) : (
                         <select
-                          value={selectedCategory?.toString() || ''}
-                          onChange={(e) => setSelectedCategory(e.target.value ? Number(e.target.value) : null)}
+                          value={newProduct.category_id?.toString() || ''}
+                          onChange={handleCategoryChange}
                           className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                         >
                           <option value="">Select a category</option>
@@ -597,8 +658,8 @@ export default function CreateProductPage() {
                       <label className="block text-sm font-medium text-gray-700">Original Price</label>
                       <input
                         type="number"
-                        name="originalPrice"
-                        value={newProduct.originalPrice || ''}
+                        name="original_price"
+                        value={newProduct.original_price || ''}
                         onChange={handleInputChange}
                         step="0.01"
                         className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
@@ -652,8 +713,8 @@ export default function CreateProductPage() {
                       <label className="block text-sm font-medium text-gray-700">Review Count</label>
                       <input
                         type="number"
-                        name="reviewCount"
-                        value={newProduct.reviewCount}
+                        name="review_count"
+                        value={newProduct.review_count}
                         onChange={handleInputChange}
                         min="0"
                         className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
@@ -665,8 +726,8 @@ export default function CreateProductPage() {
                     <label className="flex items-center space-x-3 cursor-pointer group">
                       <input
                         type="checkbox"
-                        name="isNew"
-                        checked={newProduct.isNew}
+                        name="is_new"
+                        checked={newProduct.is_new}
                         onChange={handleInputChange}
                         className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
                       />
@@ -676,8 +737,8 @@ export default function CreateProductPage() {
                     <label className="flex items-center space-x-3 cursor-pointer group">
                       <input
                         type="checkbox"
-                        name="isSale"
-                        checked={newProduct.isSale}
+                        name="is_sale"
+                        checked={newProduct.is_sale}
                         onChange={handleInputChange}
                         className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
                       />
@@ -687,8 +748,8 @@ export default function CreateProductPage() {
                     <label className="flex items-center space-x-3 cursor-pointer group">
                       <input
                         type="checkbox"
-                        name="isFeatured"
-                        checked={newProduct.isFeatured}
+                        name="is_featured"
+                        checked={newProduct.is_featured}
                         onChange={handleInputChange}
                         className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
                       />

@@ -42,8 +42,8 @@ export default function FeaturedProducts() {
     try {
       setLoading(true)
       setError(null)
-      const products = await productsApi.getAll({ sort: "featured" })
-      setProducts(products)
+      const response = await productsApi.getAll({ sort_by: "featured" })
+      setProducts(response.products)
     } catch (err) {
       console.error('Error fetching featured products:', err)
       setError(err instanceof Error ? err.message : 'An error occurred while fetching products')
@@ -107,6 +107,14 @@ export default function FeaturedProducts() {
             </p>
           )}
         </div>
+      </div>
+    )
+  }
+
+  if (!products || products.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">No featured products available</p>
       </div>
     )
   }

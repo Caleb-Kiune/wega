@@ -120,7 +120,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <div>
               <div className="relative h-[400px] mb-4 rounded-lg overflow-hidden">
                 <Image
-                  src={product.image || "/placeholder.svg"}
+                  src={product.image_url || "/placeholder.svg"}
                   alt={product.name}
                   fill
                   className="object-contain"

@@ -21,10 +21,10 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
     const fetchProducts = async () => {
       try {
         setLoading(true)
-        const products = await productsApi.getAll({
-          sort: category === "new-arrivals" ? "newest" : "offers"
+        const response = await productsApi.getAll({
+          sort_by: category === "new-arrivals" ? "newest" : "offers"
         })
-        setProducts(products)
+        setProducts(response.products)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch products')
       } finally {
@@ -77,7 +77,7 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
     )
   }
 
-  if (products.length === 0) {
+  if (!products || products.length === 0) {
     return (
       <div className="text-center text-gray-600">
         No products found

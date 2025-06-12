@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useProducts } from '../hooks/useProducts';
-import { ProductFilters } from '../components/ProductFilters';
+import ProductFilters from '../components/ProductFilters';
 import ProductCard from '@/components/product-card';
-import { ProductsLoading } from '../components/products-loading';
+import ProductsLoading from '@/components/products-loading';
 import { Button } from '../components/ui/button';
 import {
   Select,
@@ -29,10 +29,10 @@ export default function ProductsPage() {
   const [filters, setFilters] = useState<ProductsFilters>({
     page: Number(searchParams.get('page')) || 1,
     limit: 12,
-    categories: searchParams.get('categories')?.split(',') || [],
-    brands: searchParams.get('brands')?.split(',') || [],
-    minPrice: Number(searchParams.get('minPrice')) || undefined,
-    maxPrice: Number(searchParams.get('maxPrice')) || undefined,
+    category: searchParams.get('category') || undefined,
+    brand: searchParams.get('brand') || undefined,
+    min_price: Number(searchParams.get('min_price')) || undefined,
+    max_price: Number(searchParams.get('max_price')) || undefined,
     sort: (searchParams.get('sort') as ProductsFilters['sort']) || 'featured',
     search: searchParams.get('search') || undefined,
   });
@@ -43,10 +43,10 @@ export default function ProductsPage() {
   useEffect(() => {
     const params = new URLSearchParams();
     if (filters.page && filters.page > 1) params.set('page', filters.page.toString());
-    if (filters.categories?.length) params.set('categories', filters.categories.join(','));
-    if (filters.brands?.length) params.set('brands', filters.brands.join(','));
-    if (filters.minPrice) params.set('minPrice', filters.minPrice.toString());
-    if (filters.maxPrice) params.set('maxPrice', filters.maxPrice.toString());
+    if (filters.category) params.set('category', filters.category);
+    if (filters.brand) params.set('brand', filters.brand);
+    if (filters.min_price) params.set('min_price', filters.min_price.toString());
+    if (filters.max_price) params.set('max_price', filters.max_price.toString());
     if (filters.sort && filters.sort !== 'featured') params.set('sort', filters.sort);
     if (filters.search) params.set('search', filters.search);
 
@@ -70,7 +70,7 @@ export default function ProductsPage() {
     <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
         {/* Filters */}
-        <ProductFilters filters={filters} onFiltersChange={handleFiltersChange} />
+        <ProductFilters filters={filters} onFiltersChange={handleFiltersChange} loading={loading} />
 
         {/* Main Content */}
         <div className="flex-1">

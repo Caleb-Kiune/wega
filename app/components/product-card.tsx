@@ -23,12 +23,12 @@ export function ProductCard({ product }: ProductCardProps) {
         />
         {/* Badges */}
         <div className="absolute top-2 left-2 flex gap-2">
-          {product.isNew && (
+          {product.is_new && (
             <span className="bg-green-600 text-white text-xs font-medium px-2 py-1 rounded">
               New
             </span>
           )}
-          {product.isSale && (
+          {product.is_sale && (
             <span className="bg-red-600 text-white text-xs font-medium px-2 py-1 rounded">
               Sale
             </span>
@@ -62,9 +62,9 @@ export function ProductCard({ product }: ProductCardProps) {
           <span className="text-lg font-semibold text-gray-900">
             KES {product.price.toLocaleString()}
           </span>
-          {product.originalPrice && (
+          {product.original_price && (
             <span className="text-sm text-gray-500 line-through">
-              KES {product.originalPrice.toLocaleString()}
+              KES {product.original_price.toLocaleString()}
             </span>
           )}
         </div>
@@ -88,7 +88,7 @@ export function ProductCard({ product }: ProductCardProps) {
             ))}
           </div>
           <span className="text-sm text-gray-500 ml-2">
-            ({product.reviewCount})
+            ({product.review_count})
           </span>
         </div>
 

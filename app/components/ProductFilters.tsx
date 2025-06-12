@@ -1,25 +1,34 @@
 import { useState, useEffect } from 'react';
 import { useBrands } from '../hooks/useBrands';
 import { useCategories } from '../hooks/useCategories';
-import { Input } from './ui/input';
-import { Button } from './ui/button';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from './ui/checkbox';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
-import { Filter } from 'lucide-react';
+import { Filter, X, Loader2 } from 'lucide-react';
 import { ProductsParams } from '../lib/api/products';
+import { useDebounce } from 'use-debounce';
+import { Slider } from '@/components/ui/slider';
+import { cn } from '@/lib/utils';
 
-export interface ProductsFilters extends Omit<ProductsParams, 'page' | 'limit'> {
+export interface ProductsFilters {
   page: number;
   limit: number;
   sort: 'featured' | 'newest' | 'offers' | 'price_asc' | 'price_desc';
+  min_price?: number;
+  max_price?: number;
+  brand?: string;
+  category?: string;
+  search?: string;
 }
 
 interface ProductFiltersProps {
   filters: ProductsFilters;
   onFiltersChange: (filters: ProductsFilters) => void;
+  loading?: boolean;
 }
 
-export function ProductFilters({ filters, onFiltersChange }: ProductFiltersProps) {
+export default function ProductFilters({ filters, onFiltersChange, loading }: ProductFiltersProps) {
   const { brands } = useBrands();
   const { categories } = useCategories();
 
@@ -27,33 +36,61 @@ export function ProductFilters({ filters, onFiltersChange }: ProductFiltersProps
   const [minPriceInput, setMinPriceInput] = useState('');
   const [maxPriceInput, setMaxPriceInput] = useState('');
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState(filters.search || '');
+  const [debouncedSearch] = useDebounce(searchInput, 300);
 
   useEffect(() => {
-    setMinPriceInput(filters.minPrice?.toString() || '');
-    setMaxPriceInput(filters.maxPrice?.toString() || '');
+    setMinPriceInput(filters.min_price?.toString() || '');
+    setMaxPriceInput(filters.max_price?.toString() || '');
   }, [filters]);
 
+  useEffect(() => {
+    onFiltersChange({
+      ...filters,
+      search: debouncedSearch || undefined,
+      page: 1,
+    });
+  }, [debouncedSearch]);
+
   const handleCheckboxChange = (
-    key: 'brands' | 'categories',
+    key: 'brand' | 'category',
     value: string,
     checked: boolean
   ) => {
-    const currentValues: string[] = filters[key] || [];
-    const updatedValues = checked
-      ? [...currentValues, value]
-      : currentValues.filter((v: string) => v !== value);
-
     onFiltersChange({
       ...filters,
-      [key]: updatedValues,
+      [key]: checked ? value : undefined,
       page: 1,
     });
   };
 
   const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      onFiltersChange({
+        ...filters,
+        search: searchInput || undefined,
+        page: 1,
+      });
+    } else if (e.key === 'Escape') {
+      setSearchInput('');
+      onFiltersChange({
+        ...filters,
+        search: undefined,
+        page: 1,
+      });
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchInput('');
     onFiltersChange({
       ...filters,
-      search: value || undefined,
+      search: undefined,
       page: 1,
     });
   };
@@ -61,8 +98,8 @@ export function ProductFilters({ filters, onFiltersChange }: ProductFiltersProps
   const handleApplyPriceFilters = () => {
     const updatedFilters = {
       ...filters,
-      minPrice: minPriceInput ? Number(minPriceInput) : undefined,
-      maxPrice: maxPriceInput ? Number(maxPriceInput) : undefined,
+      min_price: minPriceInput ? Number(minPriceInput) : undefined,
+      max_price: maxPriceInput ? Number(maxPriceInput) : undefined,
       page: 1,
     };
     onFiltersChange(updatedFilters);
@@ -73,28 +110,52 @@ export function ProductFilters({ filters, onFiltersChange }: ProductFiltersProps
     onFiltersChange({ 
       page: 1, 
       limit: 12,
-      brands: [],
-      categories: [],
-      minPrice: undefined,
-      maxPrice: undefined,
+      brand: undefined,
+      category: undefined,
+      min_price: undefined,
+      max_price: undefined,
       sort: 'featured',
       search: undefined
     });
     setMinPriceInput('');
     setMaxPriceInput('');
+    setSearchInput('');
   };
+
+  const SearchBar = () => (
+    <div className="relative">
+      <Input
+        type="text"
+        placeholder="Search for shoes, phones, TVs..."
+        value={searchInput}
+        onChange={(e) => setSearchInput(e.target.value)}
+        onKeyDown={handleSearchKeyDown}
+        className="w-full pl-3 pr-10"
+        aria-label="Search products"
+      />
+      {loading && (
+        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        </div>
+      )}
+      {!loading && searchInput && (
+        <button
+          onClick={clearSearch}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          aria-label="Clear search"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+    </div>
+  );
 
   const FilterContent = () => (
     <div className="space-y-6">
-      {/* Search */}
-      <div>
+      {/* Search Bar - Always visible on mobile */}
+      <div className="lg:hidden">
         <h3 className="font-medium text-gray-800 mb-3">Search</h3>
-        <Input
-          type="text"
-          placeholder="Search products..."
-          value={filters.search || ''}
-          onChange={(e) => handleSearchChange(e.target.value)}
-        />
+        <SearchBar />
       </div>
 
       {/* Categories */}
@@ -105,9 +166,9 @@ export function ProductFilters({ filters, onFiltersChange }: ProductFiltersProps
             <div key={category.id} className="flex items-center">
               <Checkbox
                 id={`category-${category.id}`}
-                checked={filters.categories?.includes(category.name)}
+                checked={filters.category === category.name}
                 onCheckedChange={(checked) =>
-                  handleCheckboxChange('categories', category.name, !!checked)
+                  handleCheckboxChange('category', category.name, !!checked)
                 }
               />
               <label
@@ -141,7 +202,6 @@ export function ProductFilters({ filters, onFiltersChange }: ProductFiltersProps
             onChange={(e) => setMinPriceInput(e.target.value)}
             className="w-24"
           />
-          <span className="text-gray-500">-</span>
           <Input
             type="number"
             placeholder="Max"
@@ -160,9 +220,9 @@ export function ProductFilters({ filters, onFiltersChange }: ProductFiltersProps
             <div key={brand.id} className="flex items-center">
               <Checkbox
                 id={`brand-${brand.id}`}
-                checked={filters.brands?.includes(brand.name)}
+                checked={filters.brand === brand.name}
                 onCheckedChange={(checked) =>
-                  handleCheckboxChange('brands', brand.name, !!checked)
+                  handleCheckboxChange('brand', brand.name, !!checked)
                 }
               />
               <label
@@ -189,6 +249,10 @@ export function ProductFilters({ filters, onFiltersChange }: ProductFiltersProps
     <>
       {/* Desktop Filters */}
       <div className="hidden lg:block w-64 shrink-0">
+        <div className="mb-6">
+          <h3 className="font-medium text-gray-800 mb-3">Search</h3>
+          <SearchBar />
+        </div>
         <FilterContent />
       </div>
 

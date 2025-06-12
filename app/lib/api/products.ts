@@ -12,26 +12,37 @@ const getImageUrl = (path: string) => {
 };
 
 export interface ProductFeature {
-  id: number;
-  product_id: number;
+  id?: number;
+  product_id?: number;
   feature: string;
   display_order: number;
 }
 
 export interface ProductSpecification {
-  id: number;
-  product_id: number;
+  id?: number;
+  product_id?: number;
   name: string;
   value: string;
   display_order: number;
 }
 
 export interface ProductImage {
-  id: number;
-  product_id: number;
+  id?: number;
+  product_id?: number;
   image_url: string;
   is_primary: boolean;
   display_order: number;
+}
+
+export interface Review {
+  id: number;
+  product_id: number;
+  user: string;
+  avatar: string;
+  title: string;
+  comment: string;
+  rating: number;
+  date: string;
 }
 
 export interface Product {
@@ -39,75 +50,69 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  originalPrice?: number;
-  category: string;
-  stock: number;
-  images: ProductImage[];
-  isFeatured: boolean;
-  isNew: boolean;
-  isSale: boolean;
-  brand: string;
+  original_price?: number;
   sku: string;
-  reviewCount: number;
-  rating: number;
-  features: ProductFeature[];
+  stock: number;
+  is_new: boolean;
+  is_sale: boolean;
+  is_featured: boolean;
+  images: ProductImage[];
   specifications: ProductSpecification[];
+  features: ProductFeature[];
+  brand: string;
+  category: string;
+  brand_id?: number;
+  category_id?: number;
+  rating: number;
+  review_count: number;
+  image_url: string;
+  reviews: Review[];
 }
 
 export interface ProductsParams {
-  sort?: string;
   search?: string;
+  category?: string;
+  brand?: string;
+  min_price?: number;
+  max_price?: number;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
   page?: number;
   limit?: number;
-  categories?: string[];
-  brands?: string[];
-  minPrice?: number;
-  maxPrice?: number;
 }
 
 export interface ProductsResponse {
   products: Product[];
+  total: number;
   pages: number;
   current_page: number;
+  per_page: number;
 }
 
 export const productsApi = {
-  getAll: async (params?: ProductsParams): Promise<Product[]> => {
+  getAll: async (params?: ProductsParams): Promise<ProductsResponse> => {
     try {
       const queryParams = new URLSearchParams();
-      if (params?.sort) queryParams.set('sort', params.sort);
-      if (params?.search) queryParams.set('search', params.search);
-      if (params?.sort === 'featured') queryParams.set('is_featured', 'true');
-      
-      const url = `${API_BASE_URL}/products${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-      console.log('Fetching products from:', url);
-      
-      const response = await fetch(url, {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      });
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.category) queryParams.append('category', params.category);
+      if (params?.brand) queryParams.append('brand', params.brand);
+      if (params?.min_price) queryParams.append('min_price', params.min_price.toString());
+      if (params?.max_price) queryParams.append('max_price', params.max_price.toString());
+      if (params?.sort_by) queryParams.append('sort_by', params.sort_by);
+      if (params?.sort_order) queryParams.append('sort_order', params.sort_order);
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.limit) queryParams.append('limit', params.limit.toString());
+
+      const url = `${API_BASE_URL}/products?${queryParams.toString()}`;
+      const response = await fetch(url);
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.error || `Failed to fetch products: ${response.status} ${response.statusText}`);
+        throw new Error('Failed to fetch products');
       }
       
-      const data: ProductsResponse = await response.json();
-      // Update image URLs in the response
-      return data.products.map((product: Product) => ({
-        ...product,
-        images: product.images.map(img => ({
-          ...img,
-          image_url: getImageUrl(img.image_url)
-        }))
-      }));
+      return await response.json();
     } catch (error) {
       console.error('Error in getAll:', error);
-      if (error instanceof TypeError && error.message === 'Failed to fetch') {
-        throw new Error(`Unable to connect to the API at ${API_BASE_URL}. Please make sure the backend server is running.`);
-      }
       throw error;
     }
   },
@@ -127,7 +132,7 @@ export const productsApi = {
   },
 
   getByCategory: async (category: string): Promise<Product[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/products?category=${category}`);
+    const response = await fetch(`${API_BASE_URL}/products?category=${category}`);
     if (!response.ok) throw new Error('Failed to fetch products');
     const data = await response.json();
     // Update image URLs in the response
@@ -141,7 +146,7 @@ export const productsApi = {
   },
 
   getByBrand: async (brand: string): Promise<Product[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/products?brand=${brand}`);
+    const response = await fetch(`${API_BASE_URL}/products?brand=${brand}`);
     if (!response.ok) throw new Error('Failed to fetch products');
     const data = await response.json();
     // Update image URLs in the response
@@ -155,7 +160,7 @@ export const productsApi = {
   },
 
   getFeatured: async (): Promise<Product[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/products?featured=true`);
+    const response = await fetch(`${API_BASE_URL}/products?featured=true`);
     if (!response.ok) throw new Error('Failed to fetch featured products');
     const data = await response.json();
     // Update image URLs in the response
@@ -169,7 +174,7 @@ export const productsApi = {
   },
 
   getNew: async (): Promise<Product[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/products?new=true`);
+    const response = await fetch(`${API_BASE_URL}/products?new=true`);
     if (!response.ok) throw new Error('Failed to fetch new products');
     const data = await response.json();
     // Update image URLs in the response
@@ -183,7 +188,7 @@ export const productsApi = {
   },
 
   getOnSale: async (): Promise<Product[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/products?sale=true`);
+    const response = await fetch(`${API_BASE_URL}/products?sale=true`);
     if (!response.ok) throw new Error('Failed to fetch sale products');
     const data = await response.json();
     // Update image URLs in the response
@@ -197,21 +202,21 @@ export const productsApi = {
   },
 
   getBrands: async (): Promise<{ id: number; name: string }[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/brands`);
+    const response = await fetch(`${API_BASE_URL}/brands`);
     if (!response.ok) throw new Error('Failed to fetch brands');
     const data = await response.json();
     return data;
   },
 
   getCategories: async (): Promise<{ id: number; name: string }[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/categories`);
+    const response = await fetch(`${API_BASE_URL}/categories`);
     if (!response.ok) throw new Error('Failed to fetch categories');
     const data = await response.json();
     return data;
   },
 
   create: async (product: Omit<Product, 'id'>): Promise<Product> => {
-    const response = await fetch(`${API_BASE_URL}/api/products`, {
+    const response = await fetch(`${API_BASE_URL}/products`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -219,19 +224,11 @@ export const productsApi = {
       body: JSON.stringify(product),
     });
     if (!response.ok) throw new Error('Failed to create product');
-    const data = await response.json();
-    return {
-      ...data,
-      image: getImageUrl(data.image),
-      images: data.images.map((img: any) => ({
-        ...img,
-        image_url: getImageUrl(img.image_url)
-      }))
-    };
+    return await response.json();
   },
 
   update: async (id: number, product: Partial<Product>): Promise<Product> => {
-    const response = await fetch(`${API_BASE_URL}/api/products/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/products/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -239,21 +236,13 @@ export const productsApi = {
       body: JSON.stringify(product),
     });
     if (!response.ok) throw new Error('Failed to update product');
-    const data = await response.json();
-    return {
-      ...data,
-      image: getImageUrl(data.image),
-      images: data.images.map((img: any) => ({
-        ...img,
-        image_url: getImageUrl(img.image_url)
-      }))
-    };
+    return await response.json();
   },
 
   delete: async (id: number): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/api/products/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/products/${id}`, {
       method: 'DELETE',
     });
     if (!response.ok) throw new Error('Failed to delete product');
   },
-}; 
+};

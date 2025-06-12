@@ -10,19 +10,14 @@ import datetime
 
 app = Flask(__name__, static_folder='static')
 
-# Configure CORS - More permissive for development
+# Configure CORS with specific settings
 CORS(app, 
      resources={r"/*": {
-         "origins": ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://127.0.0.1:3000", "http://127.0.0.1:3001", "http://127.0.0.1:3002"],
+         "origins": ["http://localhost:3000"],
          "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-         "allow_headers": ["Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With"],
-         "expose_headers": ["Content-Type", "Authorization"],
-         "supports_credentials": True,
-         "max_age": 3600,
-         "send_wildcard": False,
-         "vary_header": True
-     }},
-     supports_credentials=True)
+         "allow_headers": ["Content-Type", "Authorization"],
+         "supports_credentials": True
+     }})
 
 # Add request logging
 @app.before_request
@@ -33,10 +28,14 @@ def log_request_info():
     print('Method:', request.method)
     print('URL:', request.url)
 
-@app.after_request
-def after_request(response):
-    print('Response:', response.status, response.headers)
-    return response
+# Add error handling
+@app.errorhandler(Exception)
+def handle_error(error):
+    response = {
+        "error": str(error),
+        "message": "An error occurred while processing your request"
+    }
+    return jsonify(response), getattr(error, 'code', 500)
 
 # Database configuration
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -130,7 +129,7 @@ def paginate(query, page=1, per_page=10):
 def get_products():
     # Get query parameters
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('limit', 12, type=int)
+    per_page = request.args.get('limit', 100, type=int)  # Increased default limit to 100
     categories = request.args.getlist('categories[]')
     brands = request.args.getlist('brands[]')
     min_price = request.args.get('minPrice', type=float)
@@ -175,6 +174,9 @@ def get_products():
         query = query.order_by(Product.price.asc())
     elif sort == 'price_desc':
         query = query.order_by(Product.price.desc())
+    elif sort == 'all' or not sort:
+        # Default sorting by creation date (newest first) when no sort is specified or 'all' is selected
+        query = query.order_by(Product.created_at.desc())
 
     # Get paginated results
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
@@ -270,81 +272,101 @@ def create_product():
 
 @app.route('/api/products/<int:id>', methods=['PUT'])
 def update_product(id):
-    product = db.session.get(Product, id)
-    if product is None:
-        return jsonify({'error': 'Product not found'}), 404
-    
-    data = request.get_json()
-    
-    # Validate price if provided
-    if 'price' in data:
-        try:
-            price = Decimal(str(data['price']))
-            if price < 0:
-                return jsonify({'error': 'Price cannot be negative'}), 400
-        except (ValueError, TypeError):
-            return jsonify({'error': 'Invalid price format'}), 400
-    
-    # Update basic product info
-    for key, value in data.items():
-        if key not in ['images', 'specifications', 'features']:
-            setattr(product, key, value)
-    
-    # Update images
-    if 'images' in data:
-        # Delete existing images
-        ProductImage.query.filter_by(product_id=id).delete()
-        # Add new images
-        for image_data in data['images']:
-            is_valid, error_message = validate_image_data(image_data)
-            if not is_valid:
-                db.session.rollback()
-                return jsonify({'error': error_message}), 400
-            image = ProductImage(
-                product_id=id,
-                image_url=image_data['image_url'],
-                is_primary=image_data.get('is_primary', False),
-                display_order=image_data.get('display_order', 0)
-            )
-            db.session.add(image)
-    
-    # Update specifications
-    if 'specifications' in data:
-        # Delete existing specifications
-        ProductSpecification.query.filter_by(product_id=id).delete()
-        # Add new specifications
-        for spec_data in data['specifications']:
-            is_valid, error_message = validate_specification_data(spec_data)
-            if not is_valid:
-                db.session.rollback()
-                return jsonify({'error': error_message}), 400
-            spec = ProductSpecification(
-                product_id=id,
-                name=spec_data['name'],
-                value=spec_data['value'],
-                display_order=spec_data.get('display_order', 0)
-            )
-            db.session.add(spec)
-    
-    # Update features
-    if 'features' in data:
-        # Delete existing features
-        ProductFeature.query.filter_by(product_id=id).delete()
-        # Add new features
-        for feature_data in data['features']:
-            is_valid, error_message = validate_feature_data(feature_data)
-            if not is_valid:
-                db.session.rollback()
-                return jsonify({'error': error_message}), 400
-            feature = ProductFeature(
-                product_id=id,
-                feature=feature_data['feature'],
-                display_order=feature_data.get('display_order', 0)
-            )
-            db.session.add(feature)
-    
-    db.session.commit()
-    return jsonify(product.to_dict())
+    try:
+        product = Product.query.get_or_404(id)
+        data = request.get_json()
+
+        # Validate required fields
+        if not data.get('name'):
+            return jsonify({'error': 'Product name is required'}), 400
+        if not data.get('price') or float(data['price']) < 0:
+            return jsonify({'error': 'Valid price is required'}), 400
+        if not data.get('stock') or int(data['stock']) < 0:
+            return jsonify({'error': 'Valid stock quantity is required'}), 400
+
+        # Update basic fields
+        product.name = data.get('name', product.name)
+        product.description = data.get('description', product.description)
+        product.price = float(data.get('price', product.price))
+        product.original_price = float(data['original_price']) if data.get('original_price') else None
+        product.sku = data.get('sku', product.sku)
+        product.stock = int(data.get('stock', product.stock))
+        product.is_new = bool(data.get('is_new', product.is_new))
+        product.is_sale = bool(data.get('is_sale', product.is_sale))
+        product.is_featured = bool(data.get('is_featured', product.is_featured))
+        
+        # Update brand and category if provided
+        if 'brand_id' in data:
+            brand = Brand.query.get(data['brand_id'])
+            if not brand:
+                return jsonify({'error': 'Invalid brand ID'}), 400
+            product.brand_id = data['brand_id']
+            
+        if 'category_id' in data:
+            category = Category.query.get(data['category_id'])
+            if not category:
+                return jsonify({'error': 'Invalid category ID'}), 400
+            product.category_id = data['category_id']
+
+        # Update related data
+        if 'images' in data:
+            # Validate images data
+            for img_data in data['images']:
+                if not img_data.get('image_url'):
+                    return jsonify({'error': 'Image URL is required for all images'}), 400
+
+            # Clear existing images
+            ProductImage.query.filter_by(product_id=id).delete()
+            # Add new images
+            for img_data in data['images']:
+                new_image = ProductImage(
+                    product_id=id,
+                    image_url=img_data['image_url'],
+                    is_primary=bool(img_data.get('is_primary', False)),
+                    display_order=int(img_data.get('display_order', 0))
+                )
+                db.session.add(new_image)
+
+        if 'specifications' in data:
+            # Validate specifications data
+            for spec_data in data['specifications']:
+                if not spec_data.get('name') or not spec_data.get('value'):
+                    return jsonify({'error': 'Name and value are required for all specifications'}), 400
+
+            # Clear existing specifications
+            ProductSpecification.query.filter_by(product_id=id).delete()
+            # Add new specifications
+            for spec_data in data['specifications']:
+                new_spec = ProductSpecification(
+                    product_id=id,
+                    name=spec_data['name'],
+                    value=spec_data['value'],
+                    display_order=int(spec_data.get('display_order', 0))
+                )
+                db.session.add(new_spec)
+
+        if 'features' in data:
+            # Validate features data
+            for feature_data in data['features']:
+                if not feature_data.get('feature'):
+                    return jsonify({'error': 'Feature text is required for all features'}), 400
+
+            # Clear existing features
+            ProductFeature.query.filter_by(product_id=id).delete()
+            # Add new features
+            for feature_data in data['features']:
+                new_feature = ProductFeature(
+                    product_id=id,
+                    feature=feature_data['feature'],
+                    display_order=int(feature_data.get('display_order', 0))
+                )
+                db.session.add(new_feature)
+
+        db.session.commit()
+        return jsonify(product.to_dict()), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/products/<int:id>', methods=['DELETE'])
 def delete_product(id):
@@ -1021,7 +1043,7 @@ def get_order(id):
     order = Order.query.get_or_404(id)
     return jsonify(order.to_dict())
 
-@app.route('/api/orders/<int:id>/status', methods=['PATCH'])
+@app.route('/api/orders/<int:id>/status', methods=['PATCH', 'POST'])
 def update_order_status(id):
     order = Order.query.get_or_404(id)
     data = request.get_json()
