@@ -4,9 +4,10 @@ import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft, CheckCircle } from "lucide-react"
+import { ArrowLeft, CheckCircle, Package, Truck, CreditCard, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
+import { Badge } from "@/components/ui/badge"
 
 interface OrderItem {
   id: number
@@ -74,6 +75,53 @@ export default function OrderDetailsPage() {
     fetchOrder()
   }, [id, toast])
 
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'processing':
+        return 'bg-blue-100 text-blue-800';
+      case 'shipped':
+        return 'bg-purple-100 text-purple-800';
+      case 'delivered':
+        return 'bg-green-100 text-green-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getPaymentStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'paid':
+        return 'bg-green-100 text-green-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'failed':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return <Package className="h-5 w-5" />;
+      case 'processing':
+        return <Package className="h-5 w-5" />;
+      case 'shipped':
+        return <Truck className="h-5 w-5" />;
+      case 'delivered':
+        return <CheckCircle className="h-5 w-5" />;
+      case 'cancelled':
+        return <XCircle className="h-5 w-5" />;
+      default:
+        return <Package className="h-5 w-5" />;
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -117,9 +165,19 @@ export default function OrderDetailsPage() {
                 <h1 className="text-2xl font-bold text-gray-800">Order Confirmation</h1>
                 <p className="text-gray-600">Order #{order.order_number}</p>
               </div>
-              <div className="flex items-center gap-2 text-green-600">
-                <CheckCircle className="h-5 w-5" />
-                <span className="font-medium">Order Placed Successfully</span>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(order.status)}
+                  <Badge className={getStatusColor(order.status)}>
+                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  <Badge className={getPaymentStatusColor(order.payment_status)}>
+                    {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
+                  </Badge>
+                </div>
               </div>
             </div>
 
@@ -133,11 +191,17 @@ export default function OrderDetailsPage() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Status</p>
-                    <p className="font-medium capitalize">{order.status}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      {getStatusIcon(order.status)}
+                      <p className="font-medium capitalize">{order.status}</p>
+                    </div>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Payment Status</p>
-                    <p className="font-medium capitalize">{order.payment_status}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <CreditCard className="h-5 w-5" />
+                      <p className="font-medium capitalize">{order.payment_status}</p>
+                    </div>
                   </div>
                   {order.notes && (
                     <div>

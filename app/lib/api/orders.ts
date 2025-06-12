@@ -44,11 +44,12 @@ export interface OrdersResponse {
 }
 
 export const ordersApi = {
-  getAll: async (params?: { status?: string; page?: number }): Promise<OrdersResponse> => {
+  getAll: async (params?: { status?: string; page?: number; search?: string }): Promise<OrdersResponse> => {
     try {
       const queryParams = new URLSearchParams();
       if (params?.status) queryParams.append('status', params.status);
       if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.search) queryParams.append('search', params.search);
 
       const url = `${API_BASE_URL}/orders?${queryParams.toString()}`;
       const response = await fetch(url);
@@ -113,5 +114,26 @@ export const ordersApi = {
     
     if (!response.ok) throw new Error('Failed to update payment status');
     return await response.json();
+  },
+
+  getByOrderNumber: async (orderNumber: string, email: string): Promise<Order> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/orders/track`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ order_number: orderNumber, email }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Order not found');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error in getByOrderNumber:', error);
+      throw error;
+    }
   },
 }; 

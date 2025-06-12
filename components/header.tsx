@@ -4,11 +4,12 @@ import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
-import { Menu, ShoppingCart, User, Heart, Search, X, Phone } from "lucide-react"
+import { Menu, ShoppingCart, Heart, Search, X, Phone, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useCart } from "@/lib/hooks/use-cart"
 import { useWishlist } from "@/lib/hooks/use-wishlist"
 import { cn } from "@/lib/utils"
@@ -121,26 +122,35 @@ export default function Header() {
     const query = e.target.value
     setSearchQuery(query)
     
-    if (query.trim()) {
+    if (query.trim() && products) {
       // Filter products based on search query
-      const results = products.filter(product =>
-        product.name.toLowerCase().includes(query.toLowerCase()) ||
-        product.category.toLowerCase().includes(query.toLowerCase()) ||
-        product.brand.toLowerCase().includes(query.toLowerCase())
-      )
-      setSearchResults(results)
-      setShowResults(true)
+      const results = products.filter(product => {
+        if (!product) return false;
+        return (
+          (product.name?.toLowerCase() || '').includes(query.toLowerCase()) ||
+          (product.category?.toLowerCase() || '').includes(query.toLowerCase()) ||
+          (product.brand?.toLowerCase() || '').includes(query.toLowerCase())
+        );
+      });
+      setSearchResults(results);
+      setShowResults(true);
     } else {
-      setSearchResults([])
-      setShowResults(false)
+      setSearchResults([]);
+      setShowResults(false);
     }
   }
 
   const handleResultClick = (productId: string) => {
-    router.push(`/products/${productId}`)
-    setSearchQuery("")
-    setShowResults(false)
-    setIsSearchOpen(false)
+    // Find the clicked product
+    const selectedProduct = products.find(product => product.id === productId);
+    if (selectedProduct) {
+      // Set the search query to the product name
+      setSearchQuery(selectedProduct.name);
+      // Navigate to products page with search query
+      router.push(`/products?search=${encodeURIComponent(selectedProduct.name)}`);
+      setShowResults(false);
+      setIsSearchOpen(false);
+    }
   }
 
   const categories = []
@@ -149,8 +159,6 @@ export default function Header() {
     { name: "Home", href: "/" },
     { name: "Products", href: "/products" },
     { name: "About", href: "/about" },
-    { name: "Contact", href: "/contact" },
-    { name: "CRUD", href: "/crud" },
   ]
 
   return (
@@ -245,6 +253,37 @@ export default function Header() {
                 {item.name}
               </Link>
             ))}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href="/track-order"
+                    className="text-gray-600 hover:text-green-600 p-2 rounded-full hover:bg-gray-100"
+                  >
+                    <Package className="h-5 w-5" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Track My Order</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href="/contact"
+                    className="text-gray-600 hover:text-green-600 p-2 rounded-full hover:bg-gray-100"
+                  >
+                    <Phone className="h-5 w-5" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Contact Us</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </nav>
 
           {/* User Actions */}
@@ -257,52 +296,83 @@ export default function Header() {
               {isSearchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
             </button>
 
+            {/* Track Order (Mobile) */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href="/track-order"
+                    className="md:hidden text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100"
+                  >
+                    <Package className="h-5 w-5" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Track My Order</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            {/* Contact (Mobile) */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href="/contact"
+                    className="md:hidden text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100"
+                  >
+                    <Phone className="h-5 w-5" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Contact Us</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
             {/* Wishlist */}
-            <Link
-              href="/wishlist"
-              className="hidden sm:flex text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 relative"
-            >
-              <Heart className="h-5 w-5" />
-              {wishlistItems.length > 0 && (
-                <Badge className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                  {wishlistItems.length}
-                </Badge>
-              )}
-            </Link>
-
-            {/* Mobile Wishlist */}
-            <Link
-              href="/wishlist"
-              className="sm:hidden text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 relative"
-            >
-              <Heart className="h-5 w-5" />
-              {wishlistItems.length > 0 && (
-                <Badge className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                  {wishlistItems.length}
-                </Badge>
-              )}
-            </Link>
-
-            {/* Account */}
-            <Link
-              href="/account"
-              className="hidden sm:flex text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100"
-            >
-              <User className="h-5 w-5" />
-            </Link>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href="/wishlist"
+                    className="hidden sm:flex text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 relative"
+                  >
+                    <Heart className="h-5 w-5" />
+                    {wishlistItems.length > 0 && (
+                      <Badge className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                        {wishlistItems.length}
+                      </Badge>
+                    )}
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Wishlist</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
             {/* Cart */}
-            <Link
-              href="/cart"
-              className="text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 relative"
-            >
-              <ShoppingCart className="h-5 w-5" />
-              {cartCount > 0 && (
-                <Badge className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                  {cartCount}
-                </Badge>
-              )}
-            </Link>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href="/cart"
+                    className="text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 relative"
+                  >
+                    <ShoppingCart className="h-5 w-5" />
+                    {cartCount > 0 && (
+                      <Badge className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                        {cartCount}
+                      </Badge>
+                    )}
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Cart</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
             {/* Mobile Menu Button */}
             <Sheet>

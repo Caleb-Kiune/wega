@@ -987,11 +987,23 @@ def get_orders():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
     status = request.args.get('status')
+    search = request.args.get('search')
 
     query = Order.query
 
     if status and status != 'all':
         query = query.filter(Order.status == status)
+
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            db.or_(
+                Order.order_number.ilike(search_term),
+                Order.first_name.ilike(search_term),
+                Order.last_name.ilike(search_term),
+                Order.email.ilike(search_term)
+            )
+        )
 
     query = query.order_by(Order.created_at.desc())
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
@@ -1041,6 +1053,25 @@ def update_payment_status(id):
     order.payment_status = data['payment_status']
     db.session.commit()
     
+    return jsonify(order.to_dict())
+
+@app.route('/api/orders/track', methods=['POST'])
+def track_order():
+    data = request.get_json()
+    order_number = data.get('order_number')
+    email = data.get('email')
+
+    if not order_number or not email:
+        return jsonify({'error': 'Order number and email are required'}), 400
+
+    order = Order.query.filter_by(
+        order_number=order_number,
+        email=email
+    ).first()
+
+    if not order:
+        return jsonify({'error': 'Order not found'}), 404
+
     return jsonify(order.to_dict())
 
 if __name__ == '__main__':
