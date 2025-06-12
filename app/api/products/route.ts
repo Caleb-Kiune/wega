@@ -4,10 +4,11 @@ import { productsApi } from "@/app/lib/api/products"
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const sort = searchParams.get('sort') || undefined
+    const sort_by = searchParams.get('sort') || undefined
+    const sort_order = (searchParams.get('sort_order') || 'desc') as 'asc' | 'desc'
     const search = searchParams.get('search') || undefined
 
-    const products = await productsApi.getAll({ sort, search })
+    const products = await productsApi.getAll({ sort_by, sort_order, search })
     return NextResponse.json(products)
   } catch (error) {
     return NextResponse.json(
