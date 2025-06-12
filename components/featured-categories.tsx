@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { categoriesApi } from "../app/lib/api/categories"
+import { categoriesApi, Category } from "../app/lib/api/categories"
 
 export default function FeaturedCategories() {
-  const [categories, setCategories] = useState([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -17,7 +17,8 @@ export default function FeaturedCategories() {
         const data = await categoriesApi.getAll()
         setCategories(data)
       } catch (err) {
-        setError(err.message)
+        const errorMessage = err instanceof Error ? err.message : 'An error occurred while fetching categories'
+        setError(errorMessage)
         console.error('Error fetching categories:', err)
       } finally {
         setLoading(false)
@@ -28,7 +29,7 @@ export default function FeaturedCategories() {
   }, [])
 
   if (loading) return <div>Loading...</div>
-  if (error) return <div>Error loading categories</div>
+  if (error) return <div>Error loading categories: {error}</div>
 
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
@@ -41,7 +42,7 @@ export default function FeaturedCategories() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {categories.map((category) => (
+          {categories.map((category: Category) => (
             <Link key={category.id} href={`/categories/${category.id}`} className="group">
               <div className="bg-gray-50 rounded-lg overflow-hidden shadow-md transition-transform duration-300 group-hover:shadow-xl group-hover:-translate-y-1">
                 <div className="relative h-64 w-full">

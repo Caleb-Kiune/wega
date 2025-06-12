@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react';
-import { apiClient, Category } from '@/app/lib/api';
+import { apiClient } from '@/app/lib/api';
+
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  image?: string;
+}
 
 interface UseCategoriesResult {
   categories: Category[];
@@ -17,7 +25,7 @@ export function useCategories(): UseCategoriesResult {
       try {
         setLoading(true);
         setError(null);
-        const data = await apiClient.getCategories();
+        const { data } = await apiClient.get('/categories');
         setCategories(data);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Failed to fetch categories'));

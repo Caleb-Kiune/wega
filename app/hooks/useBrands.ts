@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
-import { apiClient, Brand } from '@/app/lib/api';
+import { apiClient } from '@/app/lib/api';
+
+interface Brand {
+  id: number;
+  name: string;
+  logo?: string;
+}
 
 interface UseBrandsResult {
   brands: Brand[];
@@ -17,7 +23,7 @@ export function useBrands(): UseBrandsResult {
       try {
         setLoading(true);
         setError(null);
-        const data = await apiClient.getBrands();
+        const { data } = await apiClient.get('/brands');
         setBrands(data);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Failed to fetch brands'));

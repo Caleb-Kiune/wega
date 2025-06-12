@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import ProductCard from "@/components/product-card"
-import { productsApi } from "@/app/lib/api/products"
+import { productsApi, Product } from "@/app/lib/api/products"
 
 interface ProductCarouselProps {
   category: "new-arrivals" | "special-offers"
@@ -13,7 +13,7 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
   const carouselRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(true)
-  const [products, setProducts] = useState([])
+  const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 

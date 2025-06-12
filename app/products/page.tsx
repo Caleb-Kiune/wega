@@ -14,21 +14,26 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import { Grid3X3, List } from 'lucide-react';
-import { ProductsFilters as ProductsFiltersType } from '../lib/api';
-import { Product } from '../lib/api/products';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { Product, ProductsParams } from '../lib/api/products';
+
+export interface ProductsFilters extends Omit<ProductsParams, 'page' | 'limit'> {
+  page: number;
+  limit: number;
+  sort: 'featured' | 'newest' | 'offers' | 'price_asc' | 'price_desc';
+}
 
 export default function ProductsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [filters, setFilters] = useState<ProductsFiltersType>({
+  const [filters, setFilters] = useState<ProductsFilters>({
     page: Number(searchParams.get('page')) || 1,
     limit: 12,
     categories: searchParams.get('categories')?.split(',') || [],
     brands: searchParams.get('brands')?.split(',') || [],
     minPrice: Number(searchParams.get('minPrice')) || undefined,
     maxPrice: Number(searchParams.get('maxPrice')) || undefined,
-    sort: (searchParams.get('sort') as ProductsFiltersType['sort']) || 'featured',
+    sort: (searchParams.get('sort') as ProductsFilters['sort']) || 'featured',
     search: searchParams.get('search') || undefined,
   });
 
@@ -49,16 +54,16 @@ export default function ProductsPage() {
     router.push(`/products${newUrl}`);
   }, [filters, router]);
 
-  const handleFiltersChange = (newFilters: ProductsFiltersType) => {
-    setFilters((prev) => ({ ...prev, ...newFilters, page: 1 }));
+  const handleFiltersChange = (newFilters: ProductsFilters) => {
+    setFilters((prev: ProductsFilters) => ({ ...prev, ...newFilters, page: 1 }));
   };
 
   const handlePageChange = (page: number) => {
-    setFilters((prev) => ({ ...prev, page }));
+    setFilters((prev: ProductsFilters) => ({ ...prev, page }));
   };
 
   const handleSortChange = (value: string) => {
-    setFilters((prev) => ({ ...prev, sort: value as ProductsFiltersType['sort'] }));
+    setFilters((prev: ProductsFilters) => ({ ...prev, sort: value as ProductsFilters['sort'] }));
   };
 
   return (

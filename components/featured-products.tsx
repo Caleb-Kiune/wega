@@ -6,6 +6,12 @@ import ProductCard from "@/components/product-card"
 import { productsApi } from "@/app/lib/api/products"
 import { Product } from "@/app/lib/api/products"
 
+interface ApiError extends Error {
+  response?: {
+    status: number;
+  };
+}
+
 export default function FeaturedProducts() {
   const carouselRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
@@ -14,14 +20,19 @@ export default function FeaturedProducts() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const getErrorMessage = (err) => {
-    if (!err.response) {
+  const getErrorMessage = (err: unknown): string => {
+    if (!(err instanceof Error)) {
+      return 'An unknown error occurred'
+    }
+
+    const apiError = err as ApiError
+    if (!apiError.response) {
       return 'Unable to connect to the server. Please make sure the backend is running.'
     }
-    if (err.response.status === 404) {
+    if (apiError.response.status === 404) {
       return 'The requested resource was not found.'
     }
-    if (err.response.status >= 500) {
+    if (apiError.response.status >= 500) {
       return 'Server error. Please try again later.'
     }
     return err.message || 'Failed to load products. Please try again later.'

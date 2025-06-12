@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiClient, ProductsFilters, Product, ProductsResponse } from '@/app/lib/api';
+import { apiClient, Product, ProductsParams, ProductsResponse } from '@/app/lib/api';
 
 interface UseProductsResult {
   products: Product[];
@@ -9,7 +9,7 @@ interface UseProductsResult {
   currentPage: number;
 }
 
-export function useProducts(filters: ProductsFilters = {}): UseProductsResult {
+export function useProducts(filters: ProductsParams = {}): UseProductsResult {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -21,10 +21,10 @@ export function useProducts(filters: ProductsFilters = {}): UseProductsResult {
       try {
         setLoading(true);
         setError(null);
-        const response = await apiClient.getProducts(filters);
-        setProducts(response.products);
-        setTotalPages(response.pages);
-        setCurrentPage(response.current_page);
+        const { data } = await apiClient.get<ProductsResponse>('/products', { params: filters });
+        setProducts(data.products);
+        setTotalPages(data.pages);
+        setCurrentPage(data.current_page);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Failed to fetch products'));
       } finally {

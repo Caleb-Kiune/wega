@@ -75,9 +75,9 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Product badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-2">
-          {product.is_featured && <Badge className="bg-purple-600">Featured</Badge>}
-          {product.is_new && <Badge className="bg-green-600">New</Badge>}
-          {product.is_sale && <Badge className="bg-orange-500">Sale</Badge>}
+          {product.isFeatured && <Badge className="bg-purple-600">Featured</Badge>}
+          {product.isNew && <Badge className="bg-green-600">New</Badge>}
+          {product.isSale && <Badge className="bg-orange-500">Sale</Badge>}
         </div>
 
         {/* Quick actions overlay (visible on hover) */}
@@ -119,9 +119,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Price */}
         <div className="flex items-center mb-2">
           <span className="text-xl font-bold text-gray-800">KES {product.price.toLocaleString()}</span>
-          {product.original_price && (
+          {product.originalPrice && (
             <span className="ml-2 text-sm text-gray-500 line-through">
-              KES {product.original_price.toLocaleString()}
+              KES {product.originalPrice.toLocaleString()}
             </span>
           )}
         </div>

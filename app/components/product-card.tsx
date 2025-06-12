@@ -9,12 +9,14 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const imageUrl = product.images?.[0]?.image_url || '/placeholder.svg';
+
   return (
     <div className="group relative bg-white rounded-lg shadow-sm overflow-hidden">
       {/* Product Image */}
       <Link href={`/products/${product.id}`} className="block aspect-square relative">
         <Image
-          src={product.image}
+          src={imageUrl}
           alt={product.name}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -74,7 +76,7 @@ export function ProductCard({ product }: ProductCardProps) {
               <svg
                 key={i}
                 className={`h-4 w-4 ${
-                  i < Math.floor(product.rating)
+                  i < Math.floor(product.rating || 0)
                     ? 'text-yellow-400'
                     : 'text-gray-300'
                 }`}

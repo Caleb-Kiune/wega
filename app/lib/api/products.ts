@@ -40,56 +40,46 @@ export interface Product {
   description: string;
   price: number;
   originalPrice?: number;
-  image: string;
-  images: Array<{
-    id: number;
-    image_url: string;
-    is_primary: boolean;
-    display_order: number;
-  }>;
   category: string;
-  brand: string;
   stock: number;
-  sku: string;
-  rating?: number;
-  reviewCount: number;
+  images: ProductImage[];
   isFeatured: boolean;
   isNew: boolean;
   isSale: boolean;
-  features: Array<{
-    id: number;
-    feature: string;
-    display_order: number;
-  }>;
-  specifications: Array<{
-    id: number;
-    name: string;
-    value: string;
-    display_order: number;
-  }>;
-  reviews: Array<{
-    id: number;
-    user: string;
-    rating: number;
-    title: string;
-    comment: string;
-    date: string;
-    avatar: string;
-  }>;
+  brand: string;
+  sku: string;
+  reviewCount: number;
+  rating: number;
+  features: ProductFeature[];
+  specifications: ProductSpecification[];
+}
+
+export interface ProductsParams {
+  sort?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+  categories?: string[];
+  brands?: string[];
+  minPrice?: number;
+  maxPrice?: number;
 }
 
 export interface ProductsResponse {
   products: Product[];
-  total: number;
   pages: number;
   current_page: number;
-  per_page: number;
 }
 
 export const productsApi = {
-  getAll: async (params?: { sort?: string }): Promise<Product[]> => {
+  getAll: async (params?: ProductsParams): Promise<Product[]> => {
     try {
-      const url = `${API_BASE_URL}/products${params?.sort ? `?sort=${params.sort}&is_featured=true` : ''}`;
+      const queryParams = new URLSearchParams();
+      if (params?.sort) queryParams.set('sort', params.sort);
+      if (params?.search) queryParams.set('search', params.search);
+      if (params?.sort === 'featured') queryParams.set('is_featured', 'true');
+      
+      const url = `${API_BASE_URL}/products${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       console.log('Fetching products from:', url);
       
       const response = await fetch(url, {
@@ -108,7 +98,6 @@ export const productsApi = {
       // Update image URLs in the response
       return data.products.map((product: Product) => ({
         ...product,
-        image: getImageUrl(product.image),
         images: product.images.map(img => ({
           ...img,
           image_url: getImageUrl(img.image_url)
@@ -130,8 +119,7 @@ export const productsApi = {
     // Update image URLs in the response
     return {
       ...data,
-      image: getImageUrl(data.image),
-      images: data.images.map((img: any) => ({
+      images: data.images.map((img: ProductImage) => ({
         ...img,
         image_url: getImageUrl(img.image_url)
       }))
@@ -145,7 +133,6 @@ export const productsApi = {
     // Update image URLs in the response
     return data.map((product: Product) => ({
       ...product,
-      image: getImageUrl(product.image),
       images: product.images.map(img => ({
         ...img,
         image_url: getImageUrl(img.image_url)
@@ -160,7 +147,6 @@ export const productsApi = {
     // Update image URLs in the response
     return data.map((product: Product) => ({
       ...product,
-      image: getImageUrl(product.image),
       images: product.images.map(img => ({
         ...img,
         image_url: getImageUrl(img.image_url)
@@ -175,7 +161,6 @@ export const productsApi = {
     // Update image URLs in the response
     return data.map((product: Product) => ({
       ...product,
-      image: getImageUrl(product.image),
       images: product.images.map(img => ({
         ...img,
         image_url: getImageUrl(img.image_url)
@@ -190,7 +175,6 @@ export const productsApi = {
     // Update image URLs in the response
     return data.map((product: Product) => ({
       ...product,
-      image: getImageUrl(product.image),
       images: product.images.map(img => ({
         ...img,
         image_url: getImageUrl(img.image_url)
@@ -205,7 +189,6 @@ export const productsApi = {
     // Update image URLs in the response
     return data.map((product: Product) => ({
       ...product,
-      image: getImageUrl(product.image),
       images: product.images.map(img => ({
         ...img,
         image_url: getImageUrl(img.image_url)

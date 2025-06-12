@@ -13,66 +13,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useCart } from "@/lib/hooks/use-cart"
 import { useWishlist } from "@/lib/hooks/use-wishlist"
 import { cn } from "@/lib/utils"
+import { productsApi } from "@/app/lib/api/products"
+import { Product } from "@/app/lib/api/products"
 
-// Mock products data for search
-const products = [
-  {
-    id: "1",
-    name: "Premium Non-Stick Frying Pan",
-    price: 2499,
-    image: "/images/kitchenware1.jpeg",
-    category: "Cookware",
-  },
-  {
-    id: "2",
-    name: "Stainless Steel Cooking Pot Set",
-    price: 5999,
-    image: "/images/appliances1.jpeg",
-    category: "Cookware",
-  },
-  {
-    id: "3",
-    name: "Electric Coffee Maker",
-    price: 3499,
-    image: "/images/appliances2.jpeg",
-    category: "Appliances",
-  },
-  {
-    id: "4",
-    name: "Kitchen Utensil Set",
-    price: 1899,
-    image: "/images/tableware1.jpeg",
-    category: "Utensils",
-  },
-  {
-    id: "5",
-    name: "Glass Food Storage Containers (Set of 5)",
-    price: 1299,
-    image: "/images/homeessentials1.jpeg",
-    category: "Storage Solutions",
-  },
-  {
-    id: "6",
-    name: "Ceramic Dinner Plates (Set of 4)",
-    price: 1899,
-    image: "/images/homeessentials2.jpeg",
-    category: "Home Essentials",
-  },
-  {
-    id: "7",
-    name: "Professional Chef Knife",
-    price: 2999,
-    image: "/images/kitchenware1.jpeg",
-    category: "Utensils",
-  },
-  {
-    id: "8",
-    name: "Electric Hand Mixer",
-    price: 2499,
-    image: "/images/appliances2.jpeg",
-    category: "Appliances",
-  },
-]
+interface Category {
+  name: string;
+  href: string;
+}
 
 export default function Header() {
   const pathname = usePathname()
@@ -80,7 +27,7 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searchResults, setSearchResults] = useState<Product[]>([])
   const [showResults, setShowResults] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
   const { cartCount } = useCart()
@@ -118,42 +65,39 @@ export default function Header() {
     }
   }
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value
     setSearchQuery(query)
     
-    if (query.trim() && products) {
-      // Filter products based on search query
-      const results = products.filter(product => {
-        if (!product) return false;
-        return (
-          (product.name?.toLowerCase() || '').includes(query.toLowerCase()) ||
-          (product.category?.toLowerCase() || '').includes(query.toLowerCase()) ||
-          (product.brand?.toLowerCase() || '').includes(query.toLowerCase())
-        );
-      });
-      setSearchResults(results);
-      setShowResults(true);
+    if (query.trim()) {
+      try {
+        // Fetch products from API with search query
+        const results = await productsApi.getAll({ search: query })
+        setSearchResults(results)
+        setShowResults(true)
+      } catch (error) {
+        console.error('Error searching products:', error)
+        setSearchResults([])
+      }
     } else {
-      setSearchResults([]);
-      setShowResults(false);
+      setSearchResults([])
+      setShowResults(false)
     }
   }
 
-  const handleResultClick = (productId: string) => {
-    // Find the clicked product
-    const selectedProduct = products.find(product => product.id === productId);
-    if (selectedProduct) {
-      // Set the search query to the product name
-      setSearchQuery(selectedProduct.name);
-      // Navigate to products page with search query
-      router.push(`/products?search=${encodeURIComponent(selectedProduct.name)}`);
-      setShowResults(false);
-      setIsSearchOpen(false);
-    }
+  const handleResultClick = (productId: number) => {
+    router.push(`/products/${productId}`)
+    setShowResults(false)
+    setIsSearchOpen(false)
   }
 
-  const categories = []
+  const categories: Category[] = [
+    { name: "Cookware", href: "/products?category=cookware" },
+    { name: "Appliances", href: "/products?category=appliances" },
+    { name: "Utensils", href: "/products?category=utensils" },
+    { name: "Storage", href: "/products?category=storage" },
+    { name: "Home Essentials", href: "/products?category=home-essentials" }
+  ]
 
   const navigation = [
     { name: "Home", href: "/" },
@@ -218,7 +162,7 @@ export default function Header() {
                       >
                         <div className="relative w-12 h-12 mr-3">
                           <Image
-                            src={product.image}
+                            src={product.images[0]?.image_url || '/placeholder.svg'}
                             alt={product.name}
                             fill
                             className="object-cover rounded"
@@ -448,7 +392,7 @@ export default function Header() {
                       >
                         <div className="relative w-12 h-12 mr-3">
                           <Image
-                            src={product.image}
+                            src={product.images[0]?.image_url || '/placeholder.svg'}
                             alt={product.name}
                             fill
                             className="object-cover rounded"

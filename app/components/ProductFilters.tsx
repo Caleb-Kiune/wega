@@ -1,12 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useBrands } from '../hooks/useBrands';
 import { useCategories } from '../hooks/useCategories';
-import { ProductsFilters } from '../lib/api';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { Filter } from 'lucide-react';
+import { ProductsParams } from '../lib/api/products';
+
+export interface ProductsFilters extends Omit<ProductsParams, 'page' | 'limit'> {
+  page: number;
+  limit: number;
+  sort: 'featured' | 'newest' | 'offers' | 'price_asc' | 'price_desc';
+}
 
 interface ProductFiltersProps {
   filters: ProductsFilters;
@@ -32,10 +38,10 @@ export function ProductFilters({ filters, onFiltersChange }: ProductFiltersProps
     value: string,
     checked: boolean
   ) => {
-    const currentValues = filters[key] || [];
+    const currentValues: string[] = filters[key] || [];
     const updatedValues = checked
       ? [...currentValues, value]
-      : currentValues.filter((v) => v !== value);
+      : currentValues.filter((v: string) => v !== value);
 
     onFiltersChange({
       ...filters,

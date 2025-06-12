@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { productsApi, Product } from '../../../lib/api/products';
+import { productsApi, Product, ProductImage, ProductFeature, ProductSpecification } from '../../../lib/api/products';
 
 interface Review {
   id: number;
@@ -15,26 +15,17 @@ interface Review {
   date: string;
 }
 
-interface ProductFeature {
-  id: number;
-  feature: string;
-  display_order: number;
+interface ExtendedProduct extends Omit<Product, 'features' | 'specifications'> {
+  features: ProductFeature[];
+  specifications: ProductSpecification[];
 }
 
-interface ProductSpecification {
-  id: number;
-  name: string;
-  value: string;
-  display_order: number;
-}
-
-interface ProductWithReviews extends Product {
+interface ProductWithReviews extends ExtendedProduct {
   reviews: Review[];
   isFeatured: boolean;
   brand_id?: number;
   category_id?: number;
-  features: ProductFeature[];
-  specifications: ProductSpecification[];
+  images: ProductImage[];
 }
 
 const initialProductState: ProductWithReviews = {
@@ -48,7 +39,6 @@ const initialProductState: ProductWithReviews = {
   isNew: false,
   isSale: false,
   isFeatured: false,
-  image: '',
   images: [],
   specifications: [],
   features: [],
@@ -71,34 +61,37 @@ export default function EditProductPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const productId = params.id as string;
+        const productId = parseInt(params.id as string);
         const [productData, brandsData, categoriesData] = await Promise.all([
-          productsApi.getById(parseInt(productId)),
+          productsApi.getById(productId) as Promise<ExtendedProduct>,
           productsApi.getBrands(),
           productsApi.getCategories()
         ]);
         
-        // Ensure all arrays are initialized
+        // Ensure all arrays are initialized with product_id
         const features = productData.features?.map(feature => ({
-          id: feature.id || 0,
-          feature: feature.feature || '',
-          display_order: feature.display_order || 0
+          ...feature,
+          product_id: productId
         })) || [];
 
         const specifications = productData.specifications?.map(spec => ({
-          id: spec.id || 0,
-          name: spec.name || '',
-          value: spec.value || '',
-          display_order: spec.display_order || 0
+          ...spec,
+          product_id: productId
+        })) || [];
+
+        const images = productData.images?.map(img => ({
+          ...img,
+          product_id: productId
         })) || [];
 
         setProduct({
           ...initialProductState,
           ...productData,
+          id: productId,
           originalPrice: productData.originalPrice ?? undefined,
           features,
           specifications,
-          images: productData.images || [],
+          images,
           reviews: [],
         });
         setBrands(brandsData);
@@ -129,8 +122,7 @@ export default function EditProductPage() {
     e.preventDefault();
 
     try {
-      // Format the data for the API
-      const updateData = {
+      const updateData: Partial<Product> = {
         name: product.name,
         description: product.description,
         price: Number(product.price),
@@ -141,18 +133,12 @@ export default function EditProductPage() {
         isSale: product.isSale,
         isFeatured: product.isFeatured,
         images: product.images,
-        specifications: product.specifications.map(spec => ({
-          ...spec,
-          display_order: spec.display_order || 0
-        })),
-        features: product.features.map(feature => ({
-          id: feature.id,
-          feature: feature.feature,
-          display_order: feature.display_order || 0
-        })),
-        // Convert category_id and brand_id to numbers if they exist
-        ...(product.category_id && { category_id: Number(product.category_id) }),
-        ...(product.brand_id && { brand_id: Number(product.brand_id) })
+        specifications: product.specifications,
+        features: product.features,
+        brand: product.brand,
+        category: product.category,
+        rating: product.rating,
+        reviewCount: product.reviewCount
       };
 
       await productsApi.update(product.id, updateData);
@@ -178,12 +164,13 @@ export default function EditProductPage() {
     setProduct(prev => ({
       ...prev,
       specifications: [
-        ...(prev.specifications || []),
+        ...prev.specifications,
         {
           id: 0,
+          product_id: prev.id,
           name: '',
           value: '',
-          display_order: (prev.specifications || []).length
+          display_order: prev.specifications.length
         }
       ]
     }));
@@ -201,6 +188,7 @@ export default function EditProductPage() {
       const newFeatures = [...(prev.features || [])];
       newFeatures[index] = {
         id: newFeatures[index]?.id || 0,
+        product_id: prev.id,
         feature: value,
         display_order: index
       };
@@ -212,11 +200,12 @@ export default function EditProductPage() {
     setProduct(prev => ({
       ...prev,
       features: [
-        ...(prev.features || []),
+        ...prev.features,
         {
           id: 0,
+          product_id: prev.id,
           feature: '',
-          display_order: (prev.features || []).length
+          display_order: prev.features.length
         }
       ]
     }));

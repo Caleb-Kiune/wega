@@ -20,7 +20,6 @@ type CreateProductData = {
   isNew: boolean;
   isSale: boolean;
   isFeatured: boolean;
-  image: string;
   images: NewProductImage[];
   specifications: NewProductSpecification[];
   features: NewProductFeature[];
@@ -82,7 +81,6 @@ export default function CreateProductPage() {
     isNew: false,
     isSale: false,
     isFeatured: false,
-    image: '',
     images: [],
     specifications: [],
     features: [],
@@ -312,7 +310,6 @@ export default function CreateProductPage() {
         isNew: newProduct.isNew,
         isSale: newProduct.isSale,
         isFeatured: newProduct.isFeatured,
-        image: newProduct.image,
         images: newProduct.images.map(img => ({
           id: 0,
           product_id: 0,
@@ -336,8 +333,7 @@ export default function CreateProductPage() {
         brand: selectedBrandObj?.name || '',
         category: selectedCategoryObj?.name || '',
         rating: newProduct.rating,
-        reviewCount: newProduct.reviewCount,
-        reviews: []
+        reviewCount: newProduct.reviewCount
       };
 
       await productsApi.create(productData);

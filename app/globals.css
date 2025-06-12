@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme Configuration */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -52,6 +53,7 @@
   }
 }
 
+/* Base Styles */
 @layer base {
   * {
     @apply border-border;
@@ -59,59 +61,152 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Accessibility Focus Styles */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2;
+  }
+
+  /* Improved Text Selection */
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
 }
 
-/* Custom Styles */
-.product-card-hover {
-  @apply transition-all duration-300 ease-in-out;
-  border: 1px solid transparent;
+/* Component Styles */
+@layer components {
+  /* Product Card Styles */
+  .product-card-hover {
+    @apply transition-all duration-300 ease-in-out;
+    border: 1px solid transparent;
+    will-change: transform, box-shadow;
+    -webkit-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    -moz-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    -o-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .product-card-hover:hover {
+    border-color: #e5e7eb;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    -webkit-box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  }
+
+  /* Category Card Styles */
+  .category-card-hover {
+    will-change: transform;
+    -webkit-transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    -moz-transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    -o-transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .category-card-hover:hover {
+    -webkit-transform: scale(1.03);
+    -moz-transform: scale(1.03);
+    -ms-transform: scale(1.03);
+    -o-transform: scale(1.03);
+    transform: scale(1.03);
+  }
+
+  /* Carousel Styles */
+  .carousel-container {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .carousel-button {
+    position: absolute;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    -moz-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    -o-transform: translateY(-50%);
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    -webkit-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    will-change: transform, background-color;
+    -webkit-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    -moz-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    -o-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .carousel-button:hover {
+    background-color: #f3f4f6;
+    -webkit-transform: translateY(-50%) scale(1.05);
+    -moz-transform: translateY(-50%) scale(1.05);
+    -ms-transform: translateY(-50%) scale(1.05);
+    -o-transform: translateY(-50%) scale(1.05);
+    transform: translateY(-50%) scale(1.05);
+  }
+
+  .carousel-button:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2;
+  }
+
+  .carousel-button-prev {
+    left: -20px;
+  }
+
+  .carousel-button-next {
+    right: -20px;
+  }
+
+  /* Utility Classes */
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .hover-lift {
+    will-change: transform;
+    -webkit-transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    -moz-transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    -o-transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-lift:hover {
+    -webkit-transform: translateY(-2px);
+    -moz-transform: translateY(-2px);
+    -ms-transform: translateY(-2px);
+    -o-transform: translateY(-2px);
+    transform: translateY(-2px);
+  }
+
+  /* Loading States */
+  .loading-skeleton {
+    @apply animate-pulse bg-muted;
+  }
+
+  /* Focus Ring */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
 }
 
-.product-card-hover:hover {
-  border-color: #e5e7eb;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+/* Responsive Styles */
+@media (max-width: 1024px) {
+  .carousel-button {
+    width: 36px;
+    height: 36px;
+  }
 }
 
-.category-card-hover {
-  transition: transform 0.3s ease;
-}
-
-.category-card-hover:hover {
-  transform: scale(1.03);
-}
-
-/* Carousel Styles */
-.carousel-container {
-  position: relative;
-}
-
-.carousel-button {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.carousel-button:hover {
-  background-color: #f3f4f6;
-}
-
-.carousel-button-prev {
-  left: -20px;
-}
-
-.carousel-button-next {
-  right: -20px;
+@media (max-width: 768px) {
+  .carousel-button {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -120,10 +215,9 @@
   }
 }
 
-/* Loading Skeleton Animation */
+/* Animation Styles */
 @keyframes pulse {
-  0%,
-  100% {
+  0%, 100% {
     opacity: 0.5;
   }
   50% {
@@ -132,5 +226,9 @@
 }
 
 .animate-pulse {
+  -webkit-animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  -moz-animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  -o-animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  will-change: opacity;
 }

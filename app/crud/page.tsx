@@ -37,15 +37,13 @@ export default function CrudPage() {
     isNew: false,
     isSale: false,
     isFeatured: false,
-    image: '',
     images: [],
     specifications: [],
     features: [],
     brand: '',
     category: '',
     rating: 0,
-    reviewCount: 0,
-    reviews: []
+    reviewCount: 0
   });
 
   useEffect(() => {
@@ -104,9 +102,7 @@ export default function CrudPage() {
   const handleAddProduct = async () => {
     try {
       const productData: Omit<Product, 'id'> = {
-        ...newProduct,
-        image: newProduct.image || '',
-        reviews: []
+        ...newProduct
       };
       await productsApi.create(productData);
       const products = await productsApi.getAll();
@@ -121,15 +117,13 @@ export default function CrudPage() {
         isNew: false,
         isSale: false,
         isFeatured: false,
-        image: '',
         images: [],
         specifications: [],
         features: [],
         brand: '',
         category: '',
         rating: 0,
-        reviewCount: 0,
-        reviews: []
+        reviewCount: 0
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

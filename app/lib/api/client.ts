@@ -1,9 +1,15 @@
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { Brand } from './brands';
 import { Category } from './categories';
-import { Product, ProductsFilters, ProductsResponse } from './products';
+import { Product, ProductsParams, ProductsResponse } from './products';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+interface ApiClient extends AxiosInstance {
+  getBrands: () => Promise<Brand[]>;
+  getCategories: () => Promise<Category[]>;
+  getProducts: (filters?: ProductsParams) => Promise<ProductsResponse>;
+}
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -12,7 +18,7 @@ const apiClient = axios.create({
   },
   withCredentials: false, // Changed to false to match server CORS config
   timeout: 10000, // Added timeout
-});
+}) as ApiClient;
 
 // Add request interceptor for debugging
 apiClient.interceptors.request.use(
@@ -61,7 +67,7 @@ apiClient.getCategories = async (): Promise<Category[]> => {
   return response.data;
 };
 
-apiClient.getProducts = async (filters: ProductsFilters = {}): Promise<ProductsResponse> => {
+apiClient.getProducts = async (filters: ProductsParams = {}): Promise<ProductsResponse> => {
   const response = await apiClient.get('/products', { params: filters });
   return response.data;
 };
