@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
-import { Menu, ShoppingCart, Heart, Search, X, Phone, Package } from "lucide-react"
+import { Menu, ShoppingCart, Heart, Search, X, Phone, Package, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
@@ -201,6 +201,21 @@ export default function Header() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link
+                    href="/crud"
+                    className="text-gray-600 hover:text-green-600 p-2 rounded-full hover:bg-gray-100"
+                  >
+                    <User className="h-5 w-5" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Admin Dashboard</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
                     href="/track-order"
                     className="text-gray-600 hover:text-green-600 p-2 rounded-full hover:bg-gray-100"
                   >
@@ -338,6 +353,12 @@ export default function Header() {
                         {item.name}
                       </Link>
                     ))}
+                    <Link
+                      href="/crud"
+                      className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-green-600"
+                    >
+                      Admin Dashboard
+                    </Link>
                   </div>
                   <div className="border-t pt-4">
                     <p className="font-medium mb-2">Shop by Category</p>

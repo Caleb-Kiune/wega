@@ -301,7 +301,7 @@ export default function TrackOrderPage() {
                             <div className="flex items-center">
                               <div className="h-10 w-10 flex-shrink-0 relative">
                                 <Image
-                                  src={item.product.image_url}
+                                  src={`/images/${item.product.image_url}`}
                                   alt={item.product.name}
                                   fill
                                   className="rounded-full object-cover"
