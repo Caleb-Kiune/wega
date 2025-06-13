@@ -11,6 +11,17 @@ export const getImageUrl = (path: string) => {
   return `http://localhost:5000${path}`;
 };
 
+// Helper function to transform image URL back to relative path
+const transformImageUrlForBackend = (url: string): string => {
+  if (!url) return "";
+  // If it's a full URL, extract just the filename
+  if (url.startsWith("http")) {
+    const parts = url.split("/");
+    return parts[parts.length - 1];
+  }
+  return url;
+};
+
 export interface ProductFeature {
   id?: number;
   product_id?: number;
@@ -280,15 +291,98 @@ export const productsApi = {
   },
 
   update: async (id: number, product: Partial<Product>): Promise<Product> => {
-    const response = await fetch(`${API_BASE_URL}/products/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(product),
-    });
-    if (!response.ok) throw new Error('Failed to update product');
-    return await response.json();
+    try {
+      // Ensure all required fields are present
+      const requiredFields = ['name', 'price', 'stock'];
+      const missingFields = requiredFields.filter(field => !product[field as keyof Product]);
+      
+      if (missingFields.length > 0) {
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+      }
+
+      // Validate specifications
+      if (product.specifications?.some(spec => !spec.name || !spec.value)) {
+        throw new Error('All specifications must have both name and value');
+      }
+
+      // Transform image URLs before sending to backend
+      const transformedProduct = {
+        ...product,
+        // Ensure these fields are present with default values if not provided
+        name: product.name || '',
+        price: product.price || 0,
+        stock: product.stock || 0,
+        description: product.description || '',
+        sku: product.sku || '',
+        is_new: product.is_new || false,
+        is_sale: product.is_sale || false,
+        is_featured: product.is_featured || false,
+        images: product.images?.map(img => ({
+          ...img,
+          image_url: transformImageUrlForBackend(img.image_url),
+          is_primary: img.is_primary || false,
+          display_order: img.display_order || 0
+        })) || [],
+        specifications: product.specifications?.map(spec => ({
+          ...spec,
+          name: spec.name.trim(),
+          value: spec.value.trim(),
+          display_order: spec.display_order || 0
+        })) || [],
+        features: product.features?.map(feature => ({
+          ...feature,
+          feature: feature.feature.trim(),
+          display_order: feature.display_order || 0
+        })) || []
+      };
+
+      console.log('Sending update request with data:', {
+        id,
+        product: {
+          ...transformedProduct,
+          images: transformedProduct.images?.map(img => ({
+            ...img,
+            image_url: img.image_url
+          }))
+        }
+      });
+
+      const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(transformedProduct),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Update failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
+        });
+        throw new Error(errorData.error || `Failed to update product: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('Update response:', data);
+      
+      // Transform the response data to include full URLs
+      return {
+        ...data,
+        images: data.images.map((img: ProductImage) => ({
+          ...img,
+          image_url: getImageUrl(img.image_url)
+        }))
+      };
+    } catch (error) {
+      console.error('Error in update:', error);
+      if (error instanceof Error) {
+        throw new Error(`Failed to update product: ${error.message}`);
+      }
+      throw new Error('Failed to update product: Unknown error');
+    }
   },
 
   delete: async (id: number): Promise<void> => {

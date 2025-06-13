@@ -118,7 +118,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
       const newImages = [...currentProduct.images];
       newImages[index] = {
         ...newImages[index],
-        [field]: value
+        [field]: value ?? ''
       };
       return {
         ...currentProduct,
@@ -133,7 +133,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
       const newSpecifications = [...currentProduct.specifications];
       newSpecifications[index] = {
         ...newSpecifications[index],
-        [field]: value || ''
+        [field]: value ?? ''
       };
       return {
         ...currentProduct,
@@ -148,7 +148,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
       const newFeatures = [...currentProduct.features];
       newFeatures[index] = {
         ...newFeatures[index],
-        [field]: value || ''
+        [field]: value ?? ''
       };
       return {
         ...currentProduct,
@@ -251,7 +251,30 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
     try {
       setSaving(true);
-      const updatedProduct = await productsApi.update(product.id, product);
+      
+      // Filter out empty specifications
+      const validSpecifications = product.specifications.filter(
+        spec => spec.name.trim() !== '' && spec.value.trim() !== ''
+      );
+
+      // Filter out empty features
+      const validFeatures = product.features.filter(
+        feature => feature.feature.trim() !== ''
+      );
+
+      // Filter out empty images
+      const validImages = product.images.filter(
+        image => image.image_url.trim() !== ''
+      );
+
+      const productToUpdate = {
+        ...product,
+        specifications: validSpecifications,
+        features: validFeatures,
+        images: validImages
+      };
+
+      const updatedProduct = await productsApi.update(product.id, productToUpdate);
       toast.success('Product updated successfully');
       router.push('/crud');
     } catch (error) {
@@ -386,13 +409,13 @@ export default function ProductForm({ productId }: ProductFormProps) {
             {currentProduct.images.map((image, index) => (
               <div key={index} className="flex items-center space-x-4">
                 <Input
-                  value={image.image_url}
+                  value={image.image_url ?? ''}
                   onChange={(e) => handleImageChange(index, 'image_url', e.target.value)}
                   placeholder="Image URL"
                 />
                 <div className="flex items-center space-x-2">
                   <Switch
-                    checked={image.is_primary}
+                    checked={image.is_primary ?? false}
                     onCheckedChange={(checked) => handleImageChange(index, 'is_primary', checked)}
                   />
                   <Label>Primary</Label>
@@ -415,12 +438,12 @@ export default function ProductForm({ productId }: ProductFormProps) {
             {currentProduct.specifications.map((spec, index) => (
               <div key={index} className="flex items-center space-x-4">
                 <Input
-                  value={spec.name}
+                  value={spec.name ?? ''}
                   onChange={(e) => handleSpecificationChange(index, 'name', e.target.value)}
                   placeholder="Specification name"
                 />
                 <Input
-                  value={spec.value}
+                  value={spec.value ?? ''}
                   onChange={(e) => handleSpecificationChange(index, 'value', e.target.value)}
                   placeholder="Specification value"
                 />
@@ -442,7 +465,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
             {currentProduct.features.map((feature, index) => (
               <div key={index} className="flex items-center space-x-4">
                 <Input
-                  value={feature.feature}
+                  value={feature.feature ?? ''}
                   onChange={(e) => handleFeatureChange(index, 'feature', e.target.value)}
                   placeholder="Feature"
                 />
