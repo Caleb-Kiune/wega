@@ -16,6 +16,9 @@ export interface ProductsFilters {
   max_price?: number;
   brand?: string;
   category?: string;
+  is_featured?: boolean;
+  is_new?: boolean;
+  is_sale?: boolean;
 }
 
 interface ProductFiltersProps {
@@ -55,6 +58,9 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
       category: undefined,
       min_price: undefined,
       max_price: undefined,
+      is_featured: undefined,
+      is_new: undefined,
+      is_sale: undefined,
     });
     setMinPriceInput('');
     setMaxPriceInput('');
@@ -168,6 +174,70 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                     <Button onClick={handleApplyPriceFilters} className="w-full">
                       Apply Price Filter
                     </Button>
+                  </div>
+                </div>
+
+                {/* Product Status */}
+                <div>
+                  <h3 className="text-sm font-medium mb-2">Product Status</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="featured"
+                        checked={filters.is_featured}
+                        onCheckedChange={(checked) => {
+                          onFiltersChange({
+                            ...filters,
+                            is_featured: checked as boolean,
+                            page: 1,
+                          });
+                        }}
+                      />
+                      <label
+                        htmlFor="featured"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        Featured Products
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="new"
+                        checked={filters.is_new}
+                        onCheckedChange={(checked) => {
+                          onFiltersChange({
+                            ...filters,
+                            is_new: checked as boolean,
+                            page: 1,
+                          });
+                        }}
+                      />
+                      <label
+                        htmlFor="new"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        New Arrivals
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="sale"
+                        checked={filters.is_sale}
+                        onCheckedChange={(checked) => {
+                          onFiltersChange({
+                            ...filters,
+                            is_sale: checked as boolean,
+                            page: 1,
+                          });
+                        }}
+                      />
+                      <label
+                        htmlFor="sale"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        On Sale
+                      </label>
+                    </div>
                   </div>
                 </div>
 
@@ -291,6 +361,70 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
             <Button onClick={handleApplyPriceFilters} className="w-full">
               Apply Price Filter
             </Button>
+          </div>
+        </div>
+
+        {/* Product Status */}
+        <div>
+          <h3 className="text-sm font-medium mb-2">Product Status</h3>
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="featured"
+                checked={filters.is_featured}
+                onCheckedChange={(checked) => {
+                  onFiltersChange({
+                    ...filters,
+                    is_featured: checked as boolean,
+                    page: 1,
+                  });
+                }}
+              />
+              <label
+                htmlFor="featured"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Featured Products
+              </label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="new"
+                checked={filters.is_new}
+                onCheckedChange={(checked) => {
+                  onFiltersChange({
+                    ...filters,
+                    is_new: checked as boolean,
+                    page: 1,
+                  });
+                }}
+              />
+              <label
+                htmlFor="new"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                New Arrivals
+              </label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="sale"
+                checked={filters.is_sale}
+                onCheckedChange={(checked) => {
+                  onFiltersChange({
+                    ...filters,
+                    is_sale: checked as boolean,
+                    page: 1,
+                  });
+                }}
+              />
+              <label
+                htmlFor="sale"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                On Sale
+              </label>
+            </div>
           </div>
         </div>
       </div>

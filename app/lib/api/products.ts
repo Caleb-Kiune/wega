@@ -79,6 +79,9 @@ export interface ProductsParams {
   search?: string;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
+  is_featured?: boolean;
+  is_new?: boolean;
+  is_sale?: boolean;
 }
 
 export interface ProductsResponse {
@@ -89,40 +92,81 @@ export interface ProductsResponse {
   per_page: number;
 }
 
-export const productsApi = {
-  getAll: async (params?: ProductsParams): Promise<ProductsResponse> => {
-    try {
-      const queryParams = new URLSearchParams();
-      if (params?.category) queryParams.append('category', params.category);
-      if (params?.brand) queryParams.append('brand', params.brand);
-      if (params?.min_price) queryParams.append('min_price', params.min_price.toString());
-      if (params?.max_price) queryParams.append('max_price', params.max_price.toString());
-      if (params?.page) queryParams.append('page', params.page.toString());
-      if (params?.limit) queryParams.append('limit', params.limit.toString());
+// Add transformation function
+const transformProduct = (product: any): Product => {
+  return {
+    ...product,
+    is_new: product.is_new || false,
+    is_sale: product.is_sale || false,
+    is_featured: product.is_featured || false,
+    images: product.images?.map((img: any) => ({
+      ...img,
+      image_url: getImageUrl(img.image_url)
+    })) || []
+  };
+};
 
-      const url = `${API_BASE_URL}/products?${queryParams.toString()}`;
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch products');
+export const productsApi = {
+  getAll: async (params: ProductsParams = {}): Promise<ProductsResponse> => {
+    // Build query string
+    const queryParams = new URLSearchParams();
+    
+    // Add all parameters that are defined
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        // Convert boolean values to strings
+        if (typeof value === 'boolean') {
+          queryParams.append(key, value.toString());
+        } else {
+          queryParams.append(key, value.toString());
+        }
       }
-      
-      const data = await response.json();
-      // Update image URLs in the response
-      return {
-        ...data,
-        products: data.products.map((product: Product) => ({
-          ...product,
-          images: product.images.map(img => ({
-            ...img,
-            image_url: getImageUrl(img.image_url)
-          }))
-        }))
-      };
-    } catch (error) {
-      console.error('Error in getAll:', error);
-      throw error;
-    }
+    });
+
+    // Log the request parameters
+    console.log('API Request Parameters:', {
+      url: `${API_BASE_URL}/products?${queryParams.toString()}`,
+      params: Object.fromEntries(queryParams.entries())
+    });
+
+    const response = await fetch(`${API_BASE_URL}/products?${queryParams.toString()}`);
+    if (!response.ok) throw new Error('Failed to fetch products');
+    const data = await response.json();
+
+    // Log the raw response
+    console.log('API Raw Response:', {
+      total: data.total,
+      products: data.products.map((p: Product) => ({
+        id: p.id,
+        name: p.name,
+        brand: p.brand,
+        category: p.category,
+        is_featured: p.is_featured
+      }))
+    });
+
+    // Transform the products
+    const transformedProducts = data.products.map(transformProduct);
+
+    // Log the transformed products
+    console.log('API Transformed Products:', {
+      total: data.total,
+      products: transformedProducts.map((p: Product) => ({
+        id: p.id,
+        name: p.name,
+        brand: p.brand,
+        category: p.category,
+        is_featured: p.is_featured
+      }))
+    });
+
+    return {
+      products: transformedProducts,
+      total: data.total,
+      pages: data.pages,
+      current_page: data.current_page,
+      per_page: data.per_page
+    };
   },
 
   getById: async (id: number): Promise<Product> => {

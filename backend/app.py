@@ -134,9 +134,27 @@ def get_products():
     brand = request.args.get('brand')
     min_price = request.args.get('min_price', type=float)
     max_price = request.args.get('max_price', type=float)
-    is_featured = request.args.get('is_featured', type=bool)
-    is_new = request.args.get('is_new', type=bool)
-    is_sale = request.args.get('is_sale', type=bool)
+    
+    # Parse boolean parameters
+    is_featured = request.args.get('is_featured')
+    is_new = request.args.get('is_new')
+    is_sale = request.args.get('is_sale')
+    
+    # Convert string boolean values to actual booleans
+    is_featured = is_featured.lower() == 'true' if is_featured is not None else None
+    is_new = is_new.lower() == 'true' if is_new is not None else None
+    is_sale = is_sale.lower() == 'true' if is_sale is not None else None
+
+    # Log filter parameters
+    print("\n=== API Request Details ===")
+    print("Filter Parameters:")
+    print(f"  is_featured: {is_featured} (type: {type(is_featured)})")
+    print(f"  is_new: {is_new} (type: {type(is_new)})")
+    print(f"  is_sale: {is_sale} (type: {type(is_sale)})")
+    print(f"  category: {category}")
+    print(f"  brand: {brand}")
+    print(f"  page: {page}")
+    print(f"  per_page: {per_page}")
 
     # Base query with joins
     query = Product.query.join(Category).join(Brand)
@@ -152,6 +170,7 @@ def get_products():
         query = query.filter(Product.price <= max_price)
     if is_featured is not None:
         query = query.filter(Product.is_featured == is_featured)
+        print(f"\nFiltering for featured products: {is_featured}")
     if is_new is not None:
         query = query.filter(Product.is_new == is_new)
     if is_sale is not None:
@@ -165,11 +184,25 @@ def get_products():
     products = pagination.items
 
     # Log the product data
+    print("\nProduct Data:")
     for product in products:
-        print(f"Product {product.id} - {product.name}:")
-        print(f"  is_featured: {product.is_featured}")
-        print(f"  is_new: {product.is_new}")
-        print(f"  is_sale: {product.is_sale}")
+        print(f"\nProduct {product.id} - {product.name}:")
+        print(f"  is_featured: {product.is_featured} (type: {type(product.is_featured)})")
+        print(f"  is_new: {product.is_new} (type: {type(product.is_new)})")
+        print(f"  is_sale: {product.is_sale} (type: {type(product.is_sale)})")
+        print(f"  created_at: {product.created_at}")
+        print(f"  category: {product.category.name if product.category else 'None'}")
+        print(f"  brand: {product.brand.name if product.brand else 'None'}")
+
+    # Additional validation for featured products
+    if is_featured:
+        non_featured = [p for p in products if not p.is_featured]
+        if non_featured:
+            print("\nWARNING: Non-featured products found in featured products response:")
+            for p in non_featured:
+                print(f"  - {p.id}: {p.name} (is_featured: {p.is_featured})")
+
+    print("\n=== End API Request Details ===\n")
 
     return jsonify({
         'products': [product.to_dict() for product in products],

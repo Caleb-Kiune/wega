@@ -20,6 +20,17 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { addItem, removeItem, isInWishlist } = useWishlist()
   const isWishlisted = isInWishlist(String(product.id))
 
+  // Add debug logging
+  console.log('Product Card Data:', {
+    id: product.id,
+    name: product.name,
+    brand: product.brand,
+    category: product.category,
+    is_new: product.is_new,
+    is_sale: product.is_sale,
+    is_featured: product.is_featured
+  });
+
   const handleAddToCart = () => {
     addToCart({
       id: product.id,
@@ -75,9 +86,9 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Product badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-2">
-          {product.isFeatured && <Badge className="bg-purple-600">Featured</Badge>}
-          {product.isNew && <Badge className="bg-green-600">New</Badge>}
-          {product.isSale && <Badge className="bg-orange-500">Sale</Badge>}
+          {product.is_featured && <Badge className="bg-purple-600">Featured</Badge>}
+          {product.is_new && <Badge className="bg-green-600">New</Badge>}
+          {product.is_sale && <Badge className="bg-orange-500">Sale</Badge>}
         </div>
 
         {/* Quick actions overlay (visible on hover) */}
@@ -109,7 +120,10 @@ export default function ProductCard({ product }: ProductCardProps) {
       </div>
 
       <div className="p-3 flex flex-col flex-grow">
-        <div className="text-xs text-gray-500 mb-0.5">{product.category}</div>
+        <div className="flex items-center justify-between mb-0.5">
+          <div className="text-xs text-gray-500">{product.category}</div>
+          <div className="text-xs font-medium text-green-600">{product.brand}</div>
+        </div>
         <Link href={`/products/${product.id}`} className="block">
           <h3 className="text-lg font-semibold text-gray-800 mb-1 hover:text-green-600 transition-colors line-clamp-2 min-h-[3.5rem]">
             {product.name}

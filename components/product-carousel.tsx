@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import ProductCard from "@/components/product-card"
-import { productsApi, Product } from "@/app/lib/api/products"
+import { productsApi, Product, ProductsParams } from "@/app/lib/api/products"
 
 interface ProductCarouselProps {
   category: "new-arrivals" | "special-offers"
@@ -21,12 +21,51 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
     const fetchProducts = async () => {
       try {
         setLoading(true)
-        const response = await productsApi.getAll({
-          sort_by: category === "new-arrivals" ? "newest" : "offers"
+        setError(null)
+        console.log('Fetching products for category:', category)
+        
+        // Set filter parameters based on category
+        const filterParams: ProductsParams = {
+          is_new: category === 'new-arrivals',
+          is_sale: category === 'special-offers',
+          limit: 10 // Limit to 10 products for the carousel
+        }
+        
+        const response = await productsApi.getAll(filterParams)
+        
+        // Log the full response
+        console.log('API Response:', {
+          total: response.total,
+          products: response.products.map(p => ({
+            id: p.id,
+            name: p.name,
+            is_new: p.is_new,
+            is_sale: p.is_sale
+          }))
         })
+        
+        // Validate that products match the category
+        const invalidProducts = response.products.filter(product => {
+          if (category === 'new-arrivals' && !product.is_new) return true
+          if (category === 'special-offers' && !product.is_sale) return true
+          return false
+        })
+        
+        if (invalidProducts.length > 0) {
+          console.error('Invalid products found:', invalidProducts.map(p => ({
+            id: p.id,
+            name: p.name,
+            is_new: p.is_new,
+            is_sale: p.is_sale
+          })))
+          setError('Error: Invalid products found in response')
+          return
+        }
+        
         setProducts(response.products)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch products')
+        console.error('Error fetching products:', err)
+        setError(err instanceof Error ? err.message : 'An error occurred while fetching products')
       } finally {
         setLoading(false)
       }

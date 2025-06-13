@@ -24,6 +24,9 @@ export default function ProductsPage() {
     brand: searchParams.get('brand') || undefined,
     min_price: Number(searchParams.get('min_price')) || undefined,
     max_price: Number(searchParams.get('max_price')) || undefined,
+    is_featured: searchParams.get('is_featured') === 'true',
+    is_new: searchParams.get('is_new') === 'true',
+    is_sale: searchParams.get('is_sale') === 'true',
   });
 
   const { products, loading, error, totalPages, currentPage } = useProducts(filters);
@@ -46,6 +49,9 @@ export default function ProductsPage() {
     if (filters.brand) params.set('brand', filters.brand);
     if (filters.min_price) params.set('min_price', filters.min_price.toString());
     if (filters.max_price) params.set('max_price', filters.max_price.toString());
+    if (filters.is_featured) params.set('is_featured', 'true');
+    if (filters.is_new) params.set('is_new', 'true');
+    if (filters.is_sale) params.set('is_sale', 'true');
 
     const newUrl = params.toString() ? `?${params.toString()}` : '';
     router.push(`/products${newUrl}`);

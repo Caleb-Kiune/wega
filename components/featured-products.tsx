@@ -42,7 +42,31 @@ export default function FeaturedProducts() {
     try {
       setLoading(true)
       setError(null)
-      const response = await productsApi.getAll({ sort_by: "featured" })
+      console.log('Fetching featured products...')
+      const response = await productsApi.getAll({ is_featured: true })
+      
+      // Log the full response
+      console.log('API Response:', {
+        total: response.total,
+        products: response.products.map(p => ({
+          id: p.id,
+          name: p.name,
+          is_featured: p.is_featured
+        }))
+      })
+      
+      // Validate that all products are featured
+      const nonFeaturedProducts = response.products.filter(product => !product.is_featured)
+      if (nonFeaturedProducts.length > 0) {
+        console.error('Non-featured products found:', nonFeaturedProducts.map(p => ({
+          id: p.id,
+          name: p.name,
+          is_featured: p.is_featured
+        })))
+        setError('Error: Non-featured products found in response')
+        return
+      }
+      
       setProducts(response.products)
     } catch (err) {
       console.error('Error fetching featured products:', err)
