@@ -70,13 +70,10 @@ export interface Product {
 }
 
 export interface ProductsParams {
-  search?: string;
   category?: string;
   brand?: string;
   min_price?: number;
   max_price?: number;
-  sort_by?: string;
-  sort_order?: 'asc' | 'desc';
   page?: number;
   limit?: number;
 }
@@ -93,13 +90,10 @@ export const productsApi = {
   getAll: async (params?: ProductsParams): Promise<ProductsResponse> => {
     try {
       const queryParams = new URLSearchParams();
-      if (params?.search) queryParams.append('search', params.search);
       if (params?.category) queryParams.append('category', params.category);
       if (params?.brand) queryParams.append('brand', params.brand);
       if (params?.min_price) queryParams.append('min_price', params.min_price.toString());
       if (params?.max_price) queryParams.append('max_price', params.max_price.toString());
-      if (params?.sort_by) queryParams.append('sort_by', params.sort_by);
-      if (params?.sort_order) queryParams.append('sort_order', params.sort_order);
       if (params?.page) queryParams.append('page', params.page.toString());
       if (params?.limit) queryParams.append('limit', params.limit.toString());
 

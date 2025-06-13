@@ -130,12 +130,10 @@ def get_products():
     # Get query parameters
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('limit', 100, type=int)  # Increased default limit to 100
-    categories = request.args.getlist('categories[]')
-    brands = request.args.getlist('brands[]')
-    min_price = request.args.get('minPrice', type=float)
-    max_price = request.args.get('maxPrice', type=float)
-    sort = request.args.get('sort', 'featured')
-    search = request.args.get('search')
+    category = request.args.get('category')
+    brand = request.args.get('brand')
+    min_price = request.args.get('min_price', type=float)
+    max_price = request.args.get('max_price', type=float)
     is_featured = request.args.get('is_featured', type=bool)
     is_new = request.args.get('is_new', type=bool)
     is_sale = request.args.get('is_sale', type=bool)
@@ -144,39 +142,17 @@ def get_products():
     query = Product.query.join(Category).join(Brand)
 
     # Apply filters
-    if categories:
-        query = query.filter(Category.name.in_(categories))
-    if brands:
-        query = query.filter(Brand.name.in_(brands))
+    if category:
+        query = query.filter(Category.name == category)
+    if brand:
+        query = query.filter(Brand.name == brand)
     if min_price is not None:
         query = query.filter(Product.price >= min_price)
     if max_price is not None:
         query = query.filter(Product.price <= max_price)
-    if search:
-        search_term = f"%{search}%"
-        query = query.filter(
-            or_(
-                Product.name.ilike(search_term),
-                Product.description.ilike(search_term),
-                Category.name.ilike(search_term),
-                Brand.name.ilike(search_term)
-            )
-        )
 
-    # Apply sorting and filtering
-    if sort == 'featured':
-        query = query.filter(Product.is_featured == True)
-    elif sort == 'newest':
-        query = query.filter(Product.is_new == True)
-    elif sort == 'offers':
-        query = query.filter(Product.is_sale == True)
-    elif sort == 'price_asc':
-        query = query.order_by(Product.price.asc())
-    elif sort == 'price_desc':
-        query = query.order_by(Product.price.desc())
-    elif sort == 'all' or not sort:
-        # Default sorting by creation date (newest first) when no sort is specified or 'all' is selected
-        query = query.order_by(Product.created_at.desc())
+    # Default sorting by creation date (newest first)
+    query = query.order_by(Product.created_at.desc())
 
     # Get paginated results
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
