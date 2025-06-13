@@ -81,8 +81,8 @@ export interface Product {
 }
 
 export interface ProductsParams {
-  category?: string;
-  brand?: string;
+  categories?: string[];
+  brands?: string[];
   min_price?: number;
   max_price?: number;
   page?: number;
@@ -118,80 +118,48 @@ const transformProduct = (product: any): Product => {
 };
 
 export const productsApi = {
-  getAll: async (params: ProductsParams = {}): Promise<ProductsResponse> => {
-    // Build query string
+  getAll: async (params: ProductsParams = {}) => {
     const queryParams = new URLSearchParams();
     
-    // Add all parameters that are defined
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        // Convert boolean values to strings
-        if (typeof value === 'boolean') {
-          queryParams.append(key, value.toString());
-        } else {
-          queryParams.append(key, value.toString());
-        }
-      }
-    });
-
-    // Log the request parameters
-    console.log('API Request Parameters:', {
-      url: `${API_BASE_URL}/products?${queryParams.toString()}`,
-      params: Object.fromEntries(queryParams.entries())
-    });
-
+    // Add pagination parameters
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    
+    // Add filter parameters
+    if (params.categories?.length) {
+      params.categories.forEach(category => {
+        queryParams.append('categories[]', category);
+      });
+    }
+    if (params.brands?.length) {
+      params.brands.forEach(brand => {
+        queryParams.append('brands[]', brand);
+      });
+    }
+    if (params.min_price) queryParams.append('min_price', params.min_price.toString());
+    if (params.max_price) queryParams.append('max_price', params.max_price.toString());
+    if (params.is_featured) queryParams.append('is_featured', 'true');
+    if (params.is_new) queryParams.append('is_new', 'true');
+    if (params.is_sale) queryParams.append('is_sale', 'true');
+    
+    // Add search and sort parameters
+    if (params.search) queryParams.append('search', params.search);
+    if (params.sort_by) queryParams.append('sort_by', params.sort_by);
+    if (params.sort_order) queryParams.append('sort_order', params.sort_order);
+    
     const response = await fetch(`${API_BASE_URL}/products?${queryParams.toString()}`);
-    if (!response.ok) throw new Error('Failed to fetch products');
-    const data = await response.json();
-
-    // Log the raw response
-    console.log('API Raw Response:', {
-      total: data.total,
-      products: data.products.map((p: Product) => ({
-        id: p.id,
-        name: p.name,
-        brand: p.brand,
-        category: p.category,
-        is_featured: p.is_featured
-      }))
-    });
-
-    // Transform the products
-    const transformedProducts = data.products.map(transformProduct);
-
-    // Log the transformed products
-    console.log('API Transformed Products:', {
-      total: data.total,
-      products: transformedProducts.map((p: Product) => ({
-        id: p.id,
-        name: p.name,
-        brand: p.brand,
-        category: p.category,
-        is_featured: p.is_featured
-      }))
-    });
-
-    return {
-      products: transformedProducts,
-      total: data.total,
-      pages: data.pages,
-      current_page: data.current_page,
-      per_page: data.per_page
-    };
+    if (!response.ok) {
+      throw new Error('Failed to fetch products');
+    }
+    return response.json();
   },
-
-  getById: async (id: number): Promise<Product> => {
+  
+  getById: async (id: number) => {
     const response = await fetch(`${API_BASE_URL}/products/${id}`);
-    if (!response.ok) throw new Error('Failed to fetch product');
-    const data = await response.json();
-    // Update image URLs in the response
-    return {
-      ...data,
-      images: data.images.map((img: ProductImage) => ({
-        ...img,
-        image_url: getImageUrl(img.image_url)
-      }))
-    };
+    if (!response.ok) {
+      throw new Error('Failed to fetch product');
+    }
+    return response.json();
   },
 
   getByCategory: async (category: string): Promise<Product[]> => {

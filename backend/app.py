@@ -129,9 +129,15 @@ def paginate(query, page=1, per_page=10):
 def get_products():
     # Get query parameters
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('limit', 100, type=int)  # Increased default limit to 100
-    category = request.args.get('category')
-    brand = request.args.get('brand')
+    per_page = request.args.get('limit', 36, type=int)  # Default to 36 products per page
+    
+    # Enforce maximum limit for performance
+    if per_page > 48:
+        per_page = 48
+    
+    # Get multiple categories and brands
+    categories = request.args.getlist('categories[]')
+    brands = request.args.getlist('brands[]')
     min_price = request.args.get('min_price', type=float)
     max_price = request.args.get('max_price', type=float)
     
@@ -141,9 +147,9 @@ def get_products():
     is_sale = request.args.get('is_sale')
     
     # Convert string boolean values to actual booleans
-    is_featured = is_featured.lower() == 'true' if is_featured is not None else None
-    is_new = is_new.lower() == 'true' if is_new is not None else None
-    is_sale = is_sale.lower() == 'true' if is_sale is not None else None
+    is_featured = is_featured.lower() == 'true' if is_featured is not None else False
+    is_new = is_new.lower() == 'true' if is_new is not None else False
+    is_sale = is_sale.lower() == 'true' if is_sale is not None else False
 
     # Log filter parameters
     print("\n=== API Request Details ===")
@@ -151,8 +157,8 @@ def get_products():
     print(f"  is_featured: {is_featured} (type: {type(is_featured)})")
     print(f"  is_new: {is_new} (type: {type(is_new)})")
     print(f"  is_sale: {is_sale} (type: {type(is_sale)})")
-    print(f"  category: {category}")
-    print(f"  brand: {brand}")
+    print(f"  categories: {categories}")
+    print(f"  brands: {brands}")
     print(f"  page: {page}")
     print(f"  per_page: {per_page}")
 
@@ -160,21 +166,22 @@ def get_products():
     query = Product.query.join(Category).join(Brand)
 
     # Apply filters
-    if category:
-        query = query.filter(Category.name == category)
-    if brand:
-        query = query.filter(Brand.name == brand)
+    if categories:
+        query = query.filter(Category.name.in_(categories))
+    if brands:
+        query = query.filter(Brand.name.in_(brands))
     if min_price is not None:
         query = query.filter(Product.price >= min_price)
     if max_price is not None:
         query = query.filter(Product.price <= max_price)
-    if is_featured is not None:
-        query = query.filter(Product.is_featured == is_featured)
-        print(f"\nFiltering for featured products: {is_featured}")
-    if is_new is not None:
-        query = query.filter(Product.is_new == is_new)
-    if is_sale is not None:
-        query = query.filter(Product.is_sale == is_sale)
+    
+    # Apply boolean filters - only filter if explicitly set to True
+    if is_featured:
+        query = query.filter(Product.is_featured == True)
+    if is_new:
+        query = query.filter(Product.is_new == True)
+    if is_sale:
+        query = query.filter(Product.is_sale == True)
 
     # Default sorting by creation date (newest first)
     query = query.order_by(Product.created_at.desc())

@@ -21,11 +21,25 @@ export function useProducts(filters: ProductsParams = {}): UseProductsResult {
       try {
         setLoading(true);
         setError(null);
+        
+        // Log the filters being used
+        console.log('Fetching products with filters:', filters);
+        
         const { data } = await apiClient.get<ProductsResponse>('/products', { params: filters });
+        
+        // Log the response data
+        console.log('API Response:', {
+          totalProducts: data.products.length,
+          total: data.total,
+          pages: data.pages,
+          currentPage: data.current_page
+        });
+        
         setProducts(data.products);
         setTotalPages(data.pages);
         setCurrentPage(data.current_page);
       } catch (err) {
+        console.error('Error fetching products:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch products'));
       } finally {
         setLoading(false);

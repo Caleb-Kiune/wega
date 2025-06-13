@@ -14,8 +14,8 @@ export interface ProductsFilters {
   limit: number;
   min_price?: number;
   max_price?: number;
-  brand?: string;
-  category?: string;
+  categories?: string[];
+  brands?: string[];
   is_featured?: boolean;
   is_new?: boolean;
   is_sale?: boolean;
@@ -53,17 +53,44 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
   const clearFilters = () => {
     onFiltersChange({ 
       page: 1, 
-      limit: 12,
-      brand: undefined,
-      category: undefined,
+      limit: 36,
+      categories: undefined,
+      brands: undefined,
       min_price: undefined,
       max_price: undefined,
-      is_featured: undefined,
-      is_new: undefined,
-      is_sale: undefined,
+      is_featured: false,
+      is_new: false,
+      is_sale: false,
     });
     setMinPriceInput('');
     setMaxPriceInput('');
+    setIsMobileFiltersOpen(false);
+  };
+
+  const handleCategoryChange = (categoryName: string, checked: boolean) => {
+    const currentCategories = filters.categories || [];
+    const updatedCategories = checked
+      ? [...currentCategories, categoryName]
+      : currentCategories.filter(cat => cat !== categoryName);
+    
+    onFiltersChange({
+      ...filters,
+      categories: updatedCategories.length > 0 ? updatedCategories : undefined,
+      page: 1,
+    });
+  };
+
+  const handleBrandChange = (brandName: string, checked: boolean) => {
+    const currentBrands = filters.brands || [];
+    const updatedBrands = checked
+      ? [...currentBrands, brandName]
+      : currentBrands.filter(brand => brand !== brandName);
+    
+    onFiltersChange({
+      ...filters,
+      brands: updatedBrands.length > 0 ? updatedBrands : undefined,
+      page: 1,
+    });
   };
 
   return (
@@ -95,14 +122,8 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                         <div key={category.id} className="flex items-center space-x-2">
                           <Checkbox
                             id={`category-${category.id}`}
-                            checked={filters.category === category.name}
-                            onCheckedChange={(checked) => {
-                              onFiltersChange({
-                                ...filters,
-                                category: checked ? category.name : undefined,
-                                page: 1,
-                              });
-                            }}
+                            checked={filters.categories?.includes(category.name) || false}
+                            onCheckedChange={(checked) => handleCategoryChange(category.name, checked as boolean)}
                           />
                           <label
                             htmlFor={`category-${category.id}`}
@@ -129,14 +150,8 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                         <div key={brand.id} className="flex items-center space-x-2">
                           <Checkbox
                             id={`brand-${brand.id}`}
-                            checked={filters.brand === brand.name}
-                            onCheckedChange={(checked) => {
-                              onFiltersChange({
-                                ...filters,
-                                brand: checked ? brand.name : undefined,
-                                page: 1,
-                              });
-                            }}
+                            checked={filters.brands?.includes(brand.name) || false}
+                            onCheckedChange={(checked) => handleBrandChange(brand.name, checked as boolean)}
                           />
                           <label
                             htmlFor={`brand-${brand.id}`}
@@ -282,14 +297,8 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                 <div key={category.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={`desktop-category-${category.id}`}
-                    checked={filters.category === category.name}
-                    onCheckedChange={(checked) => {
-                      onFiltersChange({
-                        ...filters,
-                        category: checked ? category.name : undefined,
-                        page: 1,
-                      });
-                    }}
+                    checked={filters.categories?.includes(category.name) || false}
+                    onCheckedChange={(checked) => handleCategoryChange(category.name, checked as boolean)}
                   />
                   <label
                     htmlFor={`desktop-category-${category.id}`}
@@ -316,14 +325,8 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                 <div key={brand.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={`desktop-brand-${brand.id}`}
-                    checked={filters.brand === brand.name}
-                    onCheckedChange={(checked) => {
-                      onFiltersChange({
-                        ...filters,
-                        brand: checked ? brand.name : undefined,
-                        page: 1,
-                      });
-                    }}
+                    checked={filters.brands?.includes(brand.name) || false}
+                    onCheckedChange={(checked) => handleBrandChange(brand.name, checked as boolean)}
                   />
                   <label
                     htmlFor={`desktop-brand-${brand.id}`}
