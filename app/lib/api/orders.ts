@@ -135,11 +135,26 @@ export const ordersApi = {
   },
 
   delete: async (id: number): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
-      method: 'DELETE',
-    });
-    
-    if (!response.ok) throw new Error('Failed to delete order');
+    try {
+      const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `Failed to delete order: ${response.status} ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error in delete:', error);
+      if (error instanceof Error) {
+        throw new Error(`Failed to delete order: ${error.message}`);
+      }
+      throw new Error('Failed to delete order: Unknown error');
+    }
   },
 
   getByOrderNumber: async (orderNumber: string, email: string): Promise<Order> => {

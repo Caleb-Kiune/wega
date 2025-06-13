@@ -133,11 +133,24 @@ export default function OrdersPage() {
 
   const handleBulkDelete = async () => {
     try {
-      await Promise.all(selectedOrders.map(id => ordersApi.delete(id)));
+      const results = await Promise.allSettled(
+        selectedOrders.map(id => ordersApi.delete(id))
+      );
+      
+      const failedDeletions = results.filter(
+        (result): result is PromiseRejectedResult => result.status === 'rejected'
+      );
+      
+      if (failedDeletions.length > 0) {
+        console.error('Some orders failed to delete:', failedDeletions);
+        toast.error(`${failedDeletions.length} order(s) failed to delete`);
+      } else {
+        toast.success('Selected orders deleted successfully');
+      }
+      
       await fetchOrders();
       setSelectedOrders([]);
       setIsDeleteModalOpen(false);
-      toast.success('Selected orders deleted successfully');
     } catch (error) {
       console.error('Error deleting orders:', error);
       toast.error('Failed to delete selected orders');

@@ -1130,6 +1130,25 @@ def track_order():
 
     return jsonify(order.to_dict())
 
+@app.route('/api/orders/<int:id>', methods=['DELETE'])
+def delete_order(id):
+    try:
+        order = Order.query.get(id)
+        if order is None:
+            return jsonify({'error': 'Order not found'}), 404
+            
+        # Delete associated order items first
+        OrderItem.query.filter_by(order_id=id).delete()
+        
+        # Delete the order
+        db.session.delete(order)
+        db.session.commit()
+        
+        return jsonify({'message': 'Order deleted successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
