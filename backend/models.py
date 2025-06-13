@@ -116,7 +116,7 @@ class ProductImage(db.Model):
         return {
             'id': self.id,
             'product_id': self.product_id,
-            'image_url': self.image_url,
+            'image_url': f'http://localhost:5000/images/products/{self.image_url}',
             'is_primary': self.is_primary,
             'display_order': self.display_order,
             'created_at': self.created_at.isoformat() if self.created_at else None

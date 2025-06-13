@@ -28,6 +28,16 @@ export default function ProductsPage() {
 
   const { products, loading, error, totalPages, currentPage } = useProducts(filters);
 
+  // Add logging to see what data we're getting
+  useEffect(() => {
+    if (products.length > 0) {
+      console.log('=== PRODUCTS PAGE DEBUG ===');
+      console.log('First product data:', products[0]);
+      console.log('Total products:', products.length);
+      console.log('=======================');
+    }
+  }, [products]);
+
   // Update URL when filters change
   useEffect(() => {
     const params = new URLSearchParams();
@@ -66,7 +76,7 @@ export default function ProductsPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

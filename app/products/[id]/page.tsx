@@ -12,7 +12,7 @@ import AddToCartButton from "@/components/add-to-cart-button"
 import WhatsAppOrderButton from "@/components/whatsapp-order-button"
 import { useToast } from "@/hooks/use-toast"
 import { useWishlist } from "@/lib/context/wishlist-context"
-import { productsApi } from "@/app/lib/api/products"
+import { productsApi, getImageUrl } from "@/app/lib/api/products"
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [quantity, setQuantity] = useState(1)
@@ -120,7 +120,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <div>
               <div className="relative h-[400px] mb-4 rounded-lg overflow-hidden">
                 <Image
-                  src={product.image_url || "/placeholder.svg"}
+                  src={getImageUrl(product.images?.[0]?.image_url)}
                   alt={product.name}
                   fill
                   className="object-contain"
@@ -134,7 +134,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     className="relative h-24 rounded-md overflow-hidden border cursor-pointer hover:border-green-600"
                   >
                     <Image
-                      src={image.image_url || "/placeholder.svg"}
+                      src={getImageUrl(image.image_url)}
                       alt={`${product.name} - Image ${index + 1}`}
                       fill
                       className="object-cover"

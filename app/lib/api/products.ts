@@ -1,14 +1,14 @@
 import { API_BASE_URL } from './config';
 
 // Helper function to get full image URL
-const getImageUrl = (path: string) => {
+export const getImageUrl = (path: string) => {
   if (!path) return "/placeholder.svg";
   if (path.startsWith("http")) return path;
   // If the path is just a filename, assume it's in the products directory
   if (!path.includes("/")) {
-    return `${API_BASE_URL}/images/products/${path}`;
+    return `http://localhost:5000/images/products/${path}`;
   }
-  return `${API_BASE_URL}${path}`;
+  return `http://localhost:5000${path}`;
 };
 
 export interface ProductFeature {
@@ -104,7 +104,18 @@ export const productsApi = {
         throw new Error('Failed to fetch products');
       }
       
-      return await response.json();
+      const data = await response.json();
+      // Update image URLs in the response
+      return {
+        ...data,
+        products: data.products.map((product: Product) => ({
+          ...product,
+          images: product.images.map(img => ({
+            ...img,
+            image_url: getImageUrl(img.image_url)
+          }))
+        }))
+      };
     } catch (error) {
       console.error('Error in getAll:', error);
       throw error;

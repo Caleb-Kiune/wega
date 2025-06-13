@@ -150,6 +150,12 @@ def get_products():
         query = query.filter(Product.price >= min_price)
     if max_price is not None:
         query = query.filter(Product.price <= max_price)
+    if is_featured is not None:
+        query = query.filter(Product.is_featured == is_featured)
+    if is_new is not None:
+        query = query.filter(Product.is_new == is_new)
+    if is_sale is not None:
+        query = query.filter(Product.is_sale == is_sale)
 
     # Default sorting by creation date (newest first)
     query = query.order_by(Product.created_at.desc())
@@ -157,6 +163,13 @@ def get_products():
     # Get paginated results
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     products = pagination.items
+
+    # Log the product data
+    for product in products:
+        print(f"Product {product.id} - {product.name}:")
+        print(f"  is_featured: {product.is_featured}")
+        print(f"  is_new: {product.is_new}")
+        print(f"  is_sale: {product.is_sale}")
 
     return jsonify({
         'products': [product.to_dict() for product in products],
@@ -193,7 +206,8 @@ def create_product():
         category_id=data.get('category_id'),
         brand_id=data.get('brand_id'),
         is_new=data.get('is_new', False),
-        is_sale=data.get('is_sale', False)
+        is_sale=data.get('is_sale', False),
+        is_featured=data.get('is_featured', False)
     )
     
     db.session.add(product)

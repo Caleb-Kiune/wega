@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import { Brand } from './brands';
 import { Category } from './categories';
-import { Product, ProductsParams, ProductsResponse } from './products';
+import { Product, ProductsParams, ProductsResponse, getImageUrl } from './products';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -69,7 +69,18 @@ apiClient.getCategories = async (): Promise<Category[]> => {
 
 apiClient.getProducts = async (filters: ProductsParams = {}): Promise<ProductsResponse> => {
   const response = await apiClient.get('/products', { params: filters });
-  return response.data;
+  const data = response.data;
+  // Process image URLs
+  return {
+    ...data,
+    products: data.products.map((product: Product) => ({
+      ...product,
+      images: product.images.map(img => ({
+        ...img,
+        image_url: getImageUrl(img.image_url)
+      }))
+    }))
+  };
 };
 
 export default apiClient; 
