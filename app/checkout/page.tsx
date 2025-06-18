@@ -203,9 +203,31 @@ export default function CheckoutPage() {
       console.log('API URL:', `${apiUrl}/orders?session_id=${cart?.session_id}`)
       console.log('Order data:', orderData)
       console.log('Cart session ID:', cart?.session_id)
+      console.log('Cart items count:', cart?.items?.length)
+      console.log('Selected location:', selectedLocation)
 
       if (!cart?.session_id) {
         throw new Error('Cart session ID is missing')
+      }
+
+      if (!cart?.items || cart.items.length === 0) {
+        throw new Error('Cart is empty')
+      }
+
+      // Test backend connectivity first
+      try {
+        const baseUrl = apiUrl.replace('/api', '') // Remove /api to get the root URL
+        const healthCheck = await fetch(`${baseUrl}/`, { 
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        })
+        console.log('Backend health check status:', healthCheck.status)
+        if (!healthCheck.ok) {
+          throw new Error(`Backend is not responding properly: ${healthCheck.status}`)
+        }
+      } catch (healthError) {
+        console.error('Backend connectivity test failed:', healthError)
+        throw new Error('Cannot connect to backend server. Please ensure the backend is running.')
       }
 
       const response = await fetch(`${apiUrl}/orders?session_id=${cart.session_id}`, {
@@ -223,9 +245,26 @@ export default function CheckoutPage() {
       console.log('Response headers:', Object.fromEntries(response.headers.entries()))
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
+        let errorData = {}
+        try {
+          const responseText = await response.text()
+          console.log('Response text:', responseText)
+          errorData = responseText ? JSON.parse(responseText) : {}
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError)
+          errorData = { error: 'Invalid response from server' }
+        }
+        
         console.error('Error response:', errorData)
-        throw new Error(errorData.error || `Failed to create order: ${response.status} ${response.statusText}`)
+        console.error('Response status:', response.status)
+        console.error('Response status text:', response.statusText)
+        
+        const errorMessage = errorData.error || 
+                           errorData.message || 
+                           `Server error: ${response.status} ${response.statusText}` ||
+                           'Failed to create order'
+        
+        throw new Error(errorMessage)
       }
 
       const order = await response.json()

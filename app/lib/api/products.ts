@@ -286,7 +286,10 @@ export const productsApi = {
     try {
       // Ensure all required fields are present
       const requiredFields = ['name', 'price', 'stock'];
-      const missingFields = requiredFields.filter(field => !product[field as keyof Product]);
+      const missingFields = requiredFields.filter(field => {
+        const value = product[field as keyof Product];
+        return value === undefined || value === null || value === '';
+      });
       
       if (missingFields.length > 0) {
         throw new Error(`Missing required fields: ${missingFields.join(', ')}`);

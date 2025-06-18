@@ -8,6 +8,7 @@ from sqlalchemy import or_, and_
 from decimal import Decimal
 import datetime
 from dotenv import load_dotenv
+from sqlalchemy.orm import joinedload
 
 app = Flask(__name__, static_folder='static')
 
@@ -169,8 +170,15 @@ def get_products():
     print(f"  page: {page}")
     print(f"  per_page: {per_page}")
 
-    # Base query with joins
-    query = Product.query.join(Category).join(Brand)
+    # Base query with joins and eager loading
+    query = Product.query.options(
+        joinedload(Product.images),
+        joinedload(Product.specifications),
+        joinedload(Product.features),
+        joinedload(Product.reviews),
+        joinedload(Product.category),
+        joinedload(Product.brand)
+    ).join(Category).join(Brand)
 
     # Apply filters
     if categories:
@@ -218,8 +226,34 @@ def get_products():
 
     print("\n=== End API Request Details ===\n")
 
+    # Limit related data for product list (only primary image, summary info)
+    def product_list_dict(product):
+        primary_image = next((img.image_url for img in product.images if img.is_primary), product.images[0].image_url if product.images else None)
+        return {
+            'id': product.id,
+            'name': product.name,
+            'description': product.description,
+            'price': float(product.price) if product.price else None,
+            'original_price': float(product.original_price) if product.original_price else None,
+            'image_url': primary_image,
+            'images': [img.to_dict() for img in product.images],  # Include all images for frontend
+            'is_new': product.is_new,
+            'is_sale': product.is_sale,
+            'is_featured': product.is_featured,
+            'category': product.category.name if product.category else None,
+            'brand': product.brand.name if product.brand else None,
+            'rating': float(product.rating) if product.rating else None,
+            'review_count': product.review_count,
+            'stock': product.stock,
+            'sku': product.sku,
+            # Only summary info for features/specs/reviews
+            'features': [f.feature for f in product.features[:3]],
+            'specifications': [{ 'name': s.name, 'value': s.value } for s in product.specifications[:3]],
+            'reviews': [r.to_dict() for r in product.reviews[:1]]
+        }
+
     return jsonify({
-        'products': [product.to_dict() for product in products],
+        'products': [product_list_dict(product) for product in products],
         'total': pagination.total,
         'pages': pagination.pages,
         'current_page': page,
