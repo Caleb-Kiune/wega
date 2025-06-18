@@ -17,7 +17,7 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: false, // Changed to false to match server CORS config
-  timeout: 10000, // Added timeout
+  timeout: 60000 // 60 seconds
 }) as ApiClient;
 
 // Add request interceptor for debugging

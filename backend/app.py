@@ -235,77 +235,66 @@ def get_product(id):
 
 @app.route('/api/products', methods=['POST'])
 def create_product():
-    data = request.get_json()
-    
-    # Validate product data
-    is_valid, error_message = validate_product_data(data)
-    if not is_valid:
-        return jsonify({'error': error_message}), 400
-    
-    # Create product
-    product = Product(
-        name=data['name'],
-        description=data.get('description'),
-        price=data['price'],
-        original_price=data.get('original_price'),
-        sku=data.get('sku'),
-        stock=data.get('stock', 0),
-        category_id=data.get('category_id'),
-        brand_id=data.get('brand_id'),
-        is_new=data.get('is_new', False),
-        is_sale=data.get('is_sale', False),
-        is_featured=data.get('is_featured', False)
-    )
-    
-    db.session.add(product)
-    db.session.flush()  # Get the product ID
-    
-    # Add images
-    if 'images' in data:
-        for image_data in data['images']:
-            is_valid, error_message = validate_image_data(image_data)
-            if not is_valid:
-                db.session.rollback()
-                return jsonify({'error': error_message}), 400
-            image = ProductImage(
-                product_id=product.id,
-                image_url=image_data['image_url'],
-                is_primary=image_data.get('is_primary', False),
-                display_order=image_data.get('display_order', 0)
-            )
-            db.session.add(image)
-    
-    # Add specifications
-    if 'specifications' in data:
-        for spec_data in data['specifications']:
-            is_valid, error_message = validate_specification_data(spec_data)
-            if not is_valid:
-                db.session.rollback()
-                return jsonify({'error': error_message}), 400
-            spec = ProductSpecification(
-                product_id=product.id,
-                name=spec_data['name'],
-                value=spec_data['value'],
-                display_order=spec_data.get('display_order', 0)
-            )
-            db.session.add(spec)
-    
-    # Add features
-    if 'features' in data:
-        for feature_data in data['features']:
-            is_valid, error_message = validate_feature_data(feature_data)
-            if not is_valid:
-                db.session.rollback()
-                return jsonify({'error': error_message}), 400
-            feature = ProductFeature(
-                product_id=product.id,
-                feature=feature_data['feature'],
-                display_order=feature_data.get('display_order', 0)
-            )
-            db.session.add(feature)
-    
-    db.session.commit()
-    return jsonify(product.to_dict()), 201
+    try:
+        print("\n=== Creating New Product ===")
+        data = request.get_json()
+        print(f"Received data: {data}")
+        
+        # Validate product data
+        is_valid, error_message = validate_product_data(data)
+        if not is_valid:
+            print(f"Validation failed: {error_message}")
+            return jsonify({'error': error_message}), 400
+        
+        print("Creating product with data:", data)
+        # Create product
+        product = Product(
+            name=data['name'],
+            description=data.get('description'),
+            price=data['price'],
+            original_price=data.get('original_price'),
+            sku=data.get('sku'),
+            stock=data.get('stock', 0),
+            category_id=data.get('category_id'),
+            brand_id=data.get('brand_id'),
+            is_new=data.get('is_new', False),
+            is_sale=data.get('is_sale', False),
+            is_featured=data.get('is_featured', False)
+        )
+        
+        print("Adding product to session")
+        db.session.add(product)
+        print("Flushing session to get product ID")
+        db.session.flush()  # Get the product ID
+        
+        # Add images
+        if 'images' in data:
+            print("Processing images")
+            for image_data in data['images']:
+                is_valid, error_message = validate_image_data(image_data)
+                if not is_valid:
+                    print(f"Image validation failed: {error_message}")
+                    db.session.rollback()
+                    return jsonify({'error': error_message}), 400
+                image = ProductImage(
+                    product_id=product.id,
+                    image_url=image_data['image_url'],
+                    is_primary=image_data.get('is_primary', False),
+                    display_order=image_data.get('display_order', 0)
+                )
+                db.session.add(image)
+        
+        print("Committing to database")
+        db.session.commit()
+        print("Product created successfully")
+        return jsonify(product.to_dict()), 201
+    except Exception as e:
+        print(f"Error creating product: {str(e)}")
+        print(f"Error type: {type(e)}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/products/<int:id>', methods=['PUT'])
 def update_product(id):
