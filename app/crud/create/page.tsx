@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { productsApi, Product, ProductImage, ProductSpecification, ProductFeature, Review } from '../../lib/api/products';
 import apiClient from '../../lib/api/client';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 type NewProductImage = Omit<ProductImage, 'id' | 'product_id'>;
 type NewProductSpecification = Omit<ProductSpecification, 'id' | 'product_id'>;
@@ -72,6 +72,8 @@ export default function CreateProductPage() {
   const [isCreatingNewCategory, setIsCreatingNewCategory] = useState(false);
   const [newBrandName, setNewBrandName] = useState('');
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
 
   const [newProduct, setNewProduct] = useState<CreateProductData>({
     name: '',
@@ -294,27 +296,98 @@ export default function CreateProductPage() {
     }
   };
 
+  const handleFileUpload = async (file: File) => {
+    try {
+      setUploadingImage(true);
+      setError(null);
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Upload failed');
+      }
+
+      // Set the uploaded image URL
+      setNewImage(prev => ({
+        ...prev,
+        image_url: result.url
+      }));
+
+      toast.success('Image uploaded successfully!');
+    } catch (err) {
+      console.error('Upload error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to upload image');
+      toast.error('Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files[0]) {
+      handleFileUpload(files[0]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted');
+    console.log('Form data:', newProduct);
+    
     try {
       // Validate required fields
       if (!newProduct.name) {
+        console.log('Validation failed: Product name is required');
         toast.error('Product name is required');
         return;
       }
       if (!newProduct.price || newProduct.price < 0) {
+        console.log('Validation failed: Valid price is required');
         toast.error('Valid price is required');
         return;
       }
       if (!newProduct.stock || newProduct.stock < 0) {
+        console.log('Validation failed: Valid stock quantity is required');
         toast.error('Valid stock quantity is required');
         return;
       }
       if (!newProduct.brand_id) {
+        console.log('Validation failed: Brand is required');
         toast.error('Brand is required');
         return;
       }
       if (!newProduct.category_id) {
+        console.log('Validation failed: Category is required');
         toast.error('Category is required');
         return;
       }
@@ -324,17 +397,20 @@ export default function CreateProductPage() {
       const selectedCategory = categories.find(c => c.id === newProduct.category_id);
 
       if (!selectedBrand || !selectedCategory) {
+        console.log('Validation failed: Invalid brand or category selected');
         toast.error('Invalid brand or category selected');
         return;
       }
 
       // Validate images
       if (newProduct.images.length === 0) {
-        toast.error('At least one product image is required');
+        console.log('Validation failed: At least one product image is required');
+        toast.error('Please add at least one product image. You can upload an image file or enter an image URL.');
         return;
       }
       for (const image of newProduct.images) {
         if (!image.image_url) {
+          console.log('Validation failed: All images must have a URL');
           toast.error('All images must have a URL');
           return;
         }
@@ -343,6 +419,7 @@ export default function CreateProductPage() {
       // Validate specifications
       for (const spec of newProduct.specifications) {
         if (!spec.name || !spec.value) {
+          console.log('Validation failed: All specifications must have a name and value');
           toast.error('All specifications must have a name and value');
           return;
         }
@@ -351,6 +428,7 @@ export default function CreateProductPage() {
       // Validate features
       for (const feature of newProduct.features) {
         if (!feature.feature) {
+          console.log('Validation failed: All features must have text');
           toast.error('All features must have text');
           return;
         }
@@ -359,9 +437,12 @@ export default function CreateProductPage() {
       // Get the primary image URL or first image URL
       const primaryImage = newProduct.images.find(img => img.is_primary)?.image_url || newProduct.images[0]?.image_url;
       if (!primaryImage) {
+        console.log('Validation failed: At least one image URL is required');
         toast.error('At least one image URL is required');
         return;
       }
+
+      console.log('All validations passed, creating product...');
 
       const productData: Omit<Product, 'id'> = {
         name: newProduct.name,
@@ -397,7 +478,10 @@ export default function CreateProductPage() {
         reviews: []
       };
 
+      console.log('Product data to send:', productData);
+
       await productsApi.create(productData);
+      console.log('Product created successfully');
       toast.success('Product created successfully');
       router.push('/crud');
     } catch (error) {
@@ -762,20 +846,107 @@ export default function CreateProductPage() {
 
             {/* Images Section */}
             <div className="mb-8 border-t pt-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Product Images</h2>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Image URL</label>
-                    <input
-                      type="text"
-                      name="image_url"
-                      value={newImage.image_url}
-                      onChange={handleImageChange}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                    />
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-900">Product Images</h2>
+                <span className="text-sm text-red-600 font-medium">* Required</span>
+              </div>
+              <div className="space-y-6">
+                {/* Upload Area */}
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* File Upload */}
+                    <div className="space-y-4">
+                      <label className="block text-sm font-medium text-gray-700">Upload Image</label>
+                      <div
+                        className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 ${
+                          dragActive
+                            ? 'border-indigo-500 bg-indigo-50'
+                            : 'border-gray-300 hover:border-gray-400'
+                        } ${uploadingImage ? 'opacity-50 pointer-events-none' : ''}`}
+                        onDragEnter={handleDrag}
+                        onDragLeave={handleDrag}
+                        onDragOver={handleDrag}
+                        onDrop={handleDrop}
+                      >
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileInputChange}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          disabled={uploadingImage}
+                        />
+                        <div className="space-y-2">
+                          <svg
+                            className="mx-auto h-12 w-12 text-gray-400"
+                            stroke="currentColor"
+                            fill="none"
+                            viewBox="0 0 48 48"
+                          >
+                            <path
+                              d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                              strokeWidth={2}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          <div className="text-sm text-gray-600">
+                            <span className="font-medium text-indigo-600 hover:text-indigo-500">
+                              Click to upload
+                            </span>{' '}
+                            or drag and drop
+                          </div>
+                          <p className="text-xs text-gray-500">PNG, JPG, WebP up to 5MB</p>
+                        </div>
+                        {uploadingImage && (
+                          <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center">
+                            <div className="text-sm text-gray-600">Uploading...</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* URL Input */}
+                    <div className="space-y-4">
+                      <label className="block text-sm font-medium text-gray-700">Or Enter Image URL</label>
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          name="image_url"
+                          value={newImage.image_url}
+                          onChange={handleImageChange}
+                          placeholder="https://example.com/image.jpg"
+                          className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
+                        />
+                        <p className="text-xs text-gray-500">Enter a direct link to an image</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-end">
+
+                  {/* Image Preview */}
+                  {newImage.image_url && (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">Preview</label>
+                      <div className="relative inline-block">
+                        <img
+                          src={newImage.image_url}
+                          alt="Preview"
+                          className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setNewImage(prev => ({ ...prev, image_url: '' }))}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Primary Image Toggle */}
+                  <div className="flex items-center justify-between">
                     <label className="flex items-center space-x-3 cursor-pointer">
                       <input
                         type="checkbox"
@@ -784,12 +955,13 @@ export default function CreateProductPage() {
                         onChange={handleImageChange}
                         className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
                       />
-                      <span className="text-sm text-gray-700">Primary Image</span>
+                      <span className="text-sm text-gray-700">Set as Primary Image</span>
                     </label>
                     <button
                       type="button"
                       onClick={addImage}
-                      className="ml-4 px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+                      disabled={!newImage.image_url || uploadingImage}
+                      className="px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Add Image
                     </button>
@@ -797,31 +969,44 @@ export default function CreateProductPage() {
                 </div>
 
                 {/* Image List */}
-                <div className="grid grid-cols-4 gap-4 mt-4">
-                  {newProduct.images.map((image, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={image.image_url}
-                        alt={`Product image ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-lg"
-                      />
-                      {image.is_primary && (
-                        <span className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                          Primary
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute top-2 left-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
+                {newProduct.images.length > 0 ? (
+                  <div className="space-y-4">
+                    <label className="block text-sm font-medium text-gray-700">Added Images</label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {newProduct.images.map((image, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={image.image_url}
+                            alt={`Product image ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-lg border border-gray-300"
+                          />
+                          {image.is_primary && (
+                            <span className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                              Primary
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute top-2 left-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                    <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p className="text-sm text-gray-600 mb-2">No images added yet</p>
+                    <p className="text-xs text-gray-500">Upload an image file or enter an image URL above to get started</p>
+                  </div>
+                )}
               </div>
             </div>
 

@@ -341,17 +341,34 @@ def update_product(id):
                 if not img_data.get('image_url'):
                     return jsonify({'error': 'Image URL is required for all images'}), 400
 
-            # Clear existing images
-            ProductImage.query.filter_by(product_id=id).delete()
-            # Add new images
+            # Handle images - update existing ones and create new ones
+            existing_image_ids = set()
             for img_data in data['images']:
-                new_image = ProductImage(
-                    product_id=id,
-                    image_url=img_data['image_url'],
-                    is_primary=bool(img_data.get('is_primary', False)),
-                    display_order=int(img_data.get('display_order', 0))
-                )
-                db.session.add(new_image)
+                if img_data.get('id'):
+                    # Update existing image
+                    existing_image = ProductImage.query.get(img_data['id'])
+                    if existing_image and existing_image.product_id == id:
+                        existing_image.image_url = img_data['image_url']
+                        existing_image.is_primary = bool(img_data.get('is_primary', False))
+                        existing_image.display_order = int(img_data.get('display_order', 0))
+                        existing_image_ids.add(existing_image.id)
+                    else:
+                        return jsonify({'error': f'Invalid image ID: {img_data["id"]}'}), 400
+                else:
+                    # Create new image
+                    new_image = ProductImage(
+                        product_id=id,
+                        image_url=img_data['image_url'],
+                        is_primary=bool(img_data.get('is_primary', False)),
+                        display_order=int(img_data.get('display_order', 0))
+                    )
+                    db.session.add(new_image)
+            
+            # Delete images that are no longer in the list
+            ProductImage.query.filter(
+                ProductImage.product_id == id,
+                ~ProductImage.id.in_(existing_image_ids)
+            ).delete(synchronize_session=False)
 
         if 'specifications' in data:
             # Validate specifications data
@@ -359,17 +376,34 @@ def update_product(id):
                 if not spec_data.get('name') or not spec_data.get('value'):
                     return jsonify({'error': 'Name and value are required for all specifications'}), 400
 
-            # Clear existing specifications
-            ProductSpecification.query.filter_by(product_id=id).delete()
-            # Add new specifications
+            # Handle specifications - update existing ones and create new ones
+            existing_spec_ids = set()
             for spec_data in data['specifications']:
-                new_spec = ProductSpecification(
-                    product_id=id,
-                    name=spec_data['name'],
-                    value=spec_data['value'],
-                    display_order=int(spec_data.get('display_order', 0))
-                )
-                db.session.add(new_spec)
+                if spec_data.get('id'):
+                    # Update existing specification
+                    existing_spec = ProductSpecification.query.get(spec_data['id'])
+                    if existing_spec and existing_spec.product_id == id:
+                        existing_spec.name = spec_data['name']
+                        existing_spec.value = spec_data['value']
+                        existing_spec.display_order = int(spec_data.get('display_order', 0))
+                        existing_spec_ids.add(existing_spec.id)
+                    else:
+                        return jsonify({'error': f'Invalid specification ID: {spec_data["id"]}'}), 400
+                else:
+                    # Create new specification
+                    new_spec = ProductSpecification(
+                        product_id=id,
+                        name=spec_data['name'],
+                        value=spec_data['value'],
+                        display_order=int(spec_data.get('display_order', 0))
+                    )
+                    db.session.add(new_spec)
+            
+            # Delete specifications that are no longer in the list
+            ProductSpecification.query.filter(
+                ProductSpecification.product_id == id,
+                ~ProductSpecification.id.in_(existing_spec_ids)
+            ).delete(synchronize_session=False)
 
         if 'features' in data:
             # Validate features data
@@ -377,16 +411,32 @@ def update_product(id):
                 if not feature_data.get('feature'):
                     return jsonify({'error': 'Feature text is required for all features'}), 400
 
-            # Clear existing features
-            ProductFeature.query.filter_by(product_id=id).delete()
-            # Add new features
+            # Handle features - update existing ones and create new ones
+            existing_feature_ids = set()
             for feature_data in data['features']:
-                new_feature = ProductFeature(
-                    product_id=id,
-                    feature=feature_data['feature'],
-                    display_order=int(feature_data.get('display_order', 0))
-                )
-                db.session.add(new_feature)
+                if feature_data.get('id'):
+                    # Update existing feature
+                    existing_feature = ProductFeature.query.get(feature_data['id'])
+                    if existing_feature and existing_feature.product_id == id:
+                        existing_feature.feature = feature_data['feature']
+                        existing_feature.display_order = int(feature_data.get('display_order', 0))
+                        existing_feature_ids.add(existing_feature.id)
+                    else:
+                        return jsonify({'error': f'Invalid feature ID: {feature_data["id"]}'}), 400
+                else:
+                    # Create new feature
+                    new_feature = ProductFeature(
+                        product_id=id,
+                        feature=feature_data['feature'],
+                        display_order=int(feature_data.get('display_order', 0))
+                    )
+                    db.session.add(new_feature)
+            
+            # Delete features that are no longer in the list
+            ProductFeature.query.filter(
+                ProductFeature.product_id == id,
+                ~ProductFeature.id.in_(existing_feature_ids)
+            ).delete(synchronize_session=False)
 
         db.session.commit()
         return jsonify(product.to_dict()), 200

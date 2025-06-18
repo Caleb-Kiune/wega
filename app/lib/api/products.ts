@@ -247,15 +247,39 @@ export const productsApi = {
   },
 
   create: async (product: Omit<Product, 'id'>): Promise<Product> => {
-    const response = await fetch(`${API_BASE_URL}/products`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(product),
-    });
-    if (!response.ok) throw new Error('Failed to create product');
-    return await response.json();
+    try {
+      console.log('Creating product with data:', product);
+      
+      const response = await fetch(`${API_BASE_URL}/products`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(product),
+      });
+      
+      console.log('Create response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Create failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
+        });
+        throw new Error(errorData.error || `Failed to create product: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Create response:', data);
+      return data;
+    } catch (error) {
+      console.error('Error in create:', error);
+      if (error instanceof Error) {
+        throw new Error(`Failed to create product: ${error.message}`);
+      }
+      throw new Error('Failed to create product: Unknown error');
+    }
   },
 
   update: async (id: number, product: Partial<Product>): Promise<Product> => {
