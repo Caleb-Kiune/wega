@@ -7,6 +7,7 @@ from models import db, Product, Category, Brand, ProductImage, ProductSpecificat
 from sqlalchemy import or_, and_
 from decimal import Decimal
 import datetime
+from dotenv import load_dotenv
 
 app = Flask(__name__, static_folder='static')
 
@@ -38,8 +39,14 @@ def handle_error(error):
     return jsonify(response), getattr(error, 'code', 500)
 
 # Database configuration
+load_dotenv()
+
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'app.db')
+db_url = os.getenv('DATABASE_URL')
+if db_url:
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'app.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)

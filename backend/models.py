@@ -9,12 +9,15 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     slug = db.Column(db.String(100), unique=True, nullable=False)
-    description = db.Column(db.Text)
-    image_url = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    description = db.Column(db.Text, nullable=True)
+    image_url = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
     
     # Relationships
     products = db.relationship('Product', backref='category', lazy=True)
+
+    def __repr__(self):
+        return f'<Category {self.id} {self.name}>'
 
     def to_dict(self):
         return {
@@ -32,12 +35,15 @@ class Brand(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     slug = db.Column(db.String(100), unique=True, nullable=False)
-    description = db.Column(db.Text)
-    logo_url = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    description = db.Column(db.Text, nullable=True)
+    logo_url = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
     
     # Relationships
     products = db.relationship('Product', backref='brand', lazy=True)
+
+    def __repr__(self):
+        return f'<Brand {self.id} {self.name}>'
 
     def to_dict(self):
         return {
@@ -54,26 +60,29 @@ class Product(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
-    description = db.Column(db.Text)
+    description = db.Column(db.Text, nullable=True)
     price = db.Column(db.Numeric(10, 2), nullable=False)
-    original_price = db.Column(db.Numeric(10, 2))
-    sku = db.Column(db.String(50), unique=True)
-    stock = db.Column(db.Integer, default=0)
-    rating = db.Column(db.Numeric(3, 2))
-    review_count = db.Column(db.Integer, default=0)
-    is_new = db.Column(db.Boolean, default=False)
-    is_sale = db.Column(db.Boolean, default=False)
-    is_featured = db.Column(db.Boolean, default=False)
-    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
-    brand_id = db.Column(db.Integer, db.ForeignKey('brands.id'))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    original_price = db.Column(db.Numeric(10, 2), nullable=True)
+    sku = db.Column(db.String(50), unique=True, nullable=True)
+    stock = db.Column(db.Integer, nullable=True)
+    rating = db.Column(db.Numeric(3, 2), nullable=True)
+    review_count = db.Column(db.Integer, nullable=True)
+    is_new = db.Column(db.Boolean, nullable=True)
+    is_sale = db.Column(db.Boolean, nullable=True)
+    is_featured = db.Column(db.Boolean, nullable=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True)
+    brand_id = db.Column(db.Integer, db.ForeignKey('brands.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
     
     # Relationships
     images = db.relationship('ProductImage', backref='product', lazy=True, order_by='ProductImage.display_order')
     specifications = db.relationship('ProductSpecification', backref='product', lazy=True, order_by='ProductSpecification.display_order')
     features = db.relationship('ProductFeature', backref='product', lazy=True, order_by='ProductFeature.display_order')
     reviews = db.relationship('Review', backref='product', lazy=True)
+
+    def __repr__(self):
+        return f'<Product {self.id} {self.name}>'
 
     def to_dict(self):
         # Get the primary image URL
@@ -106,11 +115,14 @@ class ProductImage(db.Model):
     __tablename__ = 'product_images'
     
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'))
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
     image_url = db.Column(db.String(255), nullable=False)
-    is_primary = db.Column(db.Boolean, default=False)
-    display_order = db.Column(db.Integer, default=0)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_primary = db.Column(db.Boolean, nullable=True)
+    display_order = db.Column(db.Integer, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+
+    def __repr__(self):
+        return f'<ProductImage {self.id}>'
 
     def to_dict(self):
         return {
@@ -126,10 +138,13 @@ class ProductSpecification(db.Model):
     __tablename__ = 'product_specifications'
     
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'))
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
     name = db.Column(db.String(100), nullable=False)
     value = db.Column(db.Text, nullable=False)
-    display_order = db.Column(db.Integer, default=0)
+    display_order = db.Column(db.Integer, nullable=True)
+
+    def __repr__(self):
+        return f'<ProductSpecification {self.id}>'
 
     def to_dict(self):
         return {
@@ -144,9 +159,12 @@ class ProductFeature(db.Model):
     __tablename__ = 'product_features'
     
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'))
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
     feature = db.Column(db.Text, nullable=False)
-    display_order = db.Column(db.Integer, default=0)
+    display_order = db.Column(db.Integer, nullable=True)
+
+    def __repr__(self):
+        return f'<ProductFeature {self.id}>'
 
     def to_dict(self):
         return {
@@ -160,14 +178,17 @@ class Review(db.Model):
     __tablename__ = 'reviews'
     
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'))
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
     user = db.Column(db.String(100), nullable=False)
-    avatar = db.Column(db.String(255))
+    avatar = db.Column(db.String(255), nullable=True)
     title = db.Column(db.String(255), nullable=False)
     comment = db.Column(db.Text, nullable=False)
     rating = db.Column(db.Integer, nullable=False)
-    date = db.Column(db.DateTime, default=datetime.utcnow)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    date = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+
+    def __repr__(self):
+        return f'<Review {self.id}>'
 
     def to_dict(self):
         return {
@@ -187,9 +208,12 @@ class Cart(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     session_id = db.Column(db.String(100), unique=True, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
     items = db.relationship('CartItem', backref='cart', lazy=True, cascade='all, delete-orphan')
+
+    def __repr__(self):
+        return f'<Cart {self.id}>'
 
     def to_dict(self):
         return {
@@ -206,12 +230,15 @@ class CartItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     cart_id = db.Column(db.Integer, db.ForeignKey('carts.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
-    quantity = db.Column(db.Integer, default=1)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    quantity = db.Column(db.Integer, default=1, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
     
     # Relationship
     product = db.relationship('Product', backref='cart_items')
+
+    def __repr__(self):
+        return f'<CartItem {self.id}>'
 
     def to_dict(self):
         return {
@@ -232,9 +259,12 @@ class DeliveryLocation(db.Model):
     slug = db.Column(db.String(100), unique=True, nullable=False)
     city = db.Column(db.String(100), nullable=False)
     shipping_price = db.Column(db.Numeric(10, 2), nullable=False)
-    is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    is_active = db.Column(db.Boolean, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
+
+    def __repr__(self):
+        return f'<DeliveryLocation {self.id}>'
 
     def to_dict(self):
         return {
@@ -261,14 +291,17 @@ class Order(db.Model):
     postal_code = db.Column(db.String(20), nullable=False)
     total_amount = db.Column(db.Numeric(10, 2), nullable=False)
     shipping_cost = db.Column(db.Numeric(10, 2), nullable=False)
-    status = db.Column(db.String(50), default='pending')
-    payment_status = db.Column(db.String(50), default='pending')
-    notes = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    status = db.Column(db.String(50), default='pending', nullable=True)
+    payment_status = db.Column(db.String(50), default='pending', nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
 
     # Relationships
     items = db.relationship('OrderItem', backref='order', lazy=True, cascade='all, delete-orphan')
+
+    def __repr__(self):
+        return f'<Order {self.id}>'
 
     def to_dict(self):
         return {
@@ -300,10 +333,13 @@ class OrderItem(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Numeric(10, 2), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
     
     # Relationship
     product = db.relationship('Product', backref='order_items')
+
+    def __repr__(self):
+        return f'<OrderItem {self.id}>'
 
     def to_dict(self):
         return {
