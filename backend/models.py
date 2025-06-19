@@ -89,6 +89,16 @@ class Product(db.Model):
         primary_image = next((img.image_url for img in self.images if img.is_primary), 
                            self.images[0].image_url if self.images else None)
         
+        # Handle both old and new image URL formats
+        if primary_image:
+            if primary_image.startswith('http'):
+                # New format: full URL from upload
+                pass
+            else:
+                # Old format: relative path, construct full URL
+                # All uploaded files go to /static/uploads/
+                primary_image = f'http://localhost:5000/static/uploads/{primary_image}'
+        
         return {
             'id': self.id,
             'name': self.name,
@@ -125,10 +135,17 @@ class ProductImage(db.Model):
         return f'<ProductImage {self.id}>'
 
     def to_dict(self):
+        # Handle both old and new image URL formats
+        image_url = self.image_url
+        if image_url and not image_url.startswith('http'):
+            # Old format: relative path, construct full URL
+            # All uploaded files go to /static/uploads/
+            image_url = f'http://localhost:5000/static/uploads/{image_url}'
+        
         return {
             'id': self.id,
             'product_id': self.product_id,
-            'image_url': f'http://localhost:5000/images/products/{self.image_url}',
+            'image_url': image_url,
             'is_primary': self.is_primary,
             'display_order': self.display_order,
             'created_at': self.created_at.isoformat() if self.created_at else None

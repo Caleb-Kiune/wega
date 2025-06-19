@@ -304,7 +304,8 @@ export default function CreateProductPage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/upload', {
+      // Use Flask backend for uploads
+      const response = await fetch('http://localhost:5000/api/upload', {
         method: 'POST',
         body: formData,
       });

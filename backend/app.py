@@ -9,6 +9,9 @@ from decimal import Decimal
 import datetime
 from dotenv import load_dotenv
 from sqlalchemy.orm import joinedload
+from werkzeug.utils import secure_filename
+import uuid
+import mimetypes
 
 app = Flask(__name__, static_folder='static')
 
@@ -52,6 +55,70 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 migrate = Migrate(app, db)
+
+# Upload configuration
+UPLOAD_FOLDER = os.path.join(basedir, 'static', 'uploads')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
+# Environment-specific configuration
+ENVIRONMENT = os.getenv('FLASK_ENV', 'development')
+if ENVIRONMENT == 'production':
+    # In production, use the actual domain from environment variable
+    BASE_URL = os.getenv('BASE_URL', 'https://your-domain.com')
+else:
+    # In development, use request.host_url
+    BASE_URL = None
+
+# Ensure upload directory exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    """Check if the file extension is allowed"""
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def validate_image_file(file):
+    """Validate image file more thoroughly"""
+    # Check file extension
+    if not allowed_file(file.filename):
+        return False, f"Invalid file type. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}"
+    
+    # Check file size
+    file.seek(0, 2)  # Seek to end
+    file_size = file.tell()
+    file.seek(0)  # Reset to beginning
+    
+    if file_size > MAX_FILE_SIZE:
+        return False, f"File too large. Maximum size is {MAX_FILE_SIZE // (1024*1024)}MB"
+    
+    if file_size == 0:
+        return False, "File is empty"
+    
+    # Check MIME type (additional security)
+    if file.content_type:
+        allowed_mimes = {
+            'image/jpeg', 'image/jpg', 'image/png', 
+            'image/gif', 'image/webp'
+        }
+        if file.content_type not in allowed_mimes:
+            return False, f"Invalid MIME type: {file.content_type}"
+    
+    return True, None
+
+def generate_unique_filename(original_filename):
+    """Generate a unique filename to prevent conflicts"""
+    # Get the file extension
+    ext = original_filename.rsplit('.', 1)[1].lower() if '.' in original_filename else ''
+    
+    # Generate a unique filename with timestamp and UUID
+    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    unique_id = str(uuid.uuid4())[:8]
+    
+    if ext:
+        return f"{timestamp}_{unique_id}.{ext}"
+    else:
+        return f"{timestamp}_{unique_id}"
 
 # Helper functions
 def validate_product_data(data):
@@ -127,6 +194,96 @@ def serve_product_image(filename):
 @app.route('/images/<path:filename>')
 def serve_image(filename):
     return send_from_directory(os.path.join(app.static_folder, 'images'), filename)
+
+# Serve uploaded files
+@app.route('/static/uploads/<path:filename>')
+def serve_upload(filename):
+    """Serve uploaded files from the uploads directory"""
+    return send_from_directory(UPLOAD_FOLDER, filename)
+
+# Image upload route
+@app.route('/api/upload', methods=['POST'])
+def upload_image():
+    """
+    Handle image uploads for the admin dashboard
+    Accepts multipart/form-data with a 'file' field
+    Returns the public URL of the uploaded image
+    """
+    try:
+        print("=== Image Upload Request ===")
+        print(f"Request method: {request.method}")
+        print(f"Content-Type: {request.content_type}")
+        print(f"Files in request: {list(request.files.keys())}")
+        
+        # Check if file is present in request
+        if 'file' not in request.files:
+            print("Error: No file part in request")
+            return jsonify({'error': 'No file part'}), 400
+        
+        file = request.files['file']
+        print(f"File received: {file.filename}")
+        print(f"File content type: {file.content_type}")
+        
+        # Check if file was actually selected
+        if file.filename == '':
+            print("Error: No file selected")
+            return jsonify({'error': 'No file selected'}), 400
+        
+        # Validate file using improved validation
+        is_valid, error_message = validate_image_file(file)
+        if not is_valid:
+            print(f"Error: {error_message}")
+            return jsonify({'error': error_message}), 400
+        
+        # Get file size for response
+        file.seek(0, 2)  # Seek to end to get file size
+        file_size = file.tell()
+        file.seek(0)  # Reset to beginning
+        
+        print(f"File size: {file_size} bytes ({file_size / (1024*1024):.2f} MB)")
+        
+        # Secure the filename and generate unique name
+        original_filename = secure_filename(file.filename)
+        unique_filename = generate_unique_filename(original_filename)
+        
+        print(f"Original filename: {original_filename}")
+        print(f"Unique filename: {unique_filename}")
+        
+        # Save the file
+        file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
+        print(f"Saving file to: {file_path}")
+        
+        file.save(file_path)
+        
+        # Verify file was saved
+        if not os.path.exists(file_path):
+            print("Error: File was not saved successfully")
+            return jsonify({'error': 'Failed to save file'}), 500
+        
+        # Generate public URL
+        # In production, this should use the actual domain
+        if BASE_URL:
+            public_url = f"{BASE_URL}/static/uploads/{unique_filename}"
+        else:
+            public_url = f"http://{request.host}/static/uploads/{unique_filename}"
+        
+        print(f"File uploaded successfully: {unique_filename}")
+        print(f"Public URL: {public_url}")
+        print("=== End Image Upload Request ===\n")
+        
+        return jsonify({
+            'success': True,
+            'url': public_url,
+            'filename': unique_filename,
+            'original_name': original_filename,
+            'size': file_size
+        }), 201
+        
+    except Exception as e:
+        print(f"Upload error: {str(e)}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
+        return jsonify({'error': 'Failed to upload file'}), 500
 
 # Helper function for pagination
 def paginate(query, page=1, per_page=10):
@@ -333,8 +490,10 @@ def create_product():
 @app.route('/api/products/<int:id>', methods=['PUT'])
 def update_product(id):
     try:
+        print(f"\n=== Updating Product {id} ===")
         product = Product.query.get_or_404(id)
         data = request.get_json()
+        print(f"Received data: {data}")
 
         # Validate required fields
         if not data.get('name'):
@@ -370,6 +529,7 @@ def update_product(id):
 
         # Update related data
         if 'images' in data:
+            print(f"Processing images: {data['images']}")
             # Validate images data
             for img_data in data['images']:
                 if not img_data.get('image_url'):
@@ -386,6 +546,7 @@ def update_product(id):
                         existing_image.is_primary = bool(img_data.get('is_primary', False))
                         existing_image.display_order = int(img_data.get('display_order', 0))
                         existing_image_ids.add(existing_image.id)
+                        print(f"Updated existing image {existing_image.id}: {img_data['image_url']}")
                     else:
                         return jsonify({'error': f'Invalid image ID: {img_data["id"]}'}), 400
                 else:
@@ -397,12 +558,15 @@ def update_product(id):
                         display_order=int(img_data.get('display_order', 0))
                     )
                     db.session.add(new_image)
+                    print(f"Created new image: {img_data['image_url']}")
             
-            # Delete images that are no longer in the list
-            ProductImage.query.filter(
-                ProductImage.product_id == id,
-                ~ProductImage.id.in_(existing_image_ids)
-            ).delete(synchronize_session=False)
+            # Only delete images if there are existing ones
+            if existing_image_ids:
+                ProductImage.query.filter(
+                    ProductImage.product_id == id,
+                    ~ProductImage.id.in_(existing_image_ids)
+                ).delete(synchronize_session=False)
+                print(f"Deleted images not in list. Kept: {existing_image_ids}")
 
         if 'specifications' in data:
             # Validate specifications data
@@ -472,9 +636,19 @@ def update_product(id):
                 ~ProductFeature.id.in_(existing_feature_ids)
             ).delete(synchronize_session=False)
 
+        print("Committing to database...")
         db.session.commit()
-        return jsonify(product.to_dict()), 200
+        print("Database commit successful")
+        
+        result = product.to_dict()
+        print(f"Final product data: {result}")
+        print("=== End Product Update ===\n")
+        
+        return jsonify(result), 200
     except Exception as e:
+        print(f"Error updating product: {str(e)}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 

@@ -136,8 +136,8 @@ export default function ProductForm({ productId }: ProductFormProps) {
     const fetchBrandsAndCategories = async () => {
       try {
         const [brandsResponse, categoriesResponse] = await Promise.all([
-          fetch('/api/brands'),
-          fetch('/api/categories')
+          fetch('http://localhost:5000/api/brands'),
+          fetch('http://localhost:5000/api/categories')
         ]);
         
         if (brandsResponse.ok) {
@@ -230,6 +230,8 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
   const addImage = () => {
     if (!newImageUrl) return;
+    
+    console.log('➕ Adding image to product:', newImageUrl);
     
     setProduct(prev => ({
       ...(prev || initialProductState),
@@ -383,7 +385,8 @@ export default function ProductForm({ productId }: ProductFormProps) {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/upload', {
+      // Use Flask backend for uploads
+      const response = await fetch('http://localhost:5000/api/upload', {
         method: 'POST',
         body: formData,
       });
@@ -396,6 +399,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
       // Set the uploaded image URL
       setNewImageUrl(result.url);
+      console.log('✅ Image uploaded successfully:', result.url);
       toast.success('Image uploaded successfully!');
     } catch (err) {
       console.error('Upload error:', err);
@@ -725,25 +729,49 @@ export default function ProductForm({ productId }: ProductFormProps) {
               <h3 className="text-lg font-medium">Existing Images</h3>
               <div className="space-y-4">
                 {currentProduct.images.map((image, index) => (
-                  <div key={index} className="flex items-center space-x-4">
-                    <Input
-                      value={image.image_url || ''}
-                      onChange={(e) => handleImageChange(index, 'image_url', e.target.value)}
-                      placeholder="Image URL"
-                    />
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        checked={image.is_primary || false}
-                        onCheckedChange={(checked) => handleImageChange(index, 'is_primary', checked)}
+                  <div key={index} className="border rounded-lg p-4 space-y-3">
+                    {/* Image Preview */}
+                    {image.image_url && (
+                      <div className="relative inline-block">
+                        <img
+                          src={image.image_url}
+                          alt={`Product image ${index + 1}`}
+                          className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                          onError={(e) => {
+                            console.error('Failed to load image:', image.image_url);
+                            e.currentTarget.src = '/placeholder.png';
+                          }}
+                        />
+                        {image.is_primary && (
+                          <div className="absolute -top-2 -left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                            Primary
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Image Controls */}
+                    <div className="flex items-center space-x-4">
+                      <Input
+                        value={image.image_url || ''}
+                        onChange={(e) => handleImageChange(index, 'image_url', e.target.value)}
+                        placeholder="Image URL"
+                        className="flex-1"
                       />
-                      <Label>Primary</Label>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          checked={image.is_primary || false}
+                          onCheckedChange={(checked) => handleImageChange(index, 'is_primary', checked)}
+                        />
+                        <Label>Primary</Label>
+                      </div>
+                      <Button
+                        variant="destructive"
+                        onClick={() => removeImage(index)}
+                      >
+                        Remove
+                      </Button>
                     </div>
-                    <Button
-                      variant="destructive"
-                      onClick={() => removeImage(index)}
-                    >
-                      Remove
-                    </Button>
                   </div>
                 ))}
               </div>
