@@ -1299,7 +1299,15 @@ def clear_cart():
 # Delivery Locations Routes
 @app.route('/api/delivery-locations', methods=['GET'])
 def get_delivery_locations():
-    locations = DeliveryLocation.query.filter_by(is_active=True).order_by(DeliveryLocation.city, DeliveryLocation.name).all()
+    admin_mode = request.args.get('admin', 'false').lower() == 'true'
+    
+    if admin_mode:
+        # Return all locations for admin interface
+        locations = DeliveryLocation.query.order_by(DeliveryLocation.city, DeliveryLocation.name).all()
+    else:
+        # Return only active locations for frontend (cart/checkout)
+        locations = DeliveryLocation.query.filter_by(is_active=True).order_by(DeliveryLocation.city, DeliveryLocation.name).all()
+    
     return jsonify([location.to_dict() for location in locations])
 
 @app.route('/api/delivery-locations/<int:id>', methods=['GET'])
@@ -1308,6 +1316,90 @@ def get_delivery_location(id):
     if not location:
         return jsonify({'error': 'Delivery location not found'}), 404
     return jsonify(location.to_dict())
+
+@app.route('/api/delivery-locations', methods=['POST'])
+def create_delivery_location():
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Delivery location data is required'}), 400
+
+    # Validate required fields
+    required_fields = ['name', 'slug', 'city', 'shipping_price']
+    for field in required_fields:
+        if field not in data or not data[field]:
+            return jsonify({'error': f'{field} is required'}), 400
+
+    # Check if slug already exists
+    existing_location = DeliveryLocation.query.filter_by(slug=data['slug']).first()
+    if existing_location:
+        return jsonify({'error': 'A delivery location with this slug already exists'}), 400
+
+    try:
+        location = DeliveryLocation(
+            name=data['name'],
+            slug=data['slug'],
+            city=data['city'],
+            shipping_price=data['shipping_price'],
+            is_active=data.get('is_active', True)
+        )
+        db.session.add(location)
+        db.session.commit()
+        return jsonify(location.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/delivery-locations/<int:id>', methods=['PUT'])
+def update_delivery_location(id):
+    location = DeliveryLocation.query.get(id)
+    if not location:
+        return jsonify({'error': 'Delivery location not found'}), 404
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Delivery location data is required'}), 400
+
+    try:
+        # Update fields if provided
+        if 'name' in data:
+            location.name = data['name']
+        if 'slug' in data:
+            # Check if slug already exists for another location
+            existing_location = DeliveryLocation.query.filter_by(slug=data['slug']).first()
+            if existing_location and existing_location.id != id:
+                return jsonify({'error': 'A delivery location with this slug already exists'}), 400
+            location.slug = data['slug']
+        if 'city' in data:
+            location.city = data['city']
+        if 'shipping_price' in data:
+            location.shipping_price = data['shipping_price']
+        if 'is_active' in data:
+            location.is_active = data['is_active']
+
+        db.session.commit()
+        return jsonify(location.to_dict())
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/delivery-locations/<int:id>', methods=['DELETE'])
+def delete_delivery_location(id):
+    location = DeliveryLocation.query.get(id)
+    if not location:
+        return jsonify({'error': 'Delivery location not found'}), 404
+
+    try:
+        # Check if location is used in any orders
+        orders_with_location = Order.query.filter_by(delivery_location_id=id).count()
+        if orders_with_location > 0:
+            return jsonify({'error': 'Cannot delete delivery location that has associated orders'}), 400
+
+        db.session.delete(location)
+        db.session.commit()
+        return jsonify({'message': 'Delivery location deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 # Order Routes
 @app.route('/api/orders', methods=['POST'])

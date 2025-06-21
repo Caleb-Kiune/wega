@@ -63,24 +63,48 @@ export const cartApi = {
   getCart: async (): Promise<Cart> => {
     const sessionId = getSessionId();
     console.log('Getting cart with session ID:', sessionId);
-    const response = await fetch(`${API_BASE_URL}/cart?session_id=${sessionId}`);
-    if (!response.ok) {
-      console.error('Failed to fetch cart:', response.status, response.statusText);
-      throw new Error('Failed to fetch cart');
-    }
-    const data = await response.json();
-    // Update image URLs in the response
-    if (data.items) {
-      data.items = data.items.map((item: CartItem) => ({
-        ...item,
-        product: {
-          ...item.product,
-          image: getImageUrl(item.product.image)
+    console.log('API URL:', `${API_BASE_URL}/cart?session_id=${sessionId}`);
+    
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/cart?session_id=${sessionId}`);
+        if (!response.ok) {
+          console.error('Failed to fetch cart:', response.status, response.statusText);
+          throw new Error(`Failed to fetch cart: ${response.status} ${response.statusText}`);
         }
-      }));
+        const data = await response.json();
+        // Update image URLs in the response
+        if (data.items) {
+          data.items = data.items.map((item: CartItem) => ({
+            ...item,
+            product: {
+              ...item.product,
+              image: getImageUrl(item.product.image)
+            }
+          }));
+        }
+        console.log('Cart data received:', data);
+        return data;
+      } catch (error) {
+        console.error(`Attempt ${attempt} failed:`, error);
+        lastError = error as Error;
+        
+        if (attempt < maxRetries) {
+          // Wait before retrying (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          continue;
+        }
+      }
     }
-    console.log('Cart data received:', data);
-    return data;
+    
+    // All retries failed
+    if (lastError instanceof TypeError && lastError.message.includes('Failed to fetch')) {
+      throw new Error('Cannot connect to server. Please ensure the backend is running.');
+    }
+    throw lastError || new Error('Failed to fetch cart after multiple attempts');
   },
 
   addItem: async (productId: number, quantity: number): Promise<Cart> => {
@@ -131,8 +155,11 @@ export const cartApi = {
 };
 
 export const deliveryLocationsApi = {
-  getAll: async (): Promise<DeliveryLocation[]> => {
-    const response = await fetch(`${API_BASE_URL}/delivery-locations`);
+  getAll: async (admin: boolean = false): Promise<DeliveryLocation[]> => {
+    const url = admin 
+      ? `${API_BASE_URL}/delivery-locations?admin=true`
+      : `${API_BASE_URL}/delivery-locations`;
+    const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to fetch delivery locations');
     return response.json();
   },
@@ -141,5 +168,53 @@ export const deliveryLocationsApi = {
     const response = await fetch(`${API_BASE_URL}/delivery-locations/${id}`);
     if (!response.ok) throw new Error('Failed to fetch delivery location');
     return response.json();
+  },
+
+  create: async (data: Omit<DeliveryLocation, 'id'>): Promise<DeliveryLocation> => {
+    const response = await fetch(`${API_BASE_URL}/delivery-locations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: data.name,
+        slug: data.slug,
+        city: data.city,
+        shipping_price: data.shippingPrice,
+        is_active: data.isActive
+      }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to create delivery location');
+    }
+    return response.json();
+  },
+
+  update: async (id: number, data: Partial<Omit<DeliveryLocation, 'id'>>): Promise<DeliveryLocation> => {
+    const response = await fetch(`${API_BASE_URL}/delivery-locations/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...(data.name && { name: data.name }),
+        ...(data.slug && { slug: data.slug }),
+        ...(data.city && { city: data.city }),
+        ...(data.shippingPrice !== undefined && { shipping_price: data.shippingPrice }),
+        ...(data.isActive !== undefined && { is_active: data.isActive })
+      }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to update delivery location');
+    }
+    return response.json();
+  },
+
+  delete: async (id: number): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/delivery-locations/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to delete delivery location');
+    }
   },
 }; 

@@ -37,10 +37,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setCartCount(cartData.items.reduce((total, item) => total + item.quantity, 0))
       } catch (error) {
         console.error("Failed to load cart:", error)
+        // Show user-friendly error message for connection issues
+        if (error instanceof Error) {
+          if (error.message.includes('Cannot connect to server')) {
+            toast({
+              title: "Connection Error",
+              description: "Cannot connect to the server. Please ensure the backend is running.",
+              variant: "destructive",
+            })
+          } else {
+            toast({
+              title: "Error",
+              description: "Failed to load cart. Please refresh the page.",
+              variant: "destructive",
+            })
+          }
+        }
       }
     }
     loadCart()
-  }, [])
+  }, [toast])
 
   const addToCart = async (product: Product) => {
     try {

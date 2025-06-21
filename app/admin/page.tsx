@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Grid, List, Search, Filter, Trash2, Edit, Eye, MoreVertical, Package, Plus, Check, X, AlertTriangle } from 'lucide-react';
+import { Grid, List, Search, Filter, Trash2, Edit, Eye, MoreVertical, Package, Plus, Check, X, AlertTriangle, MapPin } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -253,6 +253,14 @@ export default function AdminPage() {
             >
               <Package className="h-4 w-4" />
               Manage Orders
+            </Button>
+            <Button
+              onClick={() => router.push('/admin/delivery-locations')}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <MapPin className="h-4 w-4" />
+              Delivery Locations
             </Button>
             <Button
               onClick={() => router.push('/admin/create')}
