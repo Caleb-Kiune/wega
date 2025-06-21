@@ -475,6 +475,55 @@ def create_product():
                 )
                 db.session.add(image)
         
+        # Add specifications
+        if 'specifications' in data:
+            print("Processing specifications")
+            print(f"Number of specifications to process: {len(data['specifications'])}")
+            
+            # Validate specifications data
+            for i, spec_data in enumerate(data['specifications']):
+                print(f"Validating specification {i}: {spec_data}")
+                if not spec_data.get('name') or not spec_data.get('value'):
+                    print(f"❌ Validation failed for specification {i}: missing name or value")
+                    return jsonify({'error': 'Name and value are required for all specifications'}), 400
+                print(f"✅ Specification {i} validation passed")
+
+            # Create new specifications (no existing ones during creation)
+            for i, spec_data in enumerate(data['specifications']):
+                print(f"🆕 Creating new specification: {spec_data['name']} = {spec_data['value']}")
+                new_spec = ProductSpecification(
+                    product_id=product.id,
+                    name=spec_data['name'],
+                    value=spec_data['value'],
+                    display_order=int(spec_data.get('display_order', 0))
+                )
+                db.session.add(new_spec)
+                print(f"✅ Created new specification: {spec_data['name']} = {spec_data['value']}")
+
+        # Add features
+        if 'features' in data:
+            print(f"Processing features")
+            print(f"Number of features to process: {len(data['features'])}")
+            
+            # Validate features data
+            for i, feature_data in enumerate(data['features']):
+                print(f"Validating feature {i}: {feature_data}")
+                if not feature_data.get('feature'):
+                    print(f"❌ Validation failed for feature {i}: missing feature text")
+                    return jsonify({'error': 'Feature text is required for all features'}), 400
+                print(f"✅ Feature {i} validation passed")
+
+            # Create new features (no existing ones during creation)
+            for i, feature_data in enumerate(data['features']):
+                print(f"🆕 Creating new feature: {feature_data['feature']}")
+                new_feature = ProductFeature(
+                    product_id=product.id,
+                    feature=feature_data['feature'],
+                    display_order=int(feature_data.get('display_order', 0))
+                )
+                db.session.add(new_feature)
+                print(f"✅ Created new feature: {feature_data['feature']}")
+
         print("Committing to database")
         db.session.commit()
         print("Product created successfully")
@@ -569,14 +618,21 @@ def update_product(id):
                 print(f"Deleted images not in list. Kept: {existing_image_ids}")
 
         if 'specifications' in data:
+            print(f"Processing specifications: {data['specifications']}")
+            print(f"Number of specifications to process: {len(data['specifications'])}")
+            
             # Validate specifications data
-            for spec_data in data['specifications']:
+            for i, spec_data in enumerate(data['specifications']):
+                print(f"Validating specification {i}: {spec_data}")
                 if not spec_data.get('name') or not spec_data.get('value'):
+                    print(f"❌ Validation failed for specification {i}: missing name or value")
                     return jsonify({'error': 'Name and value are required for all specifications'}), 400
+                print(f"✅ Specification {i} validation passed")
 
             # Handle specifications - update existing ones and create new ones
             existing_spec_ids = set()
-            for spec_data in data['specifications']:
+            for i, spec_data in enumerate(data['specifications']):
+                print(f"Processing specification {i}: {spec_data}")
                 if spec_data.get('id'):
                     # Update existing specification
                     existing_spec = ProductSpecification.query.get(spec_data['id'])
@@ -585,10 +641,13 @@ def update_product(id):
                         existing_spec.value = spec_data['value']
                         existing_spec.display_order = int(spec_data.get('display_order', 0))
                         existing_spec_ids.add(existing_spec.id)
+                        print(f"✅ Updated existing specification {existing_spec.id}: {spec_data['name']} = {spec_data['value']}")
                     else:
+                        print(f"❌ Invalid specification ID: {spec_data['id']}")
                         return jsonify({'error': f'Invalid specification ID: {spec_data["id"]}'}), 400
                 else:
                     # Create new specification
+                    print(f"🆕 Creating new specification: {spec_data['name']} = {spec_data['value']}")
                     new_spec = ProductSpecification(
                         product_id=id,
                         name=spec_data['name'],
@@ -596,22 +655,39 @@ def update_product(id):
                         display_order=int(spec_data.get('display_order', 0))
                     )
                     db.session.add(new_spec)
+                    print(f"✅ Created new specification: {spec_data['name']} = {spec_data['value']}")
             
             # Delete specifications that are no longer in the list
-            ProductSpecification.query.filter(
-                ProductSpecification.product_id == id,
-                ~ProductSpecification.id.in_(existing_spec_ids)
-            ).delete(synchronize_session=False)
+            # Only delete if there are existing specifications to check against
+            if existing_spec_ids:
+                ProductSpecification.query.filter(
+                    ProductSpecification.product_id == id,
+                    ~ProductSpecification.id.in_(existing_spec_ids)
+                ).delete(synchronize_session=False)
+                print(f"🗑️ Deleted specifications not in list. Kept: {existing_spec_ids}")
+            else:
+                # If no existing specifications were updated, delete all old ones
+                # But only if we're not adding new ones
+                if not any(not spec_data.get('id') for spec_data in data['specifications']):
+                    deleted_count = ProductSpecification.query.filter_by(product_id=id).delete()
+                    print(f"🗑️ Deleted {deleted_count} old specifications")
 
         if 'features' in data:
+            print(f"Processing features: {data['features']}")
+            print(f"Number of features to process: {len(data['features'])}")
+            
             # Validate features data
-            for feature_data in data['features']:
+            for i, feature_data in enumerate(data['features']):
+                print(f"Validating feature {i}: {feature_data}")
                 if not feature_data.get('feature'):
+                    print(f"❌ Validation failed for feature {i}: missing feature text")
                     return jsonify({'error': 'Feature text is required for all features'}), 400
+                print(f"✅ Feature {i} validation passed")
 
             # Handle features - update existing ones and create new ones
             existing_feature_ids = set()
-            for feature_data in data['features']:
+            for i, feature_data in enumerate(data['features']):
+                print(f"Processing feature {i}: {feature_data}")
                 if feature_data.get('id'):
                     # Update existing feature
                     existing_feature = ProductFeature.query.get(feature_data['id'])
@@ -619,22 +695,35 @@ def update_product(id):
                         existing_feature.feature = feature_data['feature']
                         existing_feature.display_order = int(feature_data.get('display_order', 0))
                         existing_feature_ids.add(existing_feature.id)
+                        print(f"✅ Updated existing feature {existing_feature.id}: {feature_data['feature']}")
                     else:
+                        print(f"❌ Invalid feature ID: {feature_data['id']}")
                         return jsonify({'error': f'Invalid feature ID: {feature_data["id"]}'}), 400
                 else:
                     # Create new feature
+                    print(f"🆕 Creating new feature: {feature_data['feature']}")
                     new_feature = ProductFeature(
                         product_id=id,
                         feature=feature_data['feature'],
                         display_order=int(feature_data.get('display_order', 0))
                     )
                     db.session.add(new_feature)
+                    print(f"✅ Created new feature: {feature_data['feature']}")
             
             # Delete features that are no longer in the list
-            ProductFeature.query.filter(
-                ProductFeature.product_id == id,
-                ~ProductFeature.id.in_(existing_feature_ids)
-            ).delete(synchronize_session=False)
+            # Only delete if there are existing features to check against
+            if existing_feature_ids:
+                ProductFeature.query.filter(
+                    ProductFeature.product_id == id,
+                    ~ProductFeature.id.in_(existing_feature_ids)
+                ).delete(synchronize_session=False)
+                print(f"🗑️ Deleted features not in list. Kept: {existing_feature_ids}")
+            else:
+                # If no existing features were updated, delete all old ones
+                # But only if we're not adding new ones
+                if not any(not feature_data.get('id') for feature_data in data['features']):
+                    deleted_count = ProductFeature.query.filter_by(product_id=id).delete()
+                    print(f"🗑️ Deleted {deleted_count} old features")
 
         print("Committing to database...")
         db.session.commit()

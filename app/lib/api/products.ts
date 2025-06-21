@@ -155,11 +155,20 @@ export const productsApi = {
   },
   
   getById: async (id: number) => {
+    console.log('🔄 API getById - Fetching product ID:', id);
+    
     const response = await fetch(`${API_BASE_URL}/products/${id}`);
     if (!response.ok) {
+      console.error('❌ API getById - Failed to fetch product:', response.status, response.statusText);
       throw new Error('Failed to fetch product');
     }
-    return response.json();
+    
+    const data = await response.json();
+    console.log('📦 API getById - Raw response data:', data);
+    console.log('📋 API getById - Specifications:', data.specifications);
+    console.log('📋 API getById - Features:', data.features);
+    
+    return data;
   },
 
   getByCategory: async (category: string): Promise<Product[]> => {
@@ -284,6 +293,9 @@ export const productsApi = {
 
   update: async (id: number, product: Partial<Product>): Promise<Product> => {
     try {
+      console.log('🔄 API Update - Starting update for product ID:', id);
+      console.log('📦 API Update - Raw product data:', product);
+      
       // Ensure all required fields are present
       const requiredFields = ['name', 'price', 'stock'];
       const missingFields = requiredFields.filter(field => {
@@ -331,15 +343,11 @@ export const productsApi = {
         })) || []
       };
 
-      console.log('Sending update request with data:', {
+      console.log('🚀 API Update - Sending transformed data:', {
         id,
-        product: {
-          ...transformedProduct,
-          images: transformedProduct.images?.map(img => ({
-            ...img,
-            image_url: img.image_url
-          }))
-        }
+        specifications: transformedProduct.specifications,
+        features: transformedProduct.features,
+        images: transformedProduct.images?.length
       });
 
       const response = await fetch(`${API_BASE_URL}/products/${id}`, {
@@ -352,7 +360,7 @@ export const productsApi = {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('Update failed:', {
+        console.error('❌ API Update - Update failed:', {
           status: response.status,
           statusText: response.statusText,
           error: errorData
@@ -361,7 +369,11 @@ export const productsApi = {
       }
 
       const data = await response.json();
-      console.log('Update response:', data);
+      console.log('✅ API Update - Update successful:', {
+        id: data.id,
+        specifications: data.specifications?.length,
+        features: data.features?.length
+      });
       
       // Transform the response data to include full URLs
       return {
@@ -372,7 +384,7 @@ export const productsApi = {
         }))
       };
     } catch (error) {
-      console.error('Error in update:', error);
+      console.error('❌ API Update - Error in update:', error);
       if (error instanceof Error) {
         throw new Error(`Failed to update product: ${error.message}`);
       }

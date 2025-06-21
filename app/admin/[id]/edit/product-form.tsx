@@ -55,6 +55,18 @@ interface Category {
   image_url?: string;
 }
 
+// New specification and feature types for input fields
+interface NewSpecification {
+  name: string;
+  value: string;
+  display_order: number;
+}
+
+interface NewFeature {
+  feature: string;
+  display_order: number;
+}
+
 export default function ProductForm({ productId }: ProductFormProps) {
   const router = useRouter();
   const [product, setProduct] = useState<ProductWithReviews | null>(null);
@@ -67,6 +79,18 @@ export default function ProductForm({ productId }: ProductFormProps) {
   const [dragActive, setDragActive] = useState(false);
   const [newImageUrl, setNewImageUrl] = useState('');
   const [newImagePrimary, setNewImagePrimary] = useState(false);
+
+  // New state variables for adding specifications and features
+  const [newSpecification, setNewSpecification] = useState<NewSpecification>({
+    name: '',
+    value: '',
+    display_order: 0
+  });
+
+  const [newFeature, setNewFeature] = useState<NewFeature>({
+    feature: '',
+    display_order: 0
+  });
 
   const initialProductState: ProductWithReviews = {
     id: 0,
@@ -96,7 +120,12 @@ export default function ProductForm({ productId }: ProductFormProps) {
     const fetchProduct = async () => {
       try {
         setLoading(true);
+        console.log('🔄 Fetching product data for ID:', productId);
+        
         const data = await productsApi.getById(productId);
+        console.log('📦 Raw product data from API:', data);
+        console.log('📋 Specifications count:', data?.specifications?.length || 0);
+        console.log('📋 Features count:', data?.features?.length || 0);
         
         // Ensure all fields have proper default values if they are null/undefined
         const sanitizedData = data ? {
@@ -123,9 +152,13 @@ export default function ProductForm({ productId }: ProductFormProps) {
           reviews: data.reviews || []
         } : initialProductState;
         
+        console.log('✅ Sanitized product data:', sanitizedData);
+        console.log('✅ Final specifications:', sanitizedData.specifications);
+        console.log('✅ Final features:', sanitizedData.features);
+        
         setProduct(sanitizedData);
       } catch (error) {
-        console.error('Error fetching product:', error);
+        console.error('❌ Error fetching product:', error);
         setError('Failed to fetch product');
         setProduct(initialProductState);
       } finally {
@@ -184,13 +217,30 @@ export default function ProductForm({ productId }: ProductFormProps) {
   };
 
   const handleImageChange = (index: number, field: string, value: string | boolean | number) => {
+    console.log(`🔄 handleImageChange - Index: ${index}, Field: ${field}, Value: ${value}`);
+    
     setProduct(prev => {
       const currentProduct = prev || initialProductState;
       const newImages = [...currentProduct.images];
-      newImages[index] = {
-        ...newImages[index],
-        [field]: value ?? (field === 'image_url' ? '' : value)
-      };
+      
+      // If setting an image as primary, ensure all other images are set to non-primary
+      if (field === 'is_primary' && value === true) {
+        console.log(`🎯 Setting image ${index} as primary, setting all others to non-primary`);
+        newImages.forEach((img, i) => {
+          img.is_primary = i === index;
+          console.log(`  Image ${i}: is_primary = ${img.is_primary}`);
+        });
+      } else {
+        // For other fields, just update the specific image
+        console.log(`📝 Updating image ${index} field '${field}' to '${value}'`);
+        newImages[index] = {
+          ...newImages[index],
+          [field]: value ?? (field === 'image_url' ? '' : value)
+        };
+      }
+      
+      console.log('✅ Updated images:', newImages.map((img, i) => ({ index: i, url: img.image_url, is_primary: img.is_primary })));
+      
       return {
         ...currentProduct,
         images: newImages
@@ -228,22 +278,50 @@ export default function ProductForm({ productId }: ProductFormProps) {
     });
   };
 
+  // New handlers for adding specifications and features
+  const handleNewSpecificationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewSpecification(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleNewFeatureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewFeature(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   const addImage = () => {
     if (!newImageUrl) return;
     
     console.log('➕ Adding image to product:', newImageUrl);
     
-    setProduct(prev => ({
-      ...(prev || initialProductState),
-      images: [
-        ...(prev?.images || []),
-        {
-          image_url: newImageUrl,
-          is_primary: newImagePrimary || (prev?.images || []).length === 0,
-          display_order: (prev?.images || []).length
-        }
-      ]
-    }));
+    setProduct(prev => {
+      const currentProduct = prev || initialProductState;
+      const existingImages = [...currentProduct.images];
+      
+      // If the new image should be primary, set all existing images to non-primary
+      if (newImagePrimary) {
+        existingImages.forEach(img => {
+          img.is_primary = false;
+        });
+      }
+      
+      const newImage = {
+        image_url: newImageUrl,
+        is_primary: newImagePrimary || existingImages.length === 0,
+        display_order: existingImages.length
+      };
+      
+      return {
+        ...currentProduct,
+        images: [...existingImages, newImage]
+      };
+    });
     setNewImageUrl('');
     setNewImagePrimary(false);
   };
@@ -252,11 +330,21 @@ export default function ProductForm({ productId }: ProductFormProps) {
     setProduct(prev => {
       if (!prev) return initialProductState;
       const newImages = [...prev.images];
+      const removedImage = newImages[index];
+      
+      // Remove the image
       newImages.splice(index, 1);
+      
       // Update display_order for remaining images
       newImages.forEach((img, idx) => {
         img.display_order = idx;
       });
+      
+      // If the removed image was primary and there are remaining images, set the first one as primary
+      if (removedImage.is_primary && newImages.length > 0) {
+        newImages[0].is_primary = true;
+      }
+      
       return {
         ...prev,
         images: newImages
@@ -265,20 +353,36 @@ export default function ProductForm({ productId }: ProductFormProps) {
   };
 
   const addSpecification = () => {
-    setProduct(prev => ({
-      ...(prev || initialProductState),
-      specifications: [
-        ...(prev?.specifications || []),
-        {
-          name: '',
-          value: '',
-          display_order: (prev?.specifications || []).length
-        }
-      ]
-    }));
+    if (!newSpecification.name || !newSpecification.value) return;
+    
+    console.log('➕ Adding specification:', newSpecification);
+    
+    setProduct(prev => {
+      const newSpec = {
+        name: newSpecification.name,
+        value: newSpecification.value,
+        display_order: (prev?.specifications || []).length
+      };
+      
+      const updatedProduct = {
+        ...(prev || initialProductState),
+        specifications: [
+          ...(prev?.specifications || []),
+          newSpec
+        ]
+      };
+      
+      console.log('✅ Updated product specifications:', updatedProduct.specifications);
+      return updatedProduct;
+    });
+    
+    // Reset the input fields
+    setNewSpecification({ name: '', value: '', display_order: 0 });
   };
 
   const removeSpecification = (index: number) => {
+    console.log('🗑️ Removing specification at index:', index);
+    
     setProduct(prev => {
       if (!prev) return initialProductState;
       const newSpecifications = [...prev.specifications];
@@ -295,19 +399,35 @@ export default function ProductForm({ productId }: ProductFormProps) {
   };
 
   const addFeature = () => {
-    setProduct(prev => ({
-      ...(prev || initialProductState),
-      features: [
-        ...(prev?.features || []),
-        {
-          feature: '',
-          display_order: (prev?.features || []).length
-        }
-      ]
-    }));
+    if (!newFeature.feature) return;
+    
+    console.log('➕ Adding feature:', newFeature);
+    
+    setProduct(prev => {
+      const newFeat = {
+        feature: newFeature.feature,
+        display_order: (prev?.features || []).length
+      };
+      
+      const updatedProduct = {
+        ...(prev || initialProductState),
+        features: [
+          ...(prev?.features || []),
+          newFeat
+        ]
+      };
+      
+      console.log('✅ Updated product features:', updatedProduct.features);
+      return updatedProduct;
+    });
+    
+    // Reset the input field
+    setNewFeature({ feature: '', display_order: 0 });
   };
 
   const removeFeature = (index: number) => {
+    console.log('🗑️ Removing feature at index:', index);
+    
     setProduct(prev => {
       if (!prev) return initialProductState;
       const newFeatures = [...prev.features];
@@ -329,6 +449,9 @@ export default function ProductForm({ productId }: ProductFormProps) {
     try {
       setSaving(true);
       
+      console.log('🔄 Starting product update...');
+      console.log('📦 Original product data:', product);
+      
       // Filter out empty specifications
       const validSpecifications = product.specifications.filter(
         spec => spec.name.trim() !== '' && spec.value.trim() !== ''
@@ -343,6 +466,10 @@ export default function ProductForm({ productId }: ProductFormProps) {
       const validImages = product.images.filter(
         image => image.image_url.trim() !== ''
       );
+
+      console.log('✅ Valid specifications:', validSpecifications);
+      console.log('✅ Valid features:', validFeatures);
+      console.log('✅ Valid images:', validImages);
 
       // Create product data, excluding invalid brand/category IDs
       const productToUpdate: any = {
@@ -366,11 +493,19 @@ export default function ProductForm({ productId }: ProductFormProps) {
         delete productToUpdate.category_id;
       }
 
+      console.log('🚀 Sending update request with data:', {
+        id: product.id,
+        specifications: productToUpdate.specifications,
+        features: productToUpdate.features,
+        images: productToUpdate.images
+      });
+
       const updatedProduct = await productsApi.update(product.id, productToUpdate);
+      console.log('✅ Product updated successfully:', updatedProduct);
       toast.success('Product updated successfully');
-      router.push('/crud');
+      router.push('/admin');
     } catch (error) {
-      console.error('Error updating product:', error);
+      console.error('❌ Error updating product:', error);
       toast.error('Failed to update product');
     } finally {
       setSaving(false);
@@ -446,7 +581,9 @@ export default function ProductForm({ productId }: ProductFormProps) {
     return <div>Error: {error}</div>;
   }
 
-  const currentProduct = product || initialProductState;
+  if (!product) {
+    return <div>Product not found</div>;
+  }
 
   return (
     <div className="container mx-auto p-6">
@@ -461,7 +598,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
             <Input
               id="name"
               name="name"
-              value={currentProduct.name || ''}
+              value={product.name || ''}
               onChange={handleInputChange}
               placeholder="Product name"
             />
@@ -472,7 +609,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
             <Input
               id="sku"
               name="sku"
-              value={currentProduct.sku || ''}
+              value={product.sku || ''}
               onChange={handleInputChange}
               placeholder="Product SKU"
             />
@@ -484,7 +621,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
               id="price"
               name="price"
               type="number"
-              value={currentProduct.price || 0}
+              value={product.price || 0}
               onChange={handleNumberInputChange}
               placeholder="Product price"
             />
@@ -496,7 +633,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
               id="original_price"
               name="original_price"
               type="number"
-              value={currentProduct.original_price || 0}
+              value={product.original_price || 0}
               onChange={handleNumberInputChange}
               placeholder="Original price"
             />
@@ -508,7 +645,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
               id="stock"
               name="stock"
               type="number"
-              value={currentProduct.stock || 0}
+              value={product.stock || 0}
               onChange={handleNumberInputChange}
               placeholder="Stock quantity"
             />
@@ -517,7 +654,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
           <div>
             <Label htmlFor="brand">Brand</Label>
             <Select
-              value={currentProduct.brand_id && currentProduct.brand_id > 0 ? currentProduct.brand_id.toString() : 'none'}
+              value={product.brand_id && product.brand_id > 0 ? product.brand_id.toString() : 'none'}
               onValueChange={(value) => {
                 setProduct(prev => ({
                   ...(prev || initialProductState),
@@ -542,7 +679,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
           <div>
             <Label htmlFor="category">Category</Label>
             <Select
-              value={currentProduct.category_id && currentProduct.category_id > 0 ? currentProduct.category_id.toString() : 'none'}
+              value={product.category_id && product.category_id > 0 ? product.category_id.toString() : 'none'}
               onValueChange={(value) => {
                 setProduct(prev => ({
                   ...(prev || initialProductState),
@@ -570,7 +707,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
           <Textarea
             id="description"
             name="description"
-            value={currentProduct.description || ''}
+            value={product.description || ''}
             onChange={handleInputChange}
             placeholder="Product description"
             rows={4}
@@ -581,7 +718,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
           <div className="flex items-center space-x-2">
             <Switch
               id="is_new"
-              checked={currentProduct.is_new || false}
+              checked={product.is_new || false}
               onCheckedChange={handleSwitchChange('is_new')}
             />
             <Label htmlFor="is_new">New Product</Label>
@@ -590,7 +727,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
           <div className="flex items-center space-x-2">
             <Switch
               id="is_sale"
-              checked={currentProduct.is_sale || false}
+              checked={product.is_sale || false}
               onCheckedChange={handleSwitchChange('is_sale')}
             />
             <Label htmlFor="is_sale">On Sale</Label>
@@ -599,7 +736,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
           <div className="flex items-center space-x-2">
             <Switch
               id="is_featured"
-              checked={currentProduct.is_featured || false}
+              checked={product.is_featured || false}
               onCheckedChange={handleSwitchChange('is_featured')}
             />
             <Label htmlFor="is_featured">Featured</Label>
@@ -728,7 +865,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Existing Images</h3>
               <div className="space-y-4">
-                {currentProduct.images.map((image, index) => (
+                {product.images.map((image, index) => (
                   <div key={index} className="border rounded-lg p-4 space-y-3">
                     {/* Image Preview */}
                     {image.image_url && (
@@ -779,59 +916,163 @@ export default function ProductForm({ productId }: ProductFormProps) {
           </div>
         </div>
 
+        {/* Specifications Section */}
         <div>
           <h2 className="text-xl font-semibold mb-4">Specifications</h2>
-          <div className="space-y-4">
-            {currentProduct.specifications.map((spec, index) => (
-              <div key={index} className="flex items-center space-x-4">
-                <Input
-                  value={spec.name || ''}
-                  onChange={(e) => handleSpecificationChange(index, 'name', e.target.value)}
-                  placeholder="Specification name"
-                />
-                <Input
-                  value={spec.value || ''}
-                  onChange={(e) => handleSpecificationChange(index, 'value', e.target.value)}
-                  placeholder="Specification value"
-                />
-                <Button
-                  variant="destructive"
-                  onClick={() => removeSpecification(index)}
-                >
-                  Remove
-                </Button>
+          <div className="space-y-6">
+            {/* Add New Specification */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Add New Specification</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Name</Label>
+                  <Input
+                    name="name"
+                    value={newSpecification.name}
+                    onChange={handleNewSpecificationChange}
+                    placeholder="e.g., Material, Size, Weight"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Value</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      name="value"
+                      value={newSpecification.value}
+                      onChange={handleNewSpecificationChange}
+                      placeholder="e.g., Stainless Steel, 10 inches, 2.5 lbs"
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={addSpecification}
+                      disabled={!newSpecification.name || !newSpecification.value}
+                      className="whitespace-nowrap"
+                    >
+                      Add
+                    </Button>
+                  </div>
+                </div>
               </div>
-            ))}
-            <Button onClick={addSpecification}>Add Specification</Button>
+            </div>
+
+            {/* Existing Specifications */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Existing Specifications</h3>
+              {product.specifications.length > 0 ? (
+                <div className="space-y-3">
+                  {product.specifications.map((spec, index) => (
+                    <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                      <Input
+                        value={spec.name || ''}
+                        onChange={(e) => handleSpecificationChange(index, 'name', e.target.value)}
+                        placeholder="Specification name"
+                        className="flex-1"
+                      />
+                      <Input
+                        value={spec.value || ''}
+                        onChange={(e) => handleSpecificationChange(index, 'value', e.target.value)}
+                        placeholder="Specification value"
+                        className="flex-1"
+                      />
+                      <Button
+                        variant="destructive"
+                        onClick={() => removeSpecification(index)}
+                        size="sm"
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                  <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <p className="text-sm text-gray-600 mb-2">No specifications added yet</p>
+                  <p className="text-xs text-gray-500">Add specifications above to get started</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
+        {/* Features Section */}
         <div>
           <h2 className="text-xl font-semibold mb-4">Features</h2>
-          <div className="space-y-4">
-            {currentProduct.features.map((feature, index) => (
-              <div key={index} className="flex items-center space-x-4">
-                <Input
-                  value={feature.feature || ''}
-                  onChange={(e) => handleFeatureChange(index, 'feature', e.target.value)}
-                  placeholder="Feature"
-                />
-                <Button
-                  variant="destructive"
-                  onClick={() => removeFeature(index)}
-                >
-                  Remove
-                </Button>
+          <div className="space-y-6">
+            {/* Add New Feature */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Add New Feature</h3>
+              <div className="flex gap-4">
+                <div className="flex-1 space-y-2">
+                  <Label>Feature</Label>
+                  <Input
+                    name="feature"
+                    value={newFeature.feature}
+                    onChange={handleNewFeatureChange}
+                    placeholder="e.g., Dishwasher safe, Non-stick coating, Heat resistant"
+                    className="w-full"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    onClick={addFeature}
+                    disabled={!newFeature.feature}
+                    className="whitespace-nowrap"
+                  >
+                    Add Feature
+                  </Button>
+                </div>
               </div>
-            ))}
-            <Button onClick={addFeature}>Add Feature</Button>
+            </div>
+
+            {/* Existing Features */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Existing Features</h3>
+              {product.features.length > 0 ? (
+                <div className="space-y-3">
+                  {product.features.map((feature, index) => (
+                    <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center flex-1">
+                        <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <Input
+                          value={feature.feature || ''}
+                          onChange={(e) => handleFeatureChange(index, 'feature', e.target.value)}
+                          placeholder="Feature description"
+                          className="flex-1"
+                        />
+                      </div>
+                      <Button
+                        variant="destructive"
+                        onClick={() => removeFeature(index)}
+                        size="sm"
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                  <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-sm text-gray-600 mb-2">No features added yet</p>
+                  <p className="text-xs text-gray-500">Add features above to get started</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         <div className="flex justify-end space-x-4">
           <Button
             variant="outline"
-            onClick={() => router.push('/crud')}
+            onClick={() => router.push('/admin')}
           >
             Cancel
           </Button>

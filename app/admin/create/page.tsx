@@ -484,7 +484,7 @@ export default function CreateProductPage() {
       await productsApi.create(productData);
       console.log('Product created successfully');
       toast.success('Product created successfully');
-      router.push('/crud');
+      router.push('/admin');
     } catch (error) {
       console.error('Error creating product:', error);
       toast.error('Failed to create product');
@@ -501,7 +501,7 @@ export default function CreateProductPage() {
               <p className="mt-2 text-gray-600">Add a new product to your catalog</p>
             </div>
             <button
-              onClick={() => router.push('/crud')}
+              onClick={() => router.push('/admin')}
               className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
             >
               Cancel
@@ -1124,7 +1124,7 @@ export default function CreateProductPage() {
             <div className="flex justify-end gap-4 pt-8 mt-8 border-t">
               <button
                 type="button"
-                onClick={() => router.push('/crud')}
+                onClick={() => router.push('/admin')}
                 className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
               >
                 Cancel

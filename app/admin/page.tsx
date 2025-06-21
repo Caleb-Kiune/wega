@@ -50,7 +50,7 @@ interface Brand {
   name: string;
 }
 
-export default function CrudPage() {
+export default function AdminPage() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,7 +112,7 @@ export default function CrudPage() {
   }, [products]);
 
   const handleEdit = (product: Product) => {
-    router.push(`/crud/${product.id}/edit`);
+    router.push(`/admin/${product.id}/edit`);
   };
 
   const handleDelete = (product: Product) => {
@@ -247,16 +247,16 @@ export default function CrudPage() {
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <Button
-              onClick={() => router.push('/crud/orders')}
+              onClick={() => router.push('/admin/orders')}
               variant="outline"
-              className="w-full sm:w-auto"
+              className="flex items-center gap-2"
             >
-              <Package className="w-4 h-4 mr-2" />
+              <Package className="h-4 w-4" />
               Manage Orders
             </Button>
             <Button
-              onClick={() => router.push('/crud/create')}
-              className="w-full sm:w-auto"
+              onClick={() => router.push('/admin/create')}
+              className="flex items-center gap-2"
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Product

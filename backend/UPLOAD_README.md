@@ -4,7 +4,7 @@ This document describes the image upload functionality implemented in the Flask 
 
 ## Overview
 
-The backend now supports direct image uploads via the browser, allowing administrators to upload product images directly from the admin/crud dashboard.
+The backend now supports direct image uploads via the browser, allowing administrators to upload product images directly from the admin dashboard.
 
 ## Features
 
@@ -76,7 +76,7 @@ Serves uploaded files from the uploads directory.
 
 The frontend (Next.js) has been updated to use the Flask backend for uploads:
 
-### Create Product Page (`app/crud/create/page.tsx`)
+### Create Product Page (`app/admin/create/page.tsx`)
 ```javascript
 const response = await fetch('http://localhost:5000/api/upload', {
   method: 'POST',
@@ -84,7 +84,7 @@ const response = await fetch('http://localhost:5000/api/upload', {
 });
 ```
 
-### Edit Product Page (`app/crud/[id]/edit/product-form.tsx`)
+### Edit Product Page (`app/admin/[id]/edit/product-form.tsx`)
 ```javascript
 const response = await fetch('http://localhost:5000/api/upload', {
   method: 'POST',

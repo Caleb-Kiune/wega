@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { OrdersPage } from '../crud/orders/page';
-import { OrderDetailsPage } from '../crud/orders/[id]/page';
+import { OrdersPage } from '../admin/orders/page';
+import { OrderDetailsPage } from '../admin/orders/[id]/page';
 import { ordersApi } from '../lib/api/orders';
 
 // Mock the ordersApi

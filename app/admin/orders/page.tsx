@@ -238,7 +238,7 @@ export default function OrdersPage() {
               Export Orders
             </Button>
             <Button
-              onClick={() => router.push('/crud')}
+              onClick={() => router.push('/admin')}
               className="w-full sm:w-auto"
             >
               <Package className="w-4 h-4 mr-2" />
@@ -467,7 +467,7 @@ export default function OrdersPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => router.push(`/crud/orders/${order.id}`)}
+                        onClick={() => router.push(`/admin/orders/${order.id}`)}
                       >
                         <Eye className="h-4 w-4 mr-2" />
                         View Details

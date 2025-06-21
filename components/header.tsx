@@ -201,7 +201,7 @@ export default function Header() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link
-                    href="/crud"
+                    href="/admin"
                     className="text-gray-600 hover:text-green-600 p-2 rounded-full hover:bg-gray-100"
                   >
                     <User className="h-5 w-5" />
@@ -354,7 +354,7 @@ export default function Header() {
                       </Link>
                     ))}
                     <Link
-                      href="/crud"
+                      href="/admin"
                       className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-green-600"
                     >
                       Admin Dashboard
