@@ -92,11 +92,10 @@ class Product(db.Model):
         # Handle both old and new image URL formats
         if primary_image:
             if primary_image.startswith('http'):
-                # New format: full URL from upload
                 pass
+            elif primary_image.startswith('/static/'):
+                primary_image = f'http://localhost:5000{primary_image}'
             else:
-                # Old format: relative path, construct full URL
-                # All uploaded files go to /static/uploads/
                 primary_image = f'http://localhost:5000/static/uploads/{primary_image}'
         
         return {
@@ -138,9 +137,10 @@ class ProductImage(db.Model):
         # Handle both old and new image URL formats
         image_url = self.image_url
         if image_url and not image_url.startswith('http'):
-            # Old format: relative path, construct full URL
-            # All uploaded files go to /static/uploads/
-            image_url = f'http://localhost:5000/static/uploads/{image_url}'
+            if image_url.startswith('/static/'):
+                image_url = f'http://localhost:5000{image_url}'
+            else:
+                image_url = f'http://localhost:5000/static/uploads/{image_url}'
         
         return {
             'id': self.id,
