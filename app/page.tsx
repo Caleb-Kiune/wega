@@ -2,9 +2,9 @@ import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import FeaturedProducts from "@/components/featured-products"
 import TestimonialSection from "@/components/testimonial-section"
-import BrandFeatures from "@/components/brand-features"
 import ProductCarousel from "@/components/product-carousel"
 import HeroSection from "@/components/hero-section"
+import TrustSignals from "@/components/trust-signals"
 
 export default function Home() {
   return (
@@ -12,8 +12,8 @@ export default function Home() {
       {/* Hero Section */}
       <HeroSection />
 
-      {/* Brand Features */}
-      <BrandFeatures />
+      {/* Trust Signals & Payment Methods */}
+      <TrustSignals />
 
       {/* Featured Products */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">

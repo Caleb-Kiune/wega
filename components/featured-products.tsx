@@ -16,6 +16,7 @@ export default function FeaturedProducts() {
   const carouselRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(true)
+  const [currentSlide, setCurrentSlide] = useState(0)
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -48,7 +49,7 @@ export default function FeaturedProducts() {
       // Log the full response
       console.log('API Response:', {
         total: response.total,
-        products: response.products.map(p => ({
+        products: response.products.map((p: Product) => ({
           id: p.id,
           name: p.name,
           is_featured: p.is_featured
@@ -56,9 +57,9 @@ export default function FeaturedProducts() {
       })
       
       // Validate that all products are featured
-      const nonFeaturedProducts = response.products.filter(product => !product.is_featured)
+      const nonFeaturedProducts = response.products.filter((product: Product) => !product.is_featured)
       if (nonFeaturedProducts.length > 0) {
-        console.error('Non-featured products found:', nonFeaturedProducts.map(p => ({
+        console.error('Non-featured products found:', nonFeaturedProducts.map((p: Product) => ({
           id: p.id,
           name: p.name,
           is_featured: p.is_featured
@@ -85,6 +86,11 @@ export default function FeaturedProducts() {
       const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current
       setCanScrollLeft(scrollLeft > 0)
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10) // 10px buffer
+      
+      // Calculate current slide based on scroll position
+      const slideWidth = 280 + 24 // card width + gap
+      const newCurrentSlide = Math.round(scrollLeft / slideWidth)
+      setCurrentSlide(newCurrentSlide)
     }
   }
 
@@ -106,9 +112,27 @@ export default function FeaturedProducts() {
     }
   }
 
+  const goToSlide = (slideIndex: number) => {
+    if (carouselRef.current) {
+      const slideWidth = 280 + 24 // card width + gap
+      const scrollPosition = slideIndex * slideWidth
+      carouselRef.current.scrollTo({ left: scrollPosition, behavior: "smooth" })
+    }
+  }
+
+  // Calculate total slides based on visible cards
+  const getTotalSlides = () => {
+    if (carouselRef.current) {
+      const { clientWidth } = carouselRef.current
+      const cardWidth = 280 + 24 // card width + gap
+      return Math.ceil(products.length / Math.floor(clientWidth / cardWidth))
+    }
+    return Math.ceil(products.length / 3) // fallback
+  }
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex justify-center items-center h-64" role="status" aria-label="Loading featured products">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
       </div>
     )
@@ -116,12 +140,13 @@ export default function FeaturedProducts() {
 
   if (error) {
     return (
-      <div className="text-center py-8">
+      <div className="text-center py-8" role="alert" aria-live="polite">
         <p className="text-red-500 mb-4">{error}</p>
         <div className="space-y-2">
           <button 
             onClick={fetchProducts} 
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 min-h-[44px] min-w-[44px]"
+            aria-label="Retry loading featured products"
           >
             Retry
           </button>
@@ -137,19 +162,22 @@ export default function FeaturedProducts() {
 
   if (!products || products.length === 0) {
     return (
-      <div className="text-center py-8">
+      <div className="text-center py-8" role="status">
         <p className="text-gray-500">No featured products available</p>
       </div>
     )
   }
 
+  const totalSlides = getTotalSlides()
+
   return (
-    <div className="relative">
+    <div className="relative" role="region" aria-label="Featured products carousel">
       {/* Scroll Buttons */}
       {canScrollLeft && (
         <button
           onClick={() => scroll("left")}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 focus:outline-none"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 focus:outline-none transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px]"
+          aria-label="Scroll featured products left"
         >
           <ChevronLeft className="h-6 w-6" />
         </button>
@@ -157,23 +185,66 @@ export default function FeaturedProducts() {
       {canScrollRight && (
         <button
           onClick={() => scroll("right")}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 focus:outline-none"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 focus:outline-none transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px]"
+          aria-label="Scroll featured products right"
         >
           <ChevronRight className="h-6 w-6" />
         </button>
       )}
 
-      {/* Product Carousel */}
+      {/* Desktop Carousel */}
       <div
         ref={carouselRef}
-        className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+        className="hidden md:flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4 will-change-transform"
+        style={{
+          scrollSnapType: 'x mandatory',
+          WebkitOverflowScrolling: 'touch',
+          scrollBehavior: 'smooth',
+          overscrollBehavior: 'contain'
+        }}
       >
         {products.map((product) => (
-          <div key={product.id} className="flex-none w-[280px]">
+          <div 
+            key={product.id} 
+            className="flex-none w-[280px]"
+            style={{ 
+              scrollSnapAlign: 'start',
+              scrollSnapStop: 'always'
+            }}
+          >
             <ProductCard product={product} />
           </div>
         ))}
       </div>
+
+      {/* Mobile Stackable Grid */}
+      <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {products.slice(0, 4).map((product) => (
+          <div key={product.id}>
+            <ProductCard product={product} />
+          </div>
+        ))}
+      </div>
+
+      {/* Dot Indicators - Only show on desktop */}
+      {totalSlides > 1 && (
+        <div className="hidden md:flex justify-center mt-6 space-x-2">
+          {Array.from({ length: totalSlides }, (_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`w-3 h-3 rounded-full transition-all duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center ${
+                index === currentSlide 
+                  ? 'bg-green-600 scale-110' 
+                  : 'bg-gray-300 hover:bg-gray-400'
+              }`}
+              aria-label={`Go to slide ${index + 1} of ${totalSlides}`}
+              aria-current={index === currentSlide ? "true" : "false"}
+              style={{ willChange: 'transform, background-color' }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

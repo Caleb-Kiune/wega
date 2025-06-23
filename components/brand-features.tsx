@@ -1,3 +1,5 @@
+"use client"
+
 import { Truck, ShieldCheck, CreditCard, RefreshCw } from "lucide-react"
 
 export default function BrandFeatures() {
@@ -25,12 +27,27 @@ export default function BrandFeatures() {
   ]
 
   return (
-    <section className="py-8 bg-white border-y">
+    <section className="py-8 bg-white border-y" aria-labelledby="brand-features-heading">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+        <h2 id="brand-features-heading" className="sr-only">Brand Features</h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-8">
           {features.map((feature, index) => (
-            <div key={index} className="flex flex-col items-center text-center">
-              <div className="mb-3">{feature.icon}</div>
+            <div 
+              key={index} 
+              className="feature-card flex flex-col items-center text-center p-4 rounded-lg transition-transform duration-300 hover:scale-105 hover:shadow-lg cursor-pointer min-h-[44px] min-w-[44px]"
+              role="button"
+              tabIndex={0}
+              aria-label={`${feature.title}: ${feature.description}`}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  // Add any click functionality here if needed
+                }
+              }}
+            >
+              <div className="mb-3 flex items-center justify-center w-12 h-12" aria-hidden="true">
+                {feature.icon}
+              </div>
               <h3 className="font-semibold text-gray-800 mb-1">{feature.title}</h3>
               <p className="text-sm text-gray-600">{feature.description}</p>
             </div>
