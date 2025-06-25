@@ -4,6 +4,15 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { productsApi, Product, ProductImage, ProductSpecification, ProductFeature, Review } from '../../lib/api/products';
 import apiClient from '../../lib/api/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 
 type NewProductImage = Omit<ProductImage, 'id' | 'product_id'>;
@@ -74,6 +83,7 @@ export default function CreateProductPage() {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [newProduct, setNewProduct] = useState<CreateProductData>({
     name: '',
@@ -366,6 +376,8 @@ export default function CreateProductPage() {
     console.log('Form data:', newProduct);
     
     try {
+      setSaving(true);
+      
       // Validate required fields
       if (!newProduct.name) {
         console.log('Validation failed: Product name is required');
@@ -488,381 +500,256 @@ export default function CreateProductPage() {
     } catch (error) {
       console.error('Error creating product:', error);
       toast.error('Failed to create product');
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
+    <div className="container mx-auto p-6 max-w-6xl">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900">Create New Product</h1>
-              <p className="mt-2 text-gray-600">Add a new product to your catalog</p>
+            <h1 className="text-3xl font-bold tracking-tight">Create New Product</h1>
+            <p className="text-muted-foreground mt-2">
+              Add a new product to your catalog with images, specifications, and features
+            </p>
             </div>
-            <button
-              onClick={() => router.push('/admin')}
-              className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
-            >
-              Cancel
-            </button>
+          <div className="flex items-center gap-2">
+            {newProduct.is_new && <Badge variant="default">New</Badge>}
+            {newProduct.is_sale && <Badge variant="destructive">Sale</Badge>}
+            {newProduct.is_featured && <Badge variant="secondary">Featured</Badge>}
           </div>
-
-          {error && (
-            <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4 rounded-md shadow-sm" role="alert">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
                 </div>
-                <div className="ml-3">
-                  <p className="text-sm text-red-700">Error: {error}</p>
                 </div>
-              </div>
-            </div>
-          )}
 
-          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-8">
-            {/* Basic Information Section */}
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Basic Information</h2>
-              <div className="grid grid-cols-2 gap-8">
-                {/* Left Column */}
-                <div className="space-y-6">
+      {error && (
+        <Card className="mb-6 border-destructive">
+          <CardHeader>
+            <CardTitle className="text-destructive">Error</CardTitle>
+            <CardDescription>Failed to load required data</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">{error}</p>
+            <Button onClick={() => router.push('/admin')} variant="outline" className="w-full">
+              Back to Admin
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Basic Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Basic Information</CardTitle>
+            <CardDescription>
+              Essential product details like name, SKU, pricing, and categorization
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Name</label>
-                    <input
-                      type="text"
+                <Label htmlFor="name">Product Name</Label>
+                <Input
+                  id="name"
                       name="name"
                       value={newProduct.name}
                       onChange={handleInputChange}
+                  placeholder="Enter product name"
+                  className="h-11"
                       required
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Description</label>
-                    <textarea
-                      name="description"
-                      value={newProduct.description}
+                <Label htmlFor="sku">SKU</Label>
+                <Input
+                  id="sku"
+                  name="sku"
+                  value={newProduct.sku}
                       onChange={handleInputChange}
-                      rows={3}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white resize-none"
+                  placeholder="Product SKU"
+                  className="h-11"
+                  required
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Brand</label>
-                      {isCreatingNewBrand ? (
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">Brand Name</label>
-                            <input
-                              type="text"
-                              name="name"
-                              value={newBrandName}
-                              onChange={handleNewBrandChange}
-                              placeholder="Enter brand name"
-                              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
+                <Label htmlFor="price">Price</Label>
+                <Input
+                  id="price"
+                  name="price"
+                  type="number"
+                  value={newProduct.price || ''}
+                  onChange={handleInputChange}
+                  placeholder="0.00"
+                  className="h-11"
+                  required
                             />
                           </div>
+
                           <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">Slug</label>
-                            <input
-                              type="text"
-                              name="slug"
-                              value={newBrandName}
-                              onChange={handleNewBrandChange}
-                              placeholder="brand-slug"
-                              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
+                <Label htmlFor="original_price">Original Price</Label>
+                <Input
+                  id="original_price"
+                  name="original_price"
+                  type="number"
+                  value={newProduct.original_price || ''}
+                  onChange={handleInputChange}
+                  placeholder="0.00"
+                  className="h-11"
                             />
                           </div>
+
                           <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">Description</label>
-                            <textarea
-                              name="description"
-                              value={newBrandName}
-                              onChange={handleNewBrandChange}
-                              placeholder="Enter brand description"
-                              rows={3}
-                              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white resize-none"
+                <Label htmlFor="stock">Stock Quantity</Label>
+                <Input
+                  id="stock"
+                  name="stock"
+                  type="number"
+                  value={newProduct.stock || ''}
+                  onChange={handleInputChange}
+                  placeholder="0"
+                  className="h-11"
+                  required
                             />
                           </div>
+
                           <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">Logo URL</label>
-                            <input
-                              type="text"
-                              name="logo_url"
-                              value={newBrandName}
-                              onChange={handleNewBrandChange}
-                              placeholder="Enter logo URL"
-                              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                            />
-                          </div>
-                          <div className="flex gap-4">
-                            <button
-                              type="button"
-                              onClick={handleCreateBrand}
-                              className="px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
-                            >
-                              Create Brand
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsCreatingNewBrand(false);
-                                setNewBrandName('');
-                              }}
-                              className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <select
-                          value={newProduct.brand_id?.toString() || ''}
-                          onChange={handleBrandChange}
-                          className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                        >
-                          <option value="">Select a brand</option>
-                          {brands.map(brand => (
-                            <option key={brand.id} value={brand.id}>
+                <Label htmlFor="brand">Brand</Label>
+                <Select
+                  value={selectedBrand?.toString() || ''}
+                  onValueChange={(value) => {
+                    const brand = brands.find(b => b.id.toString() === value);
+                    setSelectedBrand(brand ? brand.id : null);
+                    setNewProduct(prev => ({ ...prev, brand_id: brand ? brand.id : undefined }));
+                  }}
+                >
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Select a brand" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {brands.map((brand) => (
+                      <SelectItem key={brand.id} value={brand.id.toString()}>
                               {brand.name}
-                            </option>
+                      </SelectItem>
                           ))}
-                          <option value="new">+ Create New Brand</option>
-                        </select>
-                      )}
+                  </SelectContent>
+                </Select>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Category</label>
-                      {isCreatingNewCategory ? (
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">Category Name</label>
-                            <input
-                              type="text"
-                              name="name"
-                              value={newCategoryName}
-                              onChange={handleNewCategoryChange}
-                              placeholder="Enter category name"
-                              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">Slug</label>
-                            <input
-                              type="text"
-                              name="slug"
-                              value={newCategoryName}
-                              onChange={handleNewCategoryChange}
-                              placeholder="category-slug"
-                              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">Description</label>
-                            <textarea
-                              name="description"
-                              value={newCategoryName}
-                              onChange={handleNewCategoryChange}
-                              placeholder="Enter category description"
-                              rows={3}
-                              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white resize-none"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">Image URL</label>
-                            <input
-                              type="text"
-                              name="image_url"
-                              value={newCategoryName}
-                              onChange={handleNewCategoryChange}
-                              placeholder="Enter image URL"
-                              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                            />
-                          </div>
-                          <div className="flex gap-4">
-                            <button
-                              type="button"
-                              onClick={handleCreateCategory}
-                              className="px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
-                            >
-                              Create Category
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsCreatingNewCategory(false);
-                                setNewCategoryName('');
-                              }}
-                              className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <select
-                          value={newProduct.category_id?.toString() || ''}
-                          onChange={handleCategoryChange}
-                          className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                        >
-                          <option value="">Select a category</option>
-                          {categories.map(category => (
-                            <option key={category.id} value={category.id}>
+                <Label htmlFor="category">Category</Label>
+                <Select
+                  value={selectedCategory?.toString() || ''}
+                  onValueChange={(value) => {
+                    const category = categories.find(c => c.id.toString() === value);
+                    setSelectedCategory(category ? category.id : null);
+                    setNewProduct(prev => ({ ...prev, category_id: category ? category.id : undefined }));
+                  }}
+                >
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id.toString()}>
                               {category.name}
-                            </option>
+                      </SelectItem>
                           ))}
-                          <option value="new">+ Create New Category</option>
-                        </select>
-                      )}
+                  </SelectContent>
+                </Select>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Price</label>
-                      <input
-                        type="number"
-                        name="price"
-                        value={newProduct.price}
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                value={newProduct.description}
                         onChange={handleInputChange}
-                        step="0.01"
+                placeholder="Enter detailed product description..."
+                rows={4}
+                className="resize-none"
                         required
-                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
                       />
                     </div>
+          </CardContent>
+        </Card>
 
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Original Price</label>
-                      <input
-                        type="number"
-                        name="original_price"
-                        value={newProduct.original_price || ''}
-                        onChange={handleInputChange}
-                        step="0.01"
-                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                      />
-                    </div>
+        {/* Product Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Product Status</CardTitle>
+            <CardDescription>
+              Configure product visibility and promotional settings
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex items-center space-x-3 p-4 border rounded-lg">
+                <Switch
+                  id="is_new"
+                  checked={newProduct.is_new}
+                  onCheckedChange={(checked) => setNewProduct(prev => ({ ...prev, is_new: checked }))}
+                />
+                <div className="space-y-1">
+                  <Label htmlFor="is_new" className="text-sm font-medium">New Product</Label>
+                  <p className="text-xs text-muted-foreground">Mark as newly added</p>
                   </div>
                 </div>
 
-                {/* Right Column */}
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">SKU</label>
-                      <input
-                        type="text"
-                        name="sku"
-                        value={newProduct.sku}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Stock</label>
-                      <input
-                        type="number"
-                        name="stock"
-                        value={newProduct.stock}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                      />
+              <div className="flex items-center space-x-3 p-4 border rounded-lg">
+                <Switch
+                  id="is_sale"
+                  checked={newProduct.is_sale}
+                  onCheckedChange={(checked) => setNewProduct(prev => ({ ...prev, is_sale: checked }))}
+                />
+                <div className="space-y-1">
+                  <Label htmlFor="is_sale" className="text-sm font-medium">On Sale</Label>
+                  <p className="text-xs text-muted-foreground">Display sale badge</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Rating</label>
-                      <input
-                        type="number"
-                        name="rating"
-                        value={newProduct.rating}
-                        onChange={handleInputChange}
-                        min="0"
-                        max="5"
-                        step="0.1"
-                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Review Count</label>
-                      <input
-                        type="number"
-                        name="review_count"
-                        value={newProduct.review_count}
-                        onChange={handleInputChange}
-                        min="0"
-                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-6 pt-4">
-                    <label className="flex items-center space-x-3 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        name="is_new"
-                        checked={newProduct.is_new}
-                        onChange={handleInputChange}
-                        className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
-                      />
-                      <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">New Product</span>
-                    </label>
-
-                    <label className="flex items-center space-x-3 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        name="is_sale"
-                        checked={newProduct.is_sale}
-                        onChange={handleInputChange}
-                        className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
-                      />
-                      <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">On Sale</span>
-                    </label>
-
-                    <label className="flex items-center space-x-3 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        name="is_featured"
+              <div className="flex items-center space-x-3 p-4 border rounded-lg">
+                <Switch
+                  id="is_featured"
                         checked={newProduct.is_featured}
-                        onChange={handleInputChange}
-                        className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
+                  onCheckedChange={(checked) => setNewProduct(prev => ({ ...prev, is_featured: checked }))}
                       />
-                      <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">Featured Product</span>
-                    </label>
+                <div className="space-y-1">
+                  <Label htmlFor="is_featured" className="text-sm font-medium">Featured</Label>
+                  <p className="text-xs text-muted-foreground">Highlight on homepage</p>
                   </div>
                 </div>
               </div>
-            </div>
+          </CardContent>
+        </Card>
 
             {/* Images Section */}
-            <div className="mb-8 border-t pt-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Product Images</h2>
-                <span className="text-sm text-red-600 font-medium">* Required</span>
-              </div>
-              <div className="space-y-6">
-                {/* Upload Area */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Product Images</CardTitle>
+            <CardDescription>
+              Upload and manage product images. At least one image is required.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            {/* Upload New Image */}
                 <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Add New Image</h3>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* File Upload */}
                     <div className="space-y-4">
-                      <label className="block text-sm font-medium text-gray-700">Upload Image</label>
+                  <Label>Upload Image</Label>
                       <div
-                        className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 ${
+                    className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
                           dragActive
-                            ? 'border-indigo-500 bg-indigo-50'
-                            : 'border-gray-300 hover:border-gray-400'
+                        ? 'border-primary bg-primary/5'
+                        : 'border-muted-foreground/25 hover:border-muted-foreground/50'
                         } ${uploadingImage ? 'opacity-50 pointer-events-none' : ''}`}
                         onDragEnter={handleDrag}
                         onDragLeave={handleDrag}
@@ -876,9 +763,9 @@ export default function CreateProductPage() {
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                           disabled={uploadingImage}
                         />
-                        <div className="space-y-2">
+                    <div className="space-y-3">
                           <svg
-                            className="mx-auto h-12 w-12 text-gray-400"
+                        className="mx-auto h-12 w-12 text-muted-foreground"
                             stroke="currentColor"
                             fill="none"
                             viewBox="0 0 48 48"
@@ -890,17 +777,17 @@ export default function CreateProductPage() {
                               strokeLinejoin="round"
                             />
                           </svg>
-                          <div className="text-sm text-gray-600">
-                            <span className="font-medium text-indigo-600 hover:text-indigo-500">
+                      <div className="text-sm text-muted-foreground">
+                        <span className="font-medium text-primary hover:text-primary/80">
                               Click to upload
                             </span>{' '}
                             or drag and drop
                           </div>
-                          <p className="text-xs text-gray-500">PNG, JPG, WebP up to 5MB</p>
+                      <p className="text-xs text-muted-foreground">PNG, JPG, WebP up to 5MB</p>
                         </div>
                         {uploadingImage && (
-                          <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center">
-                            <div className="text-sm text-gray-600">Uploading...</div>
+                      <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-lg">
+                        <div className="text-sm text-muted-foreground">Uploading...</div>
                           </div>
                         )}
                       </div>
@@ -908,237 +795,312 @@ export default function CreateProductPage() {
 
                     {/* URL Input */}
                     <div className="space-y-4">
-                      <label className="block text-sm font-medium text-gray-700">Or Enter Image URL</label>
+                  <Label>Or Enter Image URL</Label>
                       <div className="space-y-2">
-                        <input
-                          type="text"
+                    <Input
                           name="image_url"
                           value={newImage.image_url}
                           onChange={handleImageChange}
                           placeholder="https://example.com/image.jpg"
-                          className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
+                      className="h-11"
                         />
-                        <p className="text-xs text-gray-500">Enter a direct link to an image</p>
+                    <p className="text-xs text-muted-foreground">Enter a direct link to an image</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Image Preview */}
                   {newImage.image_url && (
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Preview</label>
+                <div className="space-y-3">
+                  <Label>Preview</Label>
                       <div className="relative inline-block">
                         <img
                           src={newImage.image_url}
                           alt="Preview"
-                          className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                      className="w-32 h-32 object-cover rounded-lg border border-border shadow-sm"
                         />
-                        <button
-                          type="button"
+                    <Button
+                      variant="destructive"
+                      size="sm"
                           onClick={() => setNewImage(prev => ({ ...prev, image_url: '' }))}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                    >
+                      ×
+                    </Button>
                       </div>
                     </div>
                   )}
 
-                  {/* Primary Image Toggle */}
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center space-x-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        name="is_primary"
+              {/* Add Image Button */}
+              {newImage.image_url && (
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="new-image-primary"
                         checked={newImage.is_primary}
-                        onChange={handleImageChange}
-                        className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 transition-colors duration-200"
-                      />
-                      <span className="text-sm text-gray-700">Set as Primary Image</span>
-                    </label>
-                    <button
-                      type="button"
+                      onCheckedChange={(checked) => setNewImage(prev => ({ ...prev, is_primary: checked }))}
+                    />
+                    <Label htmlFor="new-image-primary">Set as Primary</Label>
+                  </div>
+                  <Button
                       onClick={addImage}
-                      disabled={!newImage.image_url || uploadingImage}
-                      className="px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!newImage.image_url}
                     >
                       Add Image
-                    </button>
+                  </Button>
                   </div>
+              )}
                 </div>
 
-                {/* Image List */}
-                {newProduct.images.length > 0 ? (
+            <Separator />
+
+            {/* Existing Images */}
                   <div className="space-y-4">
-                    <label className="block text-sm font-medium text-gray-700">Added Images</label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <h3 className="text-lg font-semibold">Added Images</h3>
+              {newProduct.images.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                       {newProduct.images.map((image, index) => (
                         <div key={index} className="relative group">
                           <img
                             src={image.image_url}
                             alt={`Product image ${index + 1}`}
-                            className="w-full h-24 object-cover rounded-lg border border-gray-300"
+                        className="w-full h-24 object-cover rounded-lg border border-border shadow-sm"
                           />
                           {image.is_primary && (
-                            <span className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                        <Badge className="absolute top-2 right-2 text-xs">
                               Primary
-                            </span>
+                        </Badge>
                           )}
-                          <button
-                            type="button"
+                      <Button
+                        variant="destructive"
+                        size="sm"
                             onClick={() => removeImage(index)}
-                            className="absolute top-2 left-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
+                        className="absolute top-2 left-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                      >
+                        ×
+                      </Button>
                         </div>
                       ))}
-                    </div>
                   </div>
                 ) : (
-                  <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                    <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="text-center py-12 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/25">
+                  <svg className="mx-auto h-12 w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <p className="text-sm text-gray-600 mb-2">No images added yet</p>
-                    <p className="text-xs text-gray-500">Upload an image file or enter an image URL above to get started</p>
+                  <p className="text-sm text-muted-foreground mb-2">No images added yet</p>
+                  <p className="text-xs text-muted-foreground">Upload images above to get started</p>
                   </div>
                 )}
               </div>
-            </div>
+          </CardContent>
+        </Card>
 
             {/* Specifications Section */}
-            <div className="mb-8 border-t pt-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Specifications</h2>
+        <Card>
+          <CardHeader>
+            <CardTitle>Specifications</CardTitle>
+            <CardDescription>
+              Add product specifications like dimensions, materials, and technical details
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Add New Specification */}
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <h3 className="text-lg font-semibold">Add New Specification</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Name</label>
-                    <input
-                      type="text"
+                  <Label>Name</Label>
+                  <Input
                       name="name"
                       value={newSpecification.name}
                       onChange={handleSpecificationChange}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
+                    placeholder="e.g., Material, Size, Weight"
+                    className="h-10"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Value</label>
-                    <div className="flex gap-4">
-                      <input
-                        type="text"
+                  <Label>Value</Label>
+                  <div className="flex gap-2">
+                    <Input
                         name="value"
                         value={newSpecification.value}
                         onChange={handleSpecificationChange}
-                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
+                      placeholder="e.g., Stainless Steel, 10 inches, 2.5 lbs"
+                      className="flex-1 h-10"
                       />
-                      <button
-                        type="button"
+                    <Button
                         onClick={addSpecification}
-                        className="px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+                      disabled={!newSpecification.name || !newSpecification.value}
+                      className="whitespace-nowrap h-10"
                       >
                         Add
-                      </button>
+                    </Button>
+                  </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Specifications List */}
-                <div className="grid grid-cols-2 gap-4 mt-4">
+            <Separator />
+
+            {/* Existing Specifications */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Added Specifications</h3>
+              {newProduct.specifications.length > 0 ? (
+                <div className="space-y-3">
                   {newProduct.specifications.map((spec, index) => (
-                    <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                      <div>
-                        <span className="font-medium text-gray-900">{spec.name}:</span>{' '}
-                        <span className="text-gray-600">{spec.value}</span>
-                      </div>
-                      <button
-                        type="button"
+                    <div key={index} className="flex items-center space-x-4 p-4 bg-muted/50 rounded-lg">
+                      <Input
+                        value={spec.name}
+                        onChange={(e) => {
+                          const newSpecs = [...newProduct.specifications];
+                          newSpecs[index] = { ...newSpecs[index], name: e.target.value };
+                          setNewProduct(prev => ({ ...prev, specifications: newSpecs }));
+                        }}
+                        placeholder="Specification name"
+                        className="flex-1 h-10"
+                      />
+                      <Input
+                        value={spec.value}
+                        onChange={(e) => {
+                          const newSpecs = [...newProduct.specifications];
+                          newSpecs[index] = { ...newSpecs[index], value: e.target.value };
+                          setNewProduct(prev => ({ ...prev, specifications: newSpecs }));
+                        }}
+                        placeholder="Specification value"
+                        className="flex-1 h-10"
+                      />
+                      <Button
+                        variant="destructive"
                         onClick={() => removeSpecification(index)}
-                        className="text-red-500 hover:text-red-700 transition-colors duration-200"
+                        size="sm"
+                        className="h-10"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
+                        Remove
+                      </Button>
                     </div>
                   ))}
                 </div>
+              ) : (
+                <div className="text-center py-12 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/25">
+                  <svg className="mx-auto h-12 w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <p className="text-sm text-muted-foreground mb-2">No specifications added yet</p>
+                  <p className="text-xs text-muted-foreground">Add specifications above to get started</p>
               </div>
+              )}
             </div>
+          </CardContent>
+        </Card>
 
             {/* Features Section */}
-            <div className="mb-8 border-t pt-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Features</h2>
+        <Card>
+          <CardHeader>
+            <CardTitle>Features</CardTitle>
+            <CardDescription>
+              Highlight key product features and benefits
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Add New Feature */}
               <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Add New Feature</h3>
                 <div className="flex gap-4">
                   <div className="flex-1 space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Feature</label>
-                    <input
-                      type="text"
+                  <Label>Feature</Label>
+                  <Input
                       name="feature"
                       value={newFeature.feature}
                       onChange={handleFeatureChange}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50 hover:bg-white"
+                    placeholder="e.g., Dishwasher safe, Non-stick coating, Heat resistant"
+                    className="h-10"
                     />
                   </div>
                   <div className="flex items-end">
-                    <button
-                      type="button"
+                  <Button
                       onClick={addFeature}
-                      className="px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+                    disabled={!newFeature.feature}
+                    className="whitespace-nowrap h-10"
                     >
                       Add Feature
-                    </button>
+                  </Button>
+                </div>
                   </div>
                 </div>
 
-                {/* Features List */}
-                <div className="grid grid-cols-2 gap-4 mt-4">
+            <Separator />
+
+            {/* Existing Features */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Added Features</h3>
+              {newProduct.features.length > 0 ? (
+                <div className="space-y-3">
                   {newProduct.features.map((feature, index) => (
-                    <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                      <div className="flex items-center">
-                        <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div key={index} className="flex items-center space-x-4 p-4 bg-muted/50 rounded-lg">
+                      <div className="flex items-center flex-1">
+                        <svg className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                         </svg>
-                        <span className="text-gray-900">{feature.feature}</span>
+                        <Input
+                          value={feature.feature}
+                          onChange={(e) => {
+                            const newFeatures = [...newProduct.features];
+                            newFeatures[index] = { ...newFeatures[index], feature: e.target.value };
+                            setNewProduct(prev => ({ ...prev, features: newFeatures }));
+                          }}
+                          placeholder="Feature description"
+                          className="flex-1 h-10"
+                        />
                       </div>
-                      <button
-                        type="button"
+                      <Button
+                        variant="destructive"
                         onClick={() => removeFeature(index)}
-                        className="text-red-500 hover:text-red-700 transition-colors duration-200"
+                        size="sm"
+                        className="h-10"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
+                        Remove
+                      </Button>
                     </div>
                   ))}
                 </div>
+              ) : (
+                <div className="text-center py-12 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/25">
+                  <svg className="mx-auto h-12 w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-sm text-muted-foreground mb-2">No features added yet</p>
+                  <p className="text-xs text-muted-foreground">Add features above to get started</p>
               </div>
+              )}
             </div>
+          </CardContent>
+        </Card>
 
-            <div className="flex justify-end gap-4 pt-8 mt-8 border-t">
-              <button
-                type="button"
+        {/* Action Buttons */}
+        <div className="flex justify-end space-x-4 pt-6 border-t">
+          <Button
+            variant="outline"
                 onClick={() => router.push('/admin')}
-                className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
+            className="px-8"
               >
                 Cancel
-              </button>
-              <button
+          </Button>
+          <Button
                 type="submit"
-                className="px-6 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 transform hover:scale-105"
-              >
-                Create Product
-              </button>
+            disabled={saving}
+            className="px-8"
+          >
+            {saving ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Creating...
+              </>
+            ) : (
+              'Create Product'
+            )}
+          </Button>
             </div>
           </form>
-        </div>
-      </div>
     </div>
   );
 } 

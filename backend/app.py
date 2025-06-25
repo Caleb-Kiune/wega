@@ -306,6 +306,9 @@ def get_products():
     min_price = request.args.get('min_price', type=float)
     max_price = request.args.get('max_price', type=float)
     
+    # Get search parameter
+    search = request.args.get('search', '').strip()
+    
     # Parse boolean parameters
     is_featured = request.args.get('is_featured')
     is_new = request.args.get('is_new')
@@ -319,6 +322,7 @@ def get_products():
     # Log filter parameters
     print("\n=== API Request Details ===")
     print("Filter Parameters:")
+    print(f"  search: {search}")
     print(f"  is_featured: {is_featured} (type: {type(is_featured)})")
     print(f"  is_new: {is_new} (type: {type(is_new)})")
     print(f"  is_sale: {is_sale} (type: {type(is_sale)})")
@@ -336,6 +340,10 @@ def get_products():
         joinedload(Product.category),
         joinedload(Product.brand)
     ).join(Category).join(Brand)
+
+    # Apply search filter - only search product names
+    if search:
+        query = query.filter(Product.name.ilike(f'%{search}%'))
 
     # Apply filters
     if categories:

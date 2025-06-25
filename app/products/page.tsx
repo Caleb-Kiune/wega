@@ -12,6 +12,7 @@ import { Product, ProductsParams } from '../lib/api/products';
 export interface ProductsFilters extends Omit<ProductsParams, 'page' | 'limit'> {
   page: number;
   limit: number;
+  search?: string;
 }
 
 export default function ProductsPage() {
@@ -41,6 +42,7 @@ export default function ProductsPage() {
     is_featured: searchParams.get('is_featured') === 'true',
     is_new: searchParams.get('is_new') === 'true',
     is_sale: searchParams.get('is_sale') === 'true',
+    search: searchParams.get('search') || undefined,
   });
 
   // Debug initial filters
@@ -84,6 +86,7 @@ export default function ProductsPage() {
     if (filters.is_featured) params.set('is_featured', 'true');
     if (filters.is_new) params.set('is_new', 'true');
     if (filters.is_sale) params.set('is_sale', 'true');
+    if (filters.search) params.set('search', filters.search);
 
     const newUrl = params.toString() ? `?${params.toString()}` : '';
     router.push(`/products${newUrl}`);

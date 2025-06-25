@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Grid, List, Search, Filter, Trash2, Edit, Eye, MoreVertical, Package, Plus, Check, X, AlertTriangle, MapPin } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Grid, List, Search, Filter, Trash2, Edit, Eye, MoreVertical, Package, Plus, Check, X, AlertTriangle, MapPin, Settings } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +26,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { Label } from '@/components/ui/label';
 
 interface Review {
   id: number;
@@ -41,12 +44,12 @@ interface ProductWithReviews extends Product {
 }
 
 interface Category {
-  id: number;
+  id: string;
   name: string;
 }
 
 interface Brand {
-  id: number;
+  id: string;
   name: string;
 }
 
@@ -62,6 +65,7 @@ export default function AdminPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
   const [search, setSearch] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch] = useDebounce(search, 300);
   const [category, setCategory] = useState('all');
   const [brand, setBrand] = useState('all');
@@ -78,7 +82,7 @@ export default function AdminPage() {
       try {
         setLoading(true);
         const response = await productsApi.getAll({
-          search: debouncedSearch,
+          search: searchTerm,
           categories: category === 'all' ? undefined : [category],
           brands: brand === 'all' ? undefined : [brand],
           sort_by: sortBy,
@@ -98,14 +102,16 @@ export default function AdminPage() {
     };
 
     fetchProducts();
-  }, [debouncedSearch, category, brand, sortBy, sortOrder, currentPage]);
+  }, [searchTerm, category, brand, sortBy, sortOrder, currentPage]);
 
   useEffect(() => {
     // Extract unique categories and brands from products
     const uniqueCategories = Array.from(new Set(products.map(p => p.category)))
-      .map((name, index) => ({ id: index + 1, name }));
+      .filter(Boolean) // Remove null/undefined values
+      .map((name, index) => ({ id: name, name })); // Use name as id for easier filtering
     const uniqueBrands = Array.from(new Set(products.map(p => p.brand)))
-      .map((name, index) => ({ id: index + 1, name }));
+      .filter(Boolean) // Remove null/undefined values
+      .map((name, index) => ({ id: name, name })); // Use name as id for easier filtering
     
     setCategories(uniqueCategories);
     setBrands(uniqueBrands);
@@ -207,21 +213,53 @@ export default function AdminPage() {
     setCurrentPage(newPage);
   };
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = debouncedSearch ? (
-      (product.name?.toLowerCase() || '').includes(debouncedSearch.toLowerCase()) ||
-      (product.description?.toLowerCase() || '').includes(debouncedSearch.toLowerCase())
-    ) : true;
-    const matchesCategory = category === 'all' || product.category === category;
-    const matchesBrand = brand === 'all' || product.brand === brand;
-    return matchesSearch && matchesCategory && matchesBrand;
-  });
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setSearchTerm(search);
+    }
+  };
+
+  const filteredProducts = products
+    .filter(product => {
+      const matchesSearch = !searchTerm || (product.name?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+      const matchesCategory = category === 'all' || product.category === category;
+      const matchesBrand = brand === 'all' || product.brand === brand;
+      return matchesSearch && matchesCategory && matchesBrand;
+    })
+    .sort((a, b) => {
+      let aValue: any, bValue: any;
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name?.toLowerCase() || '';
+          bValue = b.name?.toLowerCase() || '';
+          break;
+        case 'price':
+          aValue = a.price || 0;
+          bValue = b.price || 0;
+          break;
+        case 'stock':
+          aValue = a.stock || 0;
+          bValue = b.stock || 0;
+          break;
+        default:
+          aValue = a.name?.toLowerCase() || '';
+          bValue = b.name?.toLowerCase() || '';
+      }
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="text-lg font-medium text-muted-foreground">Loading products...</p>
+          </div>
         </div>
       </div>
     );
@@ -229,63 +267,89 @@ export default function AdminPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          <p>Error: {error}</p>
-        </div>
+      <div className="container mx-auto p-6">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle className="text-destructive">Error</CardTitle>
+            <CardDescription>Failed to load products</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()} variant="outline" className="w-full">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 mb-8">
+    <div className="container mx-auto p-6 max-w-7xl">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900">Product Management</h1>
-            <p className="mt-2 text-gray-600">Manage your product catalog with ease</p>
+            <h1 className="text-3xl font-bold tracking-tight">Product Management</h1>
+            <p className="text-muted-foreground mt-2">
+              Manage your product catalog with ease. View, edit, and organize your products.
+            </p>
           </div>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex items-center gap-4">
             <Button
               onClick={() => router.push('/admin/orders')}
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 px-4 py-2"
             >
               <Package className="h-4 w-4" />
-              Manage Orders
+              Orders
             </Button>
             <Button
               onClick={() => router.push('/admin/delivery-locations')}
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 px-4 py-2"
             >
               <MapPin className="h-4 w-4" />
-              Delivery Locations
+              Delivery
             </Button>
             <Button
               onClick={() => router.push('/admin/create')}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 px-6 py-2"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-4 h-4 mr-1" />
               Create Product
             </Button>
           </div>
         </div>
-        
+      </div>
+
+      <div className="space-y-6">
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-1 items-center gap-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Filters & Search</CardTitle>
+            <CardDescription>
+              Find and filter products by name, category, brand, and more
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Search Products</Label>
                 <Input
-                  placeholder="Search products..."
+                  placeholder="Search by product name..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="max-w-sm"
+                  onKeyDown={handleSearchKeyDown}
+                  className="h-10"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Category</Label>
                 <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Category" />
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
@@ -296,9 +360,13 @@ export default function AdminPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Brand</Label>
                 <Select value={brand} onValueChange={setBrand}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Brand" />
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="All Brands" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Brands</SelectItem>
@@ -310,171 +378,313 @@ export default function AdminPage() {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="name">Name</SelectItem>
-                  <SelectItem value="price">Price</SelectItem>
-                  <SelectItem value="stock">Stock</SelectItem>
-                  <SelectItem value="created_at">Date Added</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-              >
-                {sortOrder === 'asc' ? '↑' : '↓'}
-              </Button>
-            </div>
-          </div>
-              </div>
 
-        {/* Bulk Actions */}
-        {selectedProducts.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">
-                {selectedProducts.length} product{selectedProducts.length !== 1 ? 's' : ''} selected
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleBulkDelete}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete Selected
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* View Toggle */}
-        <div className="flex justify-end mb-4">
-          <div className="flex items-center gap-2 bg-white rounded-lg shadow-sm p-1">
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
-              size="icon"
-              onClick={() => setViewMode('grid')}
-            >
-              <Grid className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
-              size="icon"
-              onClick={() => setViewMode('list')}
-            >
-              <List className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Products Grid/List */}
-        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
-          {filteredProducts.map((product) => (
-            <div
-              key={product.id}
-              className={`bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md ${
-                viewMode === 'list' ? 'flex' : ''
-              }`}
-            >
-              <div className={`relative ${viewMode === 'list' ? 'w-48' : 'w-full'}`}>
-                <input
-                  type="checkbox"
-                  checked={selectedProducts.includes(product.id)}
-                  onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
-                  className="absolute top-2 left-2 z-10"
-                />
-                      <img
-                        src={product.images?.[0]?.image_url || '/placeholder.png'}
-                  alt={product.name}
-                  className={`w-full ${viewMode === 'list' ? 'h-48' : 'h-64'} object-cover`}
-                      />
-                {product.is_new && (
-                  <Badge className="absolute top-2 right-2 bg-blue-500">New</Badge>
-                      )}
-                {product.is_sale && (
-                  <Badge className="absolute top-2 right-2 bg-red-500">Sale</Badge>
-                      )}
-                    </div>
-              <div className={`p-4 ${viewMode === 'list' ? 'flex-1' : ''}`}>
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{product.name}</h3>
-                    <p className="text-sm text-gray-500">{product.brand}</p>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(product)}>
-                        <Edit className="w-4 h-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => router.push(`/products/${product.id}`)}>
-                        <Eye className="w-4 h-4 mr-2" />
-                        View
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-red-600"
-                        onClick={() => handleDelete(product)}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                    </div>
-                <p className="text-sm text-gray-600 mb-2 line-clamp-2">{product.description}</p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="font-semibold text-gray-900">
-                      ${product.price.toFixed(2)}
-                    </span>
-                    {product.original_price && (
-                      <span className="ml-2 text-sm text-gray-500 line-through">
-                        ${product.original_price.toFixed(2)}
-                      </span>
-                    )}
-                  </div>
-                  <Badge variant={product.stock > 0 ? 'default' : 'destructive'}>
-                    {product.stock > 0 ? `In Stock (${product.stock})` : 'Out of Stock'}
-                  </Badge>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Sort By</Label>
+                <div className="flex gap-2">
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="h-10 flex-1">
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="name">Name</SelectItem>
+                      <SelectItem value="price">Price</SelectItem>
+                      <SelectItem value="stock">Stock</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                    className="h-10 w-10"
+                  >
+                    {sortOrder === 'asc' ? '↑' : '↓'}
+                  </Button>
                 </div>
               </div>
             </div>
-          ))}
+          </CardContent>
+        </Card>
+
+        {/* Bulk Actions */}
+        {selectedProducts.length > 0 && (
+          <Card className="border-orange-200 bg-orange-50">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-orange-600" />
+                    <p className="text-sm font-medium text-orange-800">
+                      {selectedProducts.length} product{selectedProducts.length !== 1 ? 's' : ''} selected
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedProducts([])}
+                    className="h-9"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Clear Selection
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleBulkDelete}
+                    className="h-9"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Selected
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* View Controls */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
+                onChange={(e) => handleSelectAll(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <Label className="text-sm text-muted-foreground">
+                Select All ({filteredProducts.length})
+              </Label>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Label className="text-sm text-muted-foreground">View:</Label>
+            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className="h-8 w-8 p-0"
+              >
+                <Grid className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="h-8 w-8 p-0"
+              >
+                <List className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Products Display */}
+        {filteredProducts.length === 0 ? (
+          <Card>
+            <CardContent className="pt-12 pb-12">
+              <div className="text-center space-y-4">
+                <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                  <Package className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">No products found</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {search || category !== 'all' || brand !== 'all' 
+                      ? 'Try adjusting your filters or search terms'
+                      : 'Get started by creating your first product'
+                    }
+                  </p>
+                </div>
+                {!search && category === 'all' && brand === 'all' && (
+                  <Button onClick={() => router.push('/admin/create')} className="mt-4">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Product
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6' : 'space-y-4'}>
+            {filteredProducts.map((product) => (
+              <Card
+                key={product.id}
+                className={`group transition-all duration-200 hover:shadow-lg ${
+                  viewMode === 'list' ? 'flex' : ''
+                } ${selectedProducts.includes(product.id) ? 'ring-2 ring-primary' : ''}`}
+              >
+                <div className={`relative ${viewMode === 'list' ? 'w-48' : 'w-full'}`}>
+                  <input
+                    type="checkbox"
+                    checked={selectedProducts.includes(product.id)}
+                    onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
+                    className="absolute top-2 right-2 z-10 h-4 w-4 rounded border-gray-300 bg-white shadow-sm"
+                  />
+                  <img
+                    src={product.images?.[0]?.image_url || '/placeholder.png'}
+                    alt={product.name}
+                    className={`w-full ${viewMode === 'list' ? 'h-48' : 'h-48'} object-cover rounded-t-lg`}
+                    onError={(e) => {
+                      e.currentTarget.src = '/placeholder.png';
+                    }}
+                  />
+                  <div className="absolute top-2 left-2 flex flex-col gap-1.5">
+                    {product.is_new && (
+                      <Badge className="text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 shadow-md transform hover:scale-105 transition-transform duration-200 font-medium">
+                        ✨ New
+                      </Badge>
+                    )}
+                    {product.is_sale && (
+                      <Badge className="text-xs bg-gradient-to-r from-red-500 to-red-600 text-white border-0 shadow-md transform hover:scale-105 transition-transform duration-200 font-medium">
+                        🔥 Sale
+                      </Badge>
+                    )}
+                    {product.is_featured && (
+                      <Badge className="text-xs bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-md transform hover:scale-105 transition-transform duration-200 font-medium">
+                        ⭐ Featured
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                
+                <div className={`p-4 ${viewMode === 'list' ? 'flex-1' : ''}`}>
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 truncate">{product.name}</h3>
+                      <p className="text-sm text-muted-foreground">{product.brand}</p>
+                      {product.category && (
+                        <Badge variant="secondary" className="text-xs mt-1 bg-blue-100 text-blue-800 border-blue-200">
+                          {product.category}
+                        </Badge>
+                      )}
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEdit(product)}>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => router.push(`/products/${product.id}`)}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          View
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-red-600"
+                          onClick={() => handleDelete(product)}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  
+                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{product.description}</p>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-gray-900">
+                          ${product.price.toFixed(2)}
+                        </span>
+                        {product.original_price && product.original_price > product.price && (
+                          <span className="text-sm text-muted-foreground line-through">
+                            ${product.original_price.toFixed(2)}
+                          </span>
+                        )}
+                      </div>
+                      <Badge 
+                        variant={product.stock > 0 ? 'default' : 'destructive'}
+                        className={`text-xs shadow-md ${
+                          product.stock > 0 
+                            ? 'bg-gradient-to-r from-green-500 to-green-600 text-white border-0' 
+                            : 'bg-gradient-to-r from-red-500 to-red-600 text-white border-0'
+                        }`}
+                      >
+                        {product.stock > 0 ? `📦 ${product.stock} in stock` : '❌ Out of stock'}
+                      </Badge>
+                    </div>
+                    
+                    {product.rating > 0 && (
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <span>★</span>
+                        <span>{product.rating.toFixed(1)}</span>
+                        <span>({product.review_count})</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Showing {((currentPage - 1) * 100) + 1} to {Math.min(currentPage * 100, filteredProducts.length)} of {filteredProducts.length} products
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="h-8"
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="h-8"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Delete Confirmation Modal */}
-        <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete Product</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete {productToDelete?.name}? This action cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
-                  Cancel
-              </Button>
-              <Button variant="destructive" onClick={handleConfirmDelete}>
-                  Delete
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        </div>
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Product</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete <strong>{productToDelete?.name}</strong>? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              Delete Product
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

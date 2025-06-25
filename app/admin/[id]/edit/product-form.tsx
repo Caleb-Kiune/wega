@@ -9,6 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 
 interface ExtendedProduct extends Product {
@@ -574,190 +577,284 @@ export default function ProductForm({ productId }: ProductFormProps) {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="text-lg font-medium text-muted-foreground">Loading product details...</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <div className="container mx-auto p-6">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle className="text-destructive">Error</CardTitle>
+            <CardDescription>Failed to load product information</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">{error}</p>
+            <Button onClick={() => router.push('/admin')} variant="outline" className="w-full">
+              Back to Admin
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (!product) {
-    return <div>Product not found</div>;
+    return (
+      <div className="container mx-auto p-6">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle>Product Not Found</CardTitle>
+            <CardDescription>The requested product could not be found</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => router.push('/admin')} variant="outline" className="w-full">
+              Back to Admin
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Edit Product</h1>
+    <div className="container mx-auto p-6 max-w-6xl">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Edit Product</h1>
+            <p className="text-muted-foreground mt-2">
+              Update product information, images, specifications, and features
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {product.is_new && <Badge variant="default">New</Badge>}
+            {product.is_sale && <Badge variant="destructive">Sale</Badge>}
+            {product.is_featured && <Badge variant="secondary">Featured</Badge>}
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              name="name"
-              value={product.name || ''}
-              onChange={handleInputChange}
-              placeholder="Product name"
-            />
-          </div>
+      <div className="space-y-8">
+        {/* Basic Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Basic Information</CardTitle>
+            <CardDescription>
+              Essential product details like name, SKU, pricing, and categorization
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="name">Product Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  value={product.name || ''}
+                  onChange={handleInputChange}
+                  placeholder="Enter product name"
+                  className="h-11"
+                />
+              </div>
 
-          <div>
-            <Label htmlFor="sku">SKU</Label>
-            <Input
-              id="sku"
-              name="sku"
-              value={product.sku || ''}
-              onChange={handleInputChange}
-              placeholder="Product SKU"
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="sku">SKU</Label>
+                <Input
+                  id="sku"
+                  name="sku"
+                  value={product.sku || ''}
+                  onChange={handleInputChange}
+                  placeholder="Product SKU"
+                  className="h-11"
+                />
+              </div>
 
-          <div>
-            <Label htmlFor="price">Price</Label>
-            <Input
-              id="price"
-              name="price"
-              type="number"
-              value={product.price || 0}
-              onChange={handleNumberInputChange}
-              placeholder="Product price"
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="price">Price</Label>
+                <Input
+                  id="price"
+                  name="price"
+                  type="number"
+                  value={product.price || 0}
+                  onChange={handleNumberInputChange}
+                  placeholder="0.00"
+                  className="h-11"
+                />
+              </div>
 
-          <div>
-            <Label htmlFor="original_price">Original Price</Label>
-            <Input
-              id="original_price"
-              name="original_price"
-              type="number"
-              value={product.original_price || 0}
-              onChange={handleNumberInputChange}
-              placeholder="Original price"
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="original_price">Original Price</Label>
+                <Input
+                  id="original_price"
+                  name="original_price"
+                  type="number"
+                  value={product.original_price || 0}
+                  onChange={handleNumberInputChange}
+                  placeholder="0.00"
+                  className="h-11"
+                />
+              </div>
 
-          <div>
-            <Label htmlFor="stock">Stock</Label>
-            <Input
-              id="stock"
-              name="stock"
-              type="number"
-              value={product.stock || 0}
-              onChange={handleNumberInputChange}
-              placeholder="Stock quantity"
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="stock">Stock Quantity</Label>
+                <Input
+                  id="stock"
+                  name="stock"
+                  type="number"
+                  value={product.stock || 0}
+                  onChange={handleNumberInputChange}
+                  placeholder="0"
+                  className="h-11"
+                />
+              </div>
 
-          <div>
-            <Label htmlFor="brand">Brand</Label>
-            <Select
-              value={product.brand_id && product.brand_id > 0 ? product.brand_id.toString() : 'none'}
-              onValueChange={(value) => {
-                setProduct(prev => ({
-                  ...(prev || initialProductState),
-                  brand_id: value === 'none' ? 0 : parseInt(value)
-                }));
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a brand" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No brand</SelectItem>
-                {brands.map((brand) => (
-                  <SelectItem key={brand.id} value={brand.id.toString()}>
-                    {brand.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="brand">Brand</Label>
+                <Select
+                  value={product.brand_id && product.brand_id > 0 ? product.brand_id.toString() : 'none'}
+                  onValueChange={(value) => {
+                    setProduct(prev => ({
+                      ...(prev || initialProductState),
+                      brand_id: value === 'none' ? 0 : parseInt(value)
+                    }));
+                  }}
+                >
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Select a brand" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No brand</SelectItem>
+                    {brands.map((brand) => (
+                      <SelectItem key={brand.id} value={brand.id.toString()}>
+                        {brand.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div>
-            <Label htmlFor="category">Category</Label>
-            <Select
-              value={product.category_id && product.category_id > 0 ? product.category_id.toString() : 'none'}
-              onValueChange={(value) => {
-                setProduct(prev => ({
-                  ...(prev || initialProductState),
-                  category_id: value === 'none' ? 0 : parseInt(value)
-                }));
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No category</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id.toString()}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Select
+                  value={product.category_id && product.category_id > 0 ? product.category_id.toString() : 'none'}
+                  onValueChange={(value) => {
+                    setProduct(prev => ({
+                      ...(prev || initialProductState),
+                      category_id: value === 'none' ? 0 : parseInt(value)
+                    }));
+                  }}
+                >
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No category</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id.toString()}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-        <div>
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            name="description"
-            value={product.description || ''}
-            onChange={handleInputChange}
-            placeholder="Product description"
-            rows={4}
-          />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                value={product.description || ''}
+                onChange={handleInputChange}
+                placeholder="Enter detailed product description..."
+                rows={4}
+                className="resize-none"
+              />
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="is_new"
-              checked={product.is_new || false}
-              onCheckedChange={handleSwitchChange('is_new')}
-            />
-            <Label htmlFor="is_new">New Product</Label>
-          </div>
+        {/* Product Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Product Status</CardTitle>
+            <CardDescription>
+              Configure product visibility and promotional settings
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex items-center space-x-3 p-4 border rounded-lg">
+                <Switch
+                  id="is_new"
+                  checked={product.is_new || false}
+                  onCheckedChange={handleSwitchChange('is_new')}
+                />
+                <div className="space-y-1">
+                  <Label htmlFor="is_new" className="text-sm font-medium">New Product</Label>
+                  <p className="text-xs text-muted-foreground">Mark as newly added</p>
+                </div>
+              </div>
 
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="is_sale"
-              checked={product.is_sale || false}
-              onCheckedChange={handleSwitchChange('is_sale')}
-            />
-            <Label htmlFor="is_sale">On Sale</Label>
-          </div>
+              <div className="flex items-center space-x-3 p-4 border rounded-lg">
+                <Switch
+                  id="is_sale"
+                  checked={product.is_sale || false}
+                  onCheckedChange={handleSwitchChange('is_sale')}
+                />
+                <div className="space-y-1">
+                  <Label htmlFor="is_sale" className="text-sm font-medium">On Sale</Label>
+                  <p className="text-xs text-muted-foreground">Display sale badge</p>
+                </div>
+              </div>
 
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="is_featured"
-              checked={product.is_featured || false}
-              onCheckedChange={handleSwitchChange('is_featured')}
-            />
-            <Label htmlFor="is_featured">Featured</Label>
-          </div>
-        </div>
+              <div className="flex items-center space-x-3 p-4 border rounded-lg">
+                <Switch
+                  id="is_featured"
+                  checked={product.is_featured || false}
+                  onCheckedChange={handleSwitchChange('is_featured')}
+                />
+                <div className="space-y-1">
+                  <Label htmlFor="is_featured" className="text-sm font-medium">Featured</Label>
+                  <p className="text-xs text-muted-foreground">Highlight on homepage</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Images</h2>
-          <div className="space-y-6">
+        {/* Images Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Product Images</CardTitle>
+            <CardDescription>
+              Upload and manage product images. The primary image will be displayed first.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-8">
             {/* Upload New Image */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Add New Image</h3>
+              <h3 className="text-lg font-semibold">Add New Image</h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* File Upload */}
                 <div className="space-y-4">
                   <Label>Upload Image</Label>
                   <div
-                    className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 ${
+                    className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
                       dragActive
-                        ? 'border-indigo-500 bg-indigo-50'
-                        : 'border-gray-300 hover:border-gray-400'
+                        ? 'border-primary bg-primary/5'
+                        : 'border-muted-foreground/25 hover:border-muted-foreground/50'
                     } ${uploadingImage ? 'opacity-50 pointer-events-none' : ''}`}
                     onDragEnter={handleDrag}
                     onDragLeave={handleDrag}
@@ -771,9 +868,9 @@ export default function ProductForm({ productId }: ProductFormProps) {
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       disabled={uploadingImage}
                     />
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <svg
-                        className="mx-auto h-12 w-12 text-gray-400"
+                        className="mx-auto h-12 w-12 text-muted-foreground"
                         stroke="currentColor"
                         fill="none"
                         viewBox="0 0 48 48"
@@ -785,17 +882,17 @@ export default function ProductForm({ productId }: ProductFormProps) {
                           strokeLinejoin="round"
                         />
                       </svg>
-                      <div className="text-sm text-gray-600">
-                        <span className="font-medium text-indigo-600 hover:text-indigo-500">
+                      <div className="text-sm text-muted-foreground">
+                        <span className="font-medium text-primary hover:text-primary/80">
                           Click to upload
                         </span>{' '}
                         or drag and drop
                       </div>
-                      <p className="text-xs text-gray-500">PNG, JPG, WebP up to 5MB</p>
+                      <p className="text-xs text-muted-foreground">PNG, JPG, WebP up to 5MB</p>
                     </div>
                     {uploadingImage && (
-                      <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center">
-                        <div className="text-sm text-gray-600">Uploading...</div>
+                      <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-lg">
+                        <div className="text-sm text-muted-foreground">Uploading...</div>
                       </div>
                     )}
                   </div>
@@ -809,21 +906,22 @@ export default function ProductForm({ productId }: ProductFormProps) {
                       value={newImageUrl}
                       onChange={(e) => setNewImageUrl(e.target.value)}
                       placeholder="https://example.com/image.jpg"
+                      className="h-11"
                     />
-                    <p className="text-xs text-gray-500">Enter a direct link to an image</p>
+                    <p className="text-xs text-muted-foreground">Enter a direct link to an image</p>
                   </div>
                 </div>
               </div>
 
               {/* Image Preview */}
               {newImageUrl && (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <Label>Preview</Label>
                   <div className="relative inline-block">
                     <img
                       src={newImageUrl}
                       alt="Preview"
-                      className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                      className="w-32 h-32 object-cover rounded-lg border border-border shadow-sm"
                     />
                     <Button
                       variant="destructive"
@@ -839,7 +937,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
               {/* Add Image Button */}
               {newImageUrl && (
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="new-image-primary"
@@ -861,68 +959,99 @@ export default function ProductForm({ productId }: ProductFormProps) {
               )}
             </div>
 
+            <Separator />
+
             {/* Existing Images */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Existing Images</h3>
-              <div className="space-y-4">
-                {product.images.map((image, index) => (
-                  <div key={index} className="border rounded-lg p-4 space-y-3">
-                    {/* Image Preview */}
-                    {image.image_url && (
-                      <div className="relative inline-block">
+              <h3 className="text-lg font-semibold">Existing Images</h3>
+              {product.images.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {product.images.map((image, index) => (
+                      <div key={index} className="relative group">
                         <img
                           src={image.image_url}
                           alt={`Product image ${index + 1}`}
-                          className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                          className="w-full h-24 object-cover rounded-lg border border-border shadow-sm"
                           onError={(e) => {
                             console.error('Failed to load image:', image.image_url);
                             e.currentTarget.src = '/placeholder.png';
                           }}
                         />
                         {image.is_primary && (
-                          <div className="absolute -top-2 -left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                          <Badge className="absolute top-2 right-2 text-xs">
                             Primary
-                          </div>
+                          </Badge>
                         )}
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-2 left-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                        >
+                          ×
+                        </Button>
                       </div>
-                    )}
-                    
-                    {/* Image Controls */}
-                    <div className="flex items-center space-x-4">
-                      <Input
-                        value={image.image_url || ''}
-                        onChange={(e) => handleImageChange(index, 'image_url', e.target.value)}
-                        placeholder="Image URL"
-                        className="flex-1"
-                      />
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          checked={image.is_primary || false}
-                          onCheckedChange={(checked) => handleImageChange(index, 'is_primary', checked)}
-                        />
-                        <Label>Primary</Label>
-                      </div>
-                      <Button
-                        variant="destructive"
-                        onClick={() => removeImage(index)}
-                      >
-                        Remove
-                      </Button>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                  
+                  {/* Image Controls */}
+                  <div className="space-y-3">
+                    {product.images.map((image, index) => (
+                      <div key={`controls-${index}`} className="flex items-center space-x-4 p-3 bg-muted/30 rounded-lg">
+                        <span className="text-sm font-medium text-muted-foreground min-w-[60px]">
+                          Image {index + 1}
+                        </span>
+                        <Input
+                          value={image.image_url || ''}
+                          onChange={(e) => handleImageChange(index, 'image_url', e.target.value)}
+                          placeholder="Image URL"
+                          className="flex-1 h-9 text-sm"
+                        />
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={image.is_primary || false}
+                            onCheckedChange={(checked) => handleImageChange(index, 'is_primary', checked)}
+                          />
+                          <Label className="text-sm">Primary</Label>
+                        </div>
+                        <Button
+                          variant="destructive"
+                          onClick={() => removeImage(index)}
+                          size="sm"
+                          className="h-9 px-3"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/25">
+                  <svg className="mx-auto h-12 w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <p className="text-sm text-muted-foreground mb-2">No images added yet</p>
+                  <p className="text-xs text-muted-foreground">Upload images above to get started</p>
+                </div>
+              )}
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Specifications Section */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Specifications</h2>
-          <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Specifications</CardTitle>
+            <CardDescription>
+              Add product specifications like dimensions, materials, and technical details
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
             {/* Add New Specification */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Add New Specification</h3>
+              <h3 className="text-lg font-semibold">Add New Specification</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Name</Label>
@@ -931,7 +1060,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                     value={newSpecification.name}
                     onChange={handleNewSpecificationChange}
                     placeholder="e.g., Material, Size, Weight"
-                    className="w-full"
+                    className="h-10"
                   />
                 </div>
                 <div className="space-y-2">
@@ -942,12 +1071,12 @@ export default function ProductForm({ productId }: ProductFormProps) {
                       value={newSpecification.value}
                       onChange={handleNewSpecificationChange}
                       placeholder="e.g., Stainless Steel, 10 inches, 2.5 lbs"
-                      className="flex-1"
+                      className="flex-1 h-10"
                     />
                     <Button
                       onClick={addSpecification}
                       disabled={!newSpecification.name || !newSpecification.value}
-                      className="whitespace-nowrap"
+                      className="whitespace-nowrap h-10"
                     >
                       Add
                     </Button>
@@ -956,29 +1085,32 @@ export default function ProductForm({ productId }: ProductFormProps) {
               </div>
             </div>
 
+            <Separator />
+
             {/* Existing Specifications */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Existing Specifications</h3>
+              <h3 className="text-lg font-semibold">Existing Specifications</h3>
               {product.specifications.length > 0 ? (
                 <div className="space-y-3">
                   {product.specifications.map((spec, index) => (
-                    <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                    <div key={index} className="flex items-center space-x-4 p-4 bg-muted/50 rounded-lg">
                       <Input
                         value={spec.name || ''}
                         onChange={(e) => handleSpecificationChange(index, 'name', e.target.value)}
                         placeholder="Specification name"
-                        className="flex-1"
+                        className="flex-1 h-10"
                       />
                       <Input
                         value={spec.value || ''}
                         onChange={(e) => handleSpecificationChange(index, 'value', e.target.value)}
                         placeholder="Specification value"
-                        className="flex-1"
+                        className="flex-1 h-10"
                       />
                       <Button
                         variant="destructive"
                         onClick={() => removeSpecification(index)}
                         size="sm"
+                        className="h-10"
                       >
                         Remove
                       </Button>
@@ -986,25 +1118,30 @@ export default function ProductForm({ productId }: ProductFormProps) {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                  <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="text-center py-12 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/25">
+                  <svg className="mx-auto h-12 w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <p className="text-sm text-gray-600 mb-2">No specifications added yet</p>
-                  <p className="text-xs text-gray-500">Add specifications above to get started</p>
+                  <p className="text-sm text-muted-foreground mb-2">No specifications added yet</p>
+                  <p className="text-xs text-muted-foreground">Add specifications above to get started</p>
                 </div>
               )}
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Features Section */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Features</h2>
-          <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Features</CardTitle>
+            <CardDescription>
+              Highlight key product features and benefits
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
             {/* Add New Feature */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Add New Feature</h3>
+              <h3 className="text-lg font-semibold">Add New Feature</h3>
               <div className="flex gap-4">
                 <div className="flex-1 space-y-2">
                   <Label>Feature</Label>
@@ -1013,14 +1150,14 @@ export default function ProductForm({ productId }: ProductFormProps) {
                     value={newFeature.feature}
                     onChange={handleNewFeatureChange}
                     placeholder="e.g., Dishwasher safe, Non-stick coating, Heat resistant"
-                    className="w-full"
+                    className="h-10"
                   />
                 </div>
                 <div className="flex items-end">
                   <Button
                     onClick={addFeature}
                     disabled={!newFeature.feature}
-                    className="whitespace-nowrap"
+                    className="whitespace-nowrap h-10"
                   >
                     Add Feature
                   </Button>
@@ -1028,28 +1165,31 @@ export default function ProductForm({ productId }: ProductFormProps) {
               </div>
             </div>
 
+            <Separator />
+
             {/* Existing Features */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Existing Features</h3>
+              <h3 className="text-lg font-semibold">Existing Features</h3>
               {product.features.length > 0 ? (
                 <div className="space-y-3">
                   {product.features.map((feature, index) => (
-                    <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                    <div key={index} className="flex items-center space-x-4 p-4 bg-muted/50 rounded-lg">
                       <div className="flex items-center flex-1">
-                        <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                         <Input
                           value={feature.feature || ''}
                           onChange={(e) => handleFeatureChange(index, 'feature', e.target.value)}
                           placeholder="Feature description"
-                          className="flex-1"
+                          className="flex-1 h-10"
                         />
                       </div>
                       <Button
                         variant="destructive"
                         onClick={() => removeFeature(index)}
                         size="sm"
+                        className="h-10"
                       >
                         Remove
                       </Button>
@@ -1057,30 +1197,40 @@ export default function ProductForm({ productId }: ProductFormProps) {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                  <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="text-center py-12 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/25">
+                  <svg className="mx-auto h-12 w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <p className="text-sm text-gray-600 mb-2">No features added yet</p>
-                  <p className="text-xs text-gray-500">Add features above to get started</p>
+                  <p className="text-sm text-muted-foreground mb-2">No features added yet</p>
+                  <p className="text-xs text-muted-foreground">Add features above to get started</p>
                 </div>
               )}
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="flex justify-end space-x-4">
+        {/* Action Buttons */}
+        <div className="flex justify-end space-x-4 pt-6 border-t">
           <Button
             variant="outline"
             onClick={() => router.push('/admin')}
+            className="px-8"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSave}
             disabled={saving}
+            className="px-8"
           >
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Saving...
+              </>
+            ) : (
+              'Save Changes'
+            )}
           </Button>
         </div>
       </div>
