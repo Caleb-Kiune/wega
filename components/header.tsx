@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
-import { Menu, ShoppingCart, Heart, Search, X, Phone, Package, User } from "lucide-react"
+import { Menu, ShoppingCart, Heart, Search, X, Phone, Package, User, Facebook, Instagram, Twitter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
@@ -119,7 +119,17 @@ export default function Header() {
             <Phone className="h-3 w-3 mr-1" />
             <span>Call us: 0769899432</span>
           </div>
-          <div>Free delivery on orders above KES 5,000</div>
+          <div className="flex items-center space-x-4">
+            <Link href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-green-200 transition-colors">
+              <Facebook className="h-4 w-4" />
+            </Link>
+            <Link href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-green-200 transition-colors">
+              <Instagram className="h-4 w-4" />
+            </Link>
+            <Link href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-green-200 transition-colors">
+              <Twitter className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </div>
 

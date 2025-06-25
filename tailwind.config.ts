@@ -7,7 +7,10 @@ const config: Config = {
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
-    "*.{js,ts,jsx,tsx,mdx}",
+    "./lib/**/*.{ts,tsx}",
+    "./hooks/**/*.{ts,tsx}",
+    "./styles/**/*.{ts,tsx,css}",
+    "./*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     container: {

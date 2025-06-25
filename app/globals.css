@@ -50,6 +50,10 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 142.1 76.2% 36.3%;
+    --radius: 0.5rem;
+    --brand-green: 142.1 70.6% 45.3%;
+    --brand-gray: 217.2 32.6% 17.5%;
+    --brand-orange: 24.6 95% 53.1%;
   }
 }
 
@@ -60,6 +64,22 @@
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Ensure main content allows scrolling */
+  main {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent scroll conflicts in carousel sections */
+  section {
+    overflow: visible;
   }
 
   /* Accessibility Focus Styles */
@@ -75,6 +95,15 @@
 
 /* Component Styles */
 @layer components {
+  /* Scrollbar Hide Utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Safari and Chrome */
+  }
+
   /* Product Card Styles */
   .product-card-hover {
     @apply transition-all duration-300 ease-in-out;
@@ -211,24 +240,21 @@
 
 @media (max-width: 640px) {
   .carousel-button {
-    display: none;
+    width: 28px;
+    height: 28px;
   }
 }
 
-/* Animation Styles */
+/* Animation Keyframes */
 @keyframes pulse {
   0%, 100% {
-    opacity: 0.5;
+    opacity: 1;
   }
   50% {
-    opacity: 0.8;
+    opacity: 0.5;
   }
 }
 
 .animate-pulse {
-  -webkit-animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  -moz-animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  -o-animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  will-change: opacity;
 }

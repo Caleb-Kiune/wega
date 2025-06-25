@@ -26,9 +26,22 @@ export function ProductCard({ product }: ProductCardProps) {
   console.log('=======================');
 
   return (
-    <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+    <div 
+      className="group relative bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
+      style={{
+        touchAction: 'manipulation',
+        pointerEvents: 'auto'
+      }}
+    >
       {/* Product Image */}
-      <Link href={`/products/${product.id}`} className="block aspect-square relative">
+      <Link 
+        href={`/products/${product.id}`} 
+        className="block aspect-square relative"
+        style={{
+          touchAction: 'manipulation',
+          pointerEvents: 'auto'
+        }}
+      >
         <Image
           src={imageUrl}
           alt={product.name}
@@ -36,6 +49,10 @@ export function ProductCard({ product }: ProductCardProps) {
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           priority={product.is_featured}
           className="object-cover group-hover:scale-105 transition-transform duration-300"
+          style={{
+            touchAction: 'manipulation',
+            pointerEvents: 'auto'
+          }}
         />
       </Link>
 

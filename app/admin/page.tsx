@@ -79,8 +79,8 @@ export default function AdminPage() {
         setLoading(true);
         const response = await productsApi.getAll({
           search: debouncedSearch,
-          category: category === 'all' ? undefined : category,
-          brand: brand === 'all' ? undefined : brand,
+          categories: category === 'all' ? undefined : [category],
+          brands: brand === 'all' ? undefined : [brand],
           sort_by: sortBy,
           sort_order: sortOrder,
           page: currentPage,

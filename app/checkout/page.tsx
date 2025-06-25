@@ -245,7 +245,7 @@ export default function CheckoutPage() {
       console.log('Response headers:', Object.fromEntries(response.headers.entries()))
 
       if (!response.ok) {
-        let errorData = {}
+        let errorData: { error?: string; message?: string } = {}
         try {
           const responseText = await response.text()
           console.log('Response text:', responseText)

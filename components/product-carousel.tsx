@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import ProductCard from "@/components/product-card"
 import { productsApi, Product, ProductsParams } from "@/app/lib/api/products"
+import { useCarouselScroll } from "@/lib/hooks/use-carousel-scroll"
 
 interface ProductCarouselProps {
   category: "new-arrivals" | "special-offers"
@@ -17,6 +18,9 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Use shared carousel scroll handler
+  const { isScrolling } = useCarouselScroll(carouselRef);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -180,7 +184,9 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
           scrollSnapType: 'x mandatory',
           WebkitOverflowScrolling: 'touch',
           scrollBehavior: 'smooth',
-          overscrollBehavior: 'contain'
+          overscrollBehavior: 'contain',
+          touchAction: 'pan-x',
+          pointerEvents: 'auto'
         }}
       >
         {products.map((product) => (
@@ -189,7 +195,9 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
             className="flex-none w-[280px]"
             style={{ 
               scrollSnapAlign: 'start',
-              scrollSnapStop: 'always'
+              scrollSnapStop: 'always',
+              touchAction: 'manipulation',
+              pointerEvents: 'auto'
             }}
           >
             <ProductCard product={product} />

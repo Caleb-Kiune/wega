@@ -3,12 +3,16 @@
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { Star, ChevronLeft, ChevronRight } from "lucide-react"
+import { useCarouselScroll } from "@/lib/hooks/use-carousel-scroll"
 
 export default function TestimonialSection() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
   const carouselRef = useRef<HTMLDivElement>(null)
   const sectionRef = useRef<HTMLElement>(null)
+
+  // Use shared carousel scroll handler
+  const { isScrolling } = useCarouselScroll(carouselRef);
 
   const testimonials = [
     {
@@ -168,7 +172,9 @@ export default function TestimonialSection() {
               scrollSnapType: 'x mandatory',
               WebkitOverflowScrolling: 'touch',
               scrollBehavior: 'smooth',
-              overscrollBehavior: 'contain'
+              overscrollBehavior: 'contain',
+              touchAction: 'pan-x',
+              pointerEvents: 'auto'
             }}
           >
             {testimonials.map((testimonial, index) => (
@@ -183,7 +189,9 @@ export default function TestimonialSection() {
                   scrollSnapAlign: 'start',
                   scrollSnapStop: 'always',
                   transitionDelay: `${index * 200}ms`,
-                  willChange: "transform, opacity"
+                  willChange: "transform, opacity",
+                  touchAction: 'manipulation',
+                  pointerEvents: 'auto'
                 }}
                 role="article"
                 aria-labelledby={`mobile-testimonial-${testimonial.id}`}
