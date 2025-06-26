@@ -358,14 +358,37 @@ export const productsApi = {
         body: JSON.stringify(transformedProduct),
       });
 
+      console.log('📡 API Update - Response status:', response.status, response.statusText);
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        let errorData;
+        try {
+          errorData = await response.json();
+          console.error('❌ API Update - Error response JSON:', errorData);
+        } catch (jsonError) {
+          console.error('❌ API Update - Failed to parse error response as JSON:', jsonError);
+          errorData = { error: 'Failed to parse error response' };
+        }
+        
         console.error('❌ API Update - Update failed:', {
           status: response.status,
           statusText: response.statusText,
           error: errorData
         });
-        throw new Error(errorData.error || `Failed to update product: ${response.status} ${response.statusText}`);
+        
+        // Provide more specific error messages based on status code
+        let errorMessage = 'Failed to update product';
+        if (response.status === 400) {
+          errorMessage = errorData.error || 'Invalid data provided';
+        } else if (response.status === 404) {
+          errorMessage = 'Product not found';
+        } else if (response.status === 500) {
+          errorMessage = errorData.error || 'Server error occurred';
+        } else {
+          errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();

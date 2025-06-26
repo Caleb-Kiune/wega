@@ -58,18 +58,6 @@ interface Category {
   image_url?: string;
 }
 
-// New specification and feature types for input fields
-interface NewSpecification {
-  name: string;
-  value: string;
-  display_order: number;
-}
-
-interface NewFeature {
-  feature: string;
-  display_order: number;
-}
-
 export default function ProductForm({ productId }: ProductFormProps) {
   const router = useRouter();
   const [product, setProduct] = useState<ProductWithReviews | null>(null);
@@ -78,22 +66,6 @@ export default function ProductForm({ productId }: ProductFormProps) {
   const [saving, setSaving] = useState(false);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
-  const [newImageUrl, setNewImageUrl] = useState('');
-  const [newImagePrimary, setNewImagePrimary] = useState(false);
-
-  // New state variables for adding specifications and features
-  const [newSpecification, setNewSpecification] = useState<NewSpecification>({
-    name: '',
-    value: '',
-    display_order: 0
-  });
-
-  const [newFeature, setNewFeature] = useState<NewFeature>({
-    feature: '',
-    display_order: 0
-  });
 
   const initialProductState: ProductWithReviews = {
     id: 0,
@@ -198,69 +170,37 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setProduct(prev => ({
-      ...(prev || initialProductState),
-      [name]: value || ''
-    }));
+    setProduct(prev => prev ? { ...prev, [name]: value } : initialProductState);
   };
 
   const handleNumberInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setProduct(prev => ({
-      ...(prev || initialProductState),
-      [name]: value === '' ? 0 : Number(value)
-    }));
+    const numValue = value === '' ? 0 : parseFloat(value);
+    setProduct(prev => prev ? { ...prev, [name]: numValue } : initialProductState);
   };
 
   const handleSwitchChange = (name: string) => (checked: boolean) => {
-    setProduct(prev => ({
-      ...(prev || initialProductState),
-      [name]: checked
-    }));
+    setProduct(prev => prev ? { ...prev, [name]: checked } : initialProductState);
   };
 
   const handleImageChange = (index: number, field: string, value: string | boolean | number) => {
-    console.log(`🔄 handleImageChange - Index: ${index}, Field: ${field}, Value: ${value}`);
-    
     setProduct(prev => {
-      const currentProduct = prev || initialProductState;
-      const newImages = [...currentProduct.images];
+      if (!prev) return initialProductState;
+      const newImages = [...prev.images];
       
-      // If setting an image as primary, ensure all other images are set to non-primary
       if (field === 'is_primary' && value === true) {
-        console.log(`🎯 Setting image ${index} as primary, setting all others to non-primary`);
-        newImages.forEach((img, i) => {
-          img.is_primary = i === index;
-          console.log(`  Image ${i}: is_primary = ${img.is_primary}`);
-        });
-      } else if (field === 'is_primary' && value === false) {
-        // If unsetting primary, ensure at least one image remains primary
-        const currentPrimaryIndex = newImages.findIndex(img => img.is_primary);
-        if (currentPrimaryIndex === index && newImages.length > 1) {
-          // Find another image to make primary
-          const nextPrimaryIndex = newImages.findIndex((img, i) => i !== index);
-          if (nextPrimaryIndex !== -1) {
-            newImages[nextPrimaryIndex].is_primary = true;
-            console.log(`🔄 Auto-setting image ${nextPrimaryIndex} as primary since image ${index} was unset`);
+        // Set all other images to non-primary
+        newImages.forEach((img, idx) => {
+          if (idx !== index) {
+            img.is_primary = false;
           }
-        }
-        newImages[index] = {
-          ...newImages[index],
-          [field]: value
-        };
-      } else {
-        // For other fields, just update the specific image
-        console.log(`📝 Updating image ${index} field '${field}' to '${value}'`);
-        newImages[index] = {
-          ...newImages[index],
-          [field]: value ?? (field === 'image_url' ? '' : value)
-        };
+        });
       }
       
-      console.log('✅ Updated images:', newImages.map((img, i) => ({ index: i, url: img.image_url, is_primary: img.is_primary })));
+      newImages[index] = { ...newImages[index], [field]: value };
       
       return {
-        ...currentProduct,
+        ...prev,
         images: newImages
       };
     });
@@ -268,14 +208,11 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
   const handleSpecificationChange = (index: number, field: string, value: string | number) => {
     setProduct(prev => {
-      const currentProduct = prev || initialProductState;
-      const newSpecifications = [...currentProduct.specifications];
-      newSpecifications[index] = {
-        ...newSpecifications[index],
-        [field]: value ?? (typeof value === 'string' ? '' : value)
-      };
+      if (!prev) return initialProductState;
+      const newSpecifications = [...prev.specifications];
+      newSpecifications[index] = { ...newSpecifications[index], [field]: value };
       return {
-        ...currentProduct,
+        ...prev,
         specifications: newSpecifications
       };
     });
@@ -283,65 +220,14 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
   const handleFeatureChange = (index: number, field: string, value: string | number) => {
     setProduct(prev => {
-      const currentProduct = prev || initialProductState;
-      const newFeatures = [...currentProduct.features];
-      newFeatures[index] = {
-        ...newFeatures[index],
-        [field]: value ?? (typeof value === 'string' ? '' : value)
-      };
+      if (!prev) return initialProductState;
+      const newFeatures = [...prev.features];
+      newFeatures[index] = { ...newFeatures[index], [field]: value };
       return {
-        ...currentProduct,
+        ...prev,
         features: newFeatures
       };
     });
-  };
-
-  // New handlers for adding specifications and features
-  const handleNewSpecificationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewSpecification(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleNewFeatureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewFeature(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const addImage = () => {
-    if (!newImageUrl) return;
-    
-    console.log('➕ Adding image to product:', newImageUrl);
-    
-    setProduct(prev => {
-      const currentProduct = prev || initialProductState;
-      const existingImages = [...currentProduct.images];
-      
-      // If the new image should be primary, set all existing images to non-primary
-      if (newImagePrimary) {
-        existingImages.forEach(img => {
-          img.is_primary = false;
-        });
-      }
-      
-      const newImage = {
-        image_url: newImageUrl,
-        is_primary: newImagePrimary || existingImages.length === 0,
-        display_order: existingImages.length
-      };
-      
-      return {
-        ...currentProduct,
-        images: [...existingImages, newImage]
-      };
-    });
-    setNewImageUrl('');
-    setNewImagePrimary(false);
   };
 
   const removeImage = (index: number) => {
@@ -370,34 +256,6 @@ export default function ProductForm({ productId }: ProductFormProps) {
     });
   };
 
-  const addSpecification = () => {
-    if (!newSpecification.name || !newSpecification.value) return;
-    
-    console.log('➕ Adding specification:', newSpecification);
-    
-    setProduct(prev => {
-      const newSpec = {
-        name: newSpecification.name,
-        value: newSpecification.value,
-        display_order: (prev?.specifications || []).length
-      };
-      
-      const updatedProduct = {
-        ...(prev || initialProductState),
-        specifications: [
-          ...(prev?.specifications || []),
-          newSpec
-        ]
-      };
-      
-      console.log('✅ Updated product specifications:', updatedProduct.specifications);
-      return updatedProduct;
-    });
-    
-    // Reset the input fields
-    setNewSpecification({ name: '', value: '', display_order: 0 });
-  };
-
   const removeSpecification = (index: number) => {
     console.log('🗑️ Removing specification at index:', index);
     
@@ -414,33 +272,6 @@ export default function ProductForm({ productId }: ProductFormProps) {
         specifications: newSpecifications
       };
     });
-  };
-
-  const addFeature = () => {
-    if (!newFeature.feature) return;
-    
-    console.log('➕ Adding feature:', newFeature);
-    
-    setProduct(prev => {
-      const newFeat = {
-        feature: newFeature.feature,
-        display_order: (prev?.features || []).length
-      };
-      
-      const updatedProduct = {
-        ...(prev || initialProductState),
-        features: [
-          ...(prev?.features || []),
-          newFeat
-        ]
-      };
-      
-      console.log('✅ Updated product features:', updatedProduct.features);
-      return updatedProduct;
-    });
-    
-    // Reset the input field
-    setNewFeature({ feature: '', display_order: 0 });
   };
 
   const removeFeature = (index: number) => {
@@ -520,15 +351,11 @@ export default function ProductForm({ productId }: ProductFormProps) {
         delete productToUpdate.category_id;
       }
 
-      console.log('🚀 Sending update request with data:', {
-        id: product.id,
-        specifications: productToUpdate.specifications,
-        features: productToUpdate.features,
-        images: productToUpdate.images
-      });
+      console.log('📤 Sending update data:', productToUpdate);
 
       const updatedProduct = await productsApi.update(product.id, productToUpdate);
       console.log('✅ Product updated successfully:', updatedProduct);
+      
       toast.success('Product updated successfully');
       router.push('/admin');
     } catch (error) {
@@ -539,255 +366,167 @@ export default function ProductForm({ productId }: ProductFormProps) {
     }
   };
 
-  const handleFileUpload = async (file: File) => {
-    try {
-      setUploadingImage(true);
-      setError(null);
-
-      const formData = new FormData();
-      formData.append('file', file);
-
-      // Use Flask backend for uploads
-      const response = await fetch('http://localhost:5000/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Upload failed');
-      }
-
-      // Set the uploaded image URL
-      setNewImageUrl(result.url);
-      console.log('✅ Image uploaded successfully:', result.url);
-      toast.success('Image uploaded successfully!');
-    } catch (err) {
-      console.error('Upload error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to upload image');
-      toast.error('Failed to upload image');
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileUpload(file);
-    }
-  };
-
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true);
-    } else if (e.type === 'dragleave') {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    const files = e.dataTransfer.files;
-    if (files && files[0]) {
-      handleFileUpload(files[0]);
-    }
-  };
-
-  // Test function for primary image functionality (can be removed after testing)
-  const testPrimaryImageFunctionality = () => {
-    console.log('🧪 Testing Primary Image Functionality');
-    console.log('Current images:', product?.images?.map((img, i) => ({
-      index: i,
-      url: img.image_url,
-      is_primary: img.is_primary
-    })));
-    
-    // Test 1: Check if exactly one image is primary
-    const primaryImages = product?.images?.filter(img => img.is_primary) || [];
-    console.log('Primary images count:', primaryImages.length);
-    
-    if (primaryImages.length === 0 && product?.images && product.images.length > 0) {
-      console.warn('⚠️ No primary image set but images exist');
-    } else if (primaryImages.length > 1) {
-      console.error('❌ Multiple primary images detected:', primaryImages);
-    } else {
-      console.log('✅ Primary image validation passed');
-    }
-  };
-
-  // Call test function when images change
-  useEffect(() => {
-    if (product?.images && product.images.length > 0) {
-      testPrimaryImageFunctionality();
-    }
-  }, [product?.images]);
-
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="text-lg font-medium text-muted-foreground">Loading product details...</p>
-          </div>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto p-6">
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle className="text-destructive">Error</CardTitle>
-            <CardDescription>Failed to load product information</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => router.push('/admin')} variant="outline" className="w-full">
-              Back to Admin
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
+          <p className="text-gray-600">{error}</p>
+          <Button onClick={() => router.push('/admin')} className="mt-4">
+            Back to Admin
+          </Button>
+        </div>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="container mx-auto p-6">
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle>Product Not Found</CardTitle>
-            <CardDescription>The requested product could not be found</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => router.push('/admin')} variant="outline" className="w-full">
-              Back to Admin
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-600 mb-4">Product Not Found</h2>
+          <Button onClick={() => router.push('/admin')} className="mt-4">
+            Back to Admin
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      {/* Header */}
-      <div className="mb-8">
+    <div className="container mx-auto py-8 px-4">
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Edit Product</h1>
-            <p className="text-muted-foreground mt-2">
-              Update product information, images, specifications, and features
-            </p>
+            <h1 className="text-3xl font-bold">Edit Product</h1>
+            <p className="text-muted-foreground">Update product information and details</p>
           </div>
-          <div className="flex items-center gap-2">
-            {product.is_new && <Badge variant="default">New</Badge>}
-            {product.is_sale && <Badge variant="destructive">Sale</Badge>}
-            {product.is_featured && <Badge variant="secondary">Featured</Badge>}
-          </div>
+          <Button
+            variant="outline"
+            onClick={() => router.push('/admin')}
+          >
+            Back to Admin
+          </Button>
         </div>
-      </div>
 
-      <div className="space-y-8">
         {/* Basic Information */}
         <Card>
           <CardHeader>
             <CardTitle>Basic Information</CardTitle>
             <CardDescription>
-              Essential product details like name, SKU, pricing, and categorization
+              Update the basic product details like name, description, and pricing
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="name">Product Name</Label>
+                <Label htmlFor="name">Product Name *</Label>
                 <Input
                   id="name"
                   name="name"
-                  value={product.name || ''}
+                  value={product.name}
                   onChange={handleInputChange}
                   placeholder="Enter product name"
-                  className="h-11"
+                  className="h-10"
                 />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="sku">SKU</Label>
                 <Input
                   id="sku"
                   name="sku"
-                  value={product.sku || ''}
+                  value={product.sku}
                   onChange={handleInputChange}
-                  placeholder="Product SKU"
-                  className="h-11"
+                  placeholder="Enter SKU"
+                  className="h-10"
                 />
               </div>
+            </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                value={product.description}
+                onChange={handleInputChange}
+                placeholder="Enter product description"
+                rows={4}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="price">Price</Label>
+                <Label htmlFor="price">Price *</Label>
                 <Input
                   id="price"
                   name="price"
                   type="number"
-                  value={product.price || 0}
+                  step="0.01"
+                  min="0"
+                  value={product.price}
                   onChange={handleNumberInputChange}
                   placeholder="0.00"
-                  className="h-11"
+                  className="h-10"
                 />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="original_price">Original Price</Label>
                 <Input
                   id="original_price"
                   name="original_price"
                   type="number"
-                  value={product.original_price || 0}
+                  step="0.01"
+                  min="0"
+                  value={product.original_price}
                   onChange={handleNumberInputChange}
                   placeholder="0.00"
-                  className="h-11"
+                  className="h-10"
                 />
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="stock">Stock Quantity</Label>
+                <Label htmlFor="stock">Stock *</Label>
                 <Input
                   id="stock"
                   name="stock"
                   type="number"
-                  value={product.stock || 0}
+                  min="0"
+                  value={product.stock}
                   onChange={handleNumberInputChange}
                   placeholder="0"
-                  className="h-11"
+                  className="h-10"
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="brand">Brand</Label>
                 <Select
-                  value={product.brand_id && product.brand_id > 0 ? product.brand_id.toString() : 'none'}
+                  value={product.brand_id?.toString() || ''}
                   onValueChange={(value) => {
-                    setProduct(prev => ({
-                      ...(prev || initialProductState),
-                      brand_id: value === 'none' ? 0 : parseInt(value)
-                    }));
+                    const brandId = parseInt(value);
+                    const selectedBrand = brands.find(b => b.id === brandId);
+                    setProduct(prev => prev ? {
+                      ...prev,
+                      brand_id: brandId,
+                      brand: selectedBrand?.name || ''
+                    } : initialProductState);
                   }}
                 >
-                  <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Select a brand" />
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Select brand" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No brand</SelectItem>
                     {brands.map((brand) => (
                       <SelectItem key={brand.id} value={brand.id.toString()}>
                         {brand.name}
@@ -796,23 +535,24 @@ export default function ProductForm({ productId }: ProductFormProps) {
                   </SelectContent>
                 </Select>
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
                 <Select
-                  value={product.category_id && product.category_id > 0 ? product.category_id.toString() : 'none'}
+                  value={product.category_id?.toString() || ''}
                   onValueChange={(value) => {
-                    setProduct(prev => ({
-                      ...(prev || initialProductState),
-                      category_id: value === 'none' ? 0 : parseInt(value)
-                    }));
+                    const categoryId = parseInt(value);
+                    const selectedCategory = categories.find(c => c.id === categoryId);
+                    setProduct(prev => prev ? {
+                      ...prev,
+                      category_id: categoryId,
+                      category: selectedCategory?.name || ''
+                    } : initialProductState);
                   }}
                 >
-                  <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Select a category" />
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No category</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id.toString()}>
                         {category.name}
@@ -823,65 +563,30 @@ export default function ProductForm({ productId }: ProductFormProps) {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                name="description"
-                value={product.description || ''}
-                onChange={handleInputChange}
-                placeholder="Enter detailed product description..."
-                rows={4}
-                className="resize-none"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Product Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Product Status</CardTitle>
-            <CardDescription>
-              Configure product visibility and promotional settings
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="flex items-center space-x-3 p-4 border rounded-lg">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-2">
                 <Switch
                   id="is_new"
-                  checked={product.is_new || false}
+                  checked={product.is_new}
                   onCheckedChange={handleSwitchChange('is_new')}
                 />
-                <div className="space-y-1">
-                  <Label htmlFor="is_new" className="text-sm font-medium">New Product</Label>
-                  <p className="text-xs text-muted-foreground">Mark as newly added</p>
-                </div>
+                <Label htmlFor="is_new">New Product</Label>
               </div>
-
-              <div className="flex items-center space-x-3 p-4 border rounded-lg">
+              <div className="flex items-center space-x-2">
                 <Switch
                   id="is_sale"
-                  checked={product.is_sale || false}
+                  checked={product.is_sale}
                   onCheckedChange={handleSwitchChange('is_sale')}
                 />
-                <div className="space-y-1">
-                  <Label htmlFor="is_sale" className="text-sm font-medium">On Sale</Label>
-                  <p className="text-xs text-muted-foreground">Display sale badge</p>
-                </div>
+                <Label htmlFor="is_sale">On Sale</Label>
               </div>
-
-              <div className="flex items-center space-x-3 p-4 border rounded-lg">
+              <div className="flex items-center space-x-2">
                 <Switch
                   id="is_featured"
-                  checked={product.is_featured || false}
+                  checked={product.is_featured}
                   onCheckedChange={handleSwitchChange('is_featured')}
                 />
-                <div className="space-y-1">
-                  <Label htmlFor="is_featured" className="text-sm font-medium">Featured</Label>
-                  <p className="text-xs text-muted-foreground">Highlight on homepage</p>
-                </div>
+                <Label htmlFor="is_featured">Featured</Label>
               </div>
             </div>
           </CardContent>
@@ -892,128 +597,10 @@ export default function ProductForm({ productId }: ProductFormProps) {
           <CardHeader>
             <CardTitle>Product Images</CardTitle>
             <CardDescription>
-              Upload and manage product images. The primary image will be displayed first.
+              Manage product images. At least one image must be set as primary.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-8">
-            {/* Upload New Image */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Add New Image</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* File Upload */}
-                <div className="space-y-4">
-                  <Label>Upload Image</Label>
-                  <div
-                    className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
-                      dragActive
-                        ? 'border-primary bg-primary/5'
-                        : 'border-muted-foreground/25 hover:border-muted-foreground/50'
-                    } ${uploadingImage ? 'opacity-50 pointer-events-none' : ''}`}
-                    onDragEnter={handleDrag}
-                    onDragLeave={handleDrag}
-                    onDragOver={handleDrag}
-                    onDrop={handleDrop}
-                  >
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileInputChange}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      disabled={uploadingImage}
-                    />
-                    <div className="space-y-3">
-                      <svg
-                        className="mx-auto h-12 w-12 text-muted-foreground"
-                        stroke="currentColor"
-                        fill="none"
-                        viewBox="0 0 48 48"
-                      >
-                        <path
-                          d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                          strokeWidth={2}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <div className="text-sm text-muted-foreground">
-                        <span className="font-medium text-primary hover:text-primary/80">
-                          Click to upload
-                        </span>{' '}
-                        or drag and drop
-                      </div>
-                      <p className="text-xs text-muted-foreground">PNG, JPG, WebP up to 5MB</p>
-                    </div>
-                    {uploadingImage && (
-                      <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-lg">
-                        <div className="text-sm text-muted-foreground">Uploading...</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* URL Input */}
-                <div className="space-y-4">
-                  <Label>Or Enter Image URL</Label>
-                  <div className="space-y-2">
-                    <Input
-                      value={newImageUrl}
-                      onChange={(e) => setNewImageUrl(e.target.value)}
-                      placeholder="https://example.com/image.jpg"
-                      className="h-11"
-                    />
-                    <p className="text-xs text-muted-foreground">Enter a direct link to an image</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Image Preview */}
-              {newImageUrl && (
-                <div className="space-y-3">
-                  <Label>Preview</Label>
-                  <div className="relative inline-block">
-                    <img
-                      src={newImageUrl}
-                      alt="Preview"
-                      className="w-32 h-32 object-cover rounded-lg border border-border shadow-sm"
-                    />
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => setNewImageUrl('')}
-                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                    >
-                      ×
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Add Image Button */}
-              {newImageUrl && (
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="new-image-primary"
-                      checked={newImagePrimary}
-                      onCheckedChange={setNewImagePrimary}
-                    />
-                    <Label htmlFor="new-image-primary">Set as Primary</Label>
-                  </div>
-                  <Button
-                    onClick={() => {
-                      addImage();
-                      setNewImageUrl('');
-                    }}
-                    disabled={!newImageUrl}
-                  >
-                    Add Image
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            <Separator />
-
+          <CardContent className="space-y-6">
             {/* Existing Images */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Existing Images</h3>
@@ -1087,8 +674,8 @@ export default function ProductForm({ productId }: ProductFormProps) {
                   <svg className="mx-auto h-12 w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <p className="text-sm text-muted-foreground mb-2">No images added yet</p>
-                  <p className="text-xs text-muted-foreground">Upload images above to get started</p>
+                  <p className="text-sm text-muted-foreground mb-2">No images available</p>
+                  <p className="text-xs text-muted-foreground">Images can only be added during product creation</p>
                 </div>
               )}
             </div>
@@ -1100,48 +687,10 @@ export default function ProductForm({ productId }: ProductFormProps) {
           <CardHeader>
             <CardTitle>Specifications</CardTitle>
             <CardDescription>
-              Add product specifications like dimensions, materials, and technical details
+              Edit product specifications like dimensions, materials, and technical details
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Add New Specification */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Add New Specification</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Name</Label>
-                  <Input
-                    name="name"
-                    value={newSpecification.name}
-                    onChange={handleNewSpecificationChange}
-                    placeholder="e.g., Material, Size, Weight"
-                    className="h-10"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Value</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      name="value"
-                      value={newSpecification.value}
-                      onChange={handleNewSpecificationChange}
-                      placeholder="e.g., Stainless Steel, 10 inches, 2.5 lbs"
-                      className="flex-1 h-10"
-                    />
-                    <Button
-                      onClick={addSpecification}
-                      disabled={!newSpecification.name || !newSpecification.value}
-                      className="whitespace-nowrap h-10"
-                    >
-                      Add
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
             {/* Existing Specifications */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Existing Specifications</h3>
@@ -1177,8 +726,8 @@ export default function ProductForm({ productId }: ProductFormProps) {
                   <svg className="mx-auto h-12 w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <p className="text-sm text-muted-foreground mb-2">No specifications added yet</p>
-                  <p className="text-xs text-muted-foreground">Add specifications above to get started</p>
+                  <p className="text-sm text-muted-foreground mb-2">No specifications available</p>
+                  <p className="text-xs text-muted-foreground">Specifications can only be added during product creation</p>
                 </div>
               )}
             </div>
@@ -1190,38 +739,10 @@ export default function ProductForm({ productId }: ProductFormProps) {
           <CardHeader>
             <CardTitle>Features</CardTitle>
             <CardDescription>
-              Highlight key product features and benefits
+              Edit key product features and benefits
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Add New Feature */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Add New Feature</h3>
-              <div className="flex gap-4">
-                <div className="flex-1 space-y-2">
-                  <Label>Feature</Label>
-                  <Input
-                    name="feature"
-                    value={newFeature.feature}
-                    onChange={handleNewFeatureChange}
-                    placeholder="e.g., Dishwasher safe, Non-stick coating, Heat resistant"
-                    className="h-10"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <Button
-                    onClick={addFeature}
-                    disabled={!newFeature.feature}
-                    className="whitespace-nowrap h-10"
-                  >
-                    Add Feature
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
             {/* Existing Features */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Existing Features</h3>
@@ -1256,8 +777,8 @@ export default function ProductForm({ productId }: ProductFormProps) {
                   <svg className="mx-auto h-12 w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <p className="text-sm text-muted-foreground mb-2">No features added yet</p>
-                  <p className="text-xs text-muted-foreground">Add features above to get started</p>
+                  <p className="text-sm text-muted-foreground mb-2">No features available</p>
+                  <p className="text-xs text-muted-foreground">Features can only be added during product creation</p>
                 </div>
               )}
             </div>

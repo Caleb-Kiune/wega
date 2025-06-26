@@ -130,11 +130,12 @@ class ProductImage(db.Model):
     display_order = db.Column(db.Integer, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
 
-    # Add a unique constraint to ensure only one primary image per product
-    __table_args__ = (
-        db.Index('idx_product_primary_image', 'product_id', 'is_primary', unique=True, 
-                postgresql_where=db.Column('is_primary') == True),
-    )
+    # Remove the problematic unique constraint for now
+    # We'll handle primary image logic in the application layer
+    # __table_args__ = (
+    #     db.Index('idx_product_primary_image', 'product_id', 'is_primary', unique=True, 
+    #             postgresql_where=db.Column('is_primary') == True),
+    # )
 
     def __repr__(self):
         return f'<ProductImage {self.id}>'

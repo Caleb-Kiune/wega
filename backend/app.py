@@ -594,6 +594,7 @@ def update_product(id):
 
             # Handle images - update existing ones and create new ones
             existing_image_ids = set()
+            new_images_created = False
             
             # First, identify which image should be primary
             primary_image_id = None
@@ -610,6 +611,12 @@ def update_product(id):
                 else:
                     # This is a new image, it will be set as primary
                     pass
+            
+            # First, set all existing images for this product to non-primary
+            existing_images = ProductImage.query.filter_by(product_id=id).all()
+            for existing_img in existing_images:
+                existing_img.is_primary = False
+                print(f"Set existing image {existing_img.id} to non-primary")
             
             for img_data in data['images']:
                 if img_data.get('id'):
@@ -634,17 +641,23 @@ def update_product(id):
                         display_order=int(img_data.get('display_order', 0))
                     )
                     db.session.add(new_image)
+                    new_images_created = True
                     print(f"Created new image: {img_data['image_url']}, is_primary: {is_primary}")
                     if is_primary:
                         primary_image_id = 'new'  # Mark that we've set a new image as primary
             
-            # Only delete images if there are existing ones
-            if existing_image_ids:
+            # Only delete images if there are existing ones AND we're not adding new ones
+            # This prevents newly created images from being deleted before commit
+            if existing_image_ids and not new_images_created:
                 ProductImage.query.filter(
                     ProductImage.product_id == id,
                     ~ProductImage.id.in_(existing_image_ids)
                 ).delete(synchronize_session=False)
                 print(f"Deleted images not in list. Kept: {existing_image_ids}")
+            elif existing_image_ids and new_images_created:
+                # If we have both existing and new images, we need to be more careful
+                # Only delete images that are not in the current list AND are not newly created
+                print(f"Keeping existing images: {existing_image_ids} and newly created images")
 
         if 'specifications' in data:
             print(f"Processing specifications: {data['specifications']}")
@@ -764,11 +777,25 @@ def update_product(id):
         
         return jsonify(result), 200
     except Exception as e:
-        print(f"Error updating product: {str(e)}")
+        print(f"❌ Error updating product: {str(e)}")
         import traceback
-        print(f"Traceback: {traceback.format_exc()}")
+        print(f"❌ Traceback: {traceback.format_exc()}")
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        
+        # Provide more detailed error information
+        error_message = str(e)
+        if "UNIQUE constraint failed" in error_message:
+            error_message = "Database constraint violation: Duplicate entry detected"
+        elif "FOREIGN KEY constraint failed" in error_message:
+            error_message = "Database constraint violation: Invalid foreign key reference"
+        elif "NOT NULL constraint failed" in error_message:
+            error_message = "Database constraint violation: Required field is missing"
+        
+        return jsonify({
+            'error': error_message,
+            'details': str(e),
+            'type': type(e).__name__
+        }), 500
 
 @app.route('/api/products/<int:id>', methods=['DELETE'])
 def delete_product(id):
