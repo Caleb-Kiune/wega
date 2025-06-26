@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { use } from "react"
+import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { Minus, Plus, Truck, ShieldCheck, Heart } from "lucide-react"
@@ -10,8 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import ProductCarousel from "@/components/product-carousel"
 import AddToCartButton from "@/components/add-to-cart-button"
 import WhatsAppOrderButton from "@/components/whatsapp-order-button"
-import { useToast } from "@/hooks/use-toast"
-import { useWishlist } from "@/lib/context/wishlist-context"
+import { useToast } from "@/lib/hooks/use-toast"
+import { useWishlist } from "@/lib/hooks/use-wishlist"
 import { productsApi, getImageUrl } from "@/app/lib/api/products"
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {

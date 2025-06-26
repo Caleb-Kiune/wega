@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useBrands } from '../hooks/useBrands';
-import { useCategories } from '../hooks/useCategories';
+import { useBrands } from '@/lib/hooks/use-brands';
+import { useCategories } from '@/lib/hooks/use-categories';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from './ui/checkbox';
-import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Filter, X, Loader2 } from 'lucide-react';
 import { ProductsParams } from '../lib/api/products';
 import { Slider } from '@/components/ui/slider';

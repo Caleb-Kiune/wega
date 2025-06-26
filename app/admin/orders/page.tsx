@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Eye, Package, Truck, CheckCircle, XCircle, Search, Filter, Download, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useDebounce } from '@/hooks/useDebounce';
+import { useDebounce } from '@/lib/hooks/use-debounce';
 import {
   DropdownMenu,
   DropdownMenuContent,
