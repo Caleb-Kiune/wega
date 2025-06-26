@@ -67,37 +67,70 @@ export default function ProductsPage() {
     }
   }, [products, totalPages, currentPage]);
 
-  // Update URL when filters change
+  // Update URL when filters change - but only if they're different from current URL params
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (filters.page && filters.page > 1) params.set('page', filters.page.toString());
-    if (filters.categories?.length) {
-      filters.categories.forEach(category => {
-        params.append('categories', category);
-      });
-    }
-    if (filters.brands?.length) {
-      filters.brands.forEach(brand => {
-        params.append('brands', brand);
-      });
-    }
-    if (filters.min_price) params.set('min_price', filters.min_price.toString());
-    if (filters.max_price) params.set('max_price', filters.max_price.toString());
-    if (filters.is_featured) params.set('is_featured', 'true');
-    if (filters.is_new) params.set('is_new', 'true');
-    if (filters.is_sale) params.set('is_sale', 'true');
-    if (filters.search) params.set('search', filters.search);
+    const currentSearch = searchParams.get('search');
+    const currentPage = searchParams.get('page');
+    const currentCategories = searchParams.getAll('categories');
+    const currentBrands = searchParams.getAll('brands');
+    const currentMinPrice = searchParams.get('min_price');
+    const currentMaxPrice = searchParams.get('max_price');
+    const currentIsFeatured = searchParams.get('is_featured');
+    const currentIsNew = searchParams.get('is_new');
+    const currentIsSale = searchParams.get('is_sale');
 
-    const newUrl = params.toString() ? `?${params.toString()}` : '';
-    router.push(`/products${newUrl}`);
-  }, [filters, router]);
+    // Check if filters have actually changed from URL params
+    const hasChanged = 
+      filters.search !== (currentSearch || undefined) ||
+      filters.page !== (Number(currentPage) || 1) ||
+      JSON.stringify(filters.categories) !== JSON.stringify(currentCategories) ||
+      JSON.stringify(filters.brands) !== JSON.stringify(currentBrands) ||
+      filters.min_price !== (Number(currentMinPrice) || undefined) ||
+      filters.max_price !== (Number(currentMaxPrice) || undefined) ||
+      filters.is_featured !== (currentIsFeatured === 'true') ||
+      filters.is_new !== (currentIsNew === 'true') ||
+      filters.is_sale !== (currentIsSale === 'true');
 
-  const handleFiltersChange = (newFilters: ProductsFilters) => {
+    if (hasChanged) {
+      const params = new URLSearchParams();
+      if (filters.page && filters.page > 1) params.set('page', filters.page.toString());
+      if (filters.categories?.length) {
+        filters.categories.forEach(category => {
+          params.append('categories', category);
+        });
+      }
+      if (filters.brands?.length) {
+        filters.brands.forEach(brand => {
+          params.append('brands', brand);
+        });
+      }
+      if (filters.min_price) params.set('min_price', filters.min_price.toString());
+      if (filters.max_price) params.set('max_price', filters.max_price.toString());
+      if (filters.is_featured) params.set('is_featured', 'true');
+      if (filters.is_new) params.set('is_new', 'true');
+      if (filters.is_sale) params.set('is_sale', 'true');
+      if (filters.search) params.set('search', filters.search);
+
+      const newUrl = params.toString() ? `?${params.toString()}` : '';
+      const currentUrl = window.location.search;
+      
+      // Only update URL if it's actually different
+      if (newUrl !== currentUrl) {
+        router.replace(`/products${newUrl}`, { scroll: false });
+      }
+    }
+  }, [filters, router, searchParams]);
+
+  const handleFiltersChange = (newFilters: Partial<ProductsFilters>) => {
     setFilters((prev: ProductsFilters) => ({ ...prev, ...newFilters, page: 1 }));
   };
 
   const handlePageChange = (page: number) => {
     setFilters((prev: ProductsFilters) => ({ ...prev, page }));
+  };
+
+  const handleClearSearch = () => {
+    setFilters((prev: ProductsFilters) => ({ ...prev, search: undefined, page: 1 }));
   };
 
   return (
@@ -108,8 +141,32 @@ export default function ProductsPage() {
 
         {/* Main Content */}
         <div className="flex-1">
+          {/* Search Results Header */}
+          {filters.search && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-green-800">
+                    Search results for: <span className="font-semibold">"{filters.search}"</span>
+                  </span>
+                  <span className="text-sm text-green-600">
+                    ({products.length} {products.length === 1 ? 'product' : 'products'} found)
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearSearch}
+                  className="text-green-700 border-green-300 hover:bg-green-100"
+                >
+                  Clear Search
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Products Count */}
-          {!loading && !error && (
+          {!loading && !error && !filters.search && (
             <div className="mb-4 text-sm text-gray-600">
               Showing {products.length} of {totalPages * filters.limit} products
             </div>
@@ -122,9 +179,34 @@ export default function ProductsPage() {
             <div className="text-center text-red-600">
               Error loading products: {error.message}
             </div>
+          ) : products.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-gray-500 mb-4">
+                {filters.search ? (
+                  <>
+                    <p className="text-lg font-medium mb-2">No products found for "{filters.search}"</p>
+                    <p className="text-sm">Try adjusting your search terms or browse all products</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-lg font-medium mb-2">No products found</p>
+                    <p className="text-sm">Try adjusting your filters</p>
+                  </>
+                )}
+              </div>
+              {filters.search && (
+                <Button
+                  variant="outline"
+                  onClick={handleClearSearch}
+                  className="text-green-700 border-green-300 hover:bg-green-100"
+                >
+                  Clear Search
+                </Button>
+              )}
+            </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

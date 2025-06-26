@@ -296,13 +296,13 @@ export default function CartPage() {
                     <p className="text-sm text-gray-500 mb-2">We Accept</p>
                     <div className="flex space-x-3">
                       <div className="bg-gray-100 p-1 rounded">
-                        <Image src="/placeholder.svg?height=30&width=50" alt="M-Pesa" width={50} height={30} />
+                        <Image src="/placeholder.svg?height=30&width=50" alt="M-Pesa" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
                       </div>
                       <div className="bg-gray-100 p-1 rounded">
-                        <Image src="/placeholder.svg?height=30&width=50" alt="Visa" width={50} height={30} />
+                        <Image src="/placeholder.svg?height=30&width=50" alt="Visa" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
                       </div>
                       <div className="bg-gray-100 p-1 rounded">
-                        <Image src="/placeholder.svg?height=30&width=50" alt="Mastercard" width={50} height={30} />
+                        <Image src="/placeholder.svg?height=30&width=50" alt="Mastercard" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
                       </div>
                     </div>
                   </div>

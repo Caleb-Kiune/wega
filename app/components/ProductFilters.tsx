@@ -19,11 +19,12 @@ export interface ProductsFilters {
   is_featured?: boolean;
   is_new?: boolean;
   is_sale?: boolean;
+  search?: string;
 }
 
 interface ProductFiltersProps {
   filters: ProductsFilters;
-  onFiltersChange: (filters: ProductsFilters) => void;
+  onFiltersChange: (filters: Partial<ProductsFilters>) => void;
   loading: boolean;
 }
 
@@ -61,6 +62,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
       is_featured: false,
       is_new: false,
       is_sale: false,
+      search: undefined,
     });
     setMinPriceInput('');
     setMaxPriceInput('');

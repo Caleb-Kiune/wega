@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/lib/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getImageUrl } from "@/app/lib/api/products"
 
 interface OrderItem {
   id: number
@@ -246,7 +247,7 @@ export default function OrderDetailsPage() {
                   <div key={item.id} className="flex items-center gap-4">
                     <div className="relative h-16 w-16 rounded-md overflow-hidden">
                       <Image
-                        src={item.product.image_url ? `/${item.product.image_url}` : "/placeholder.svg"}
+                        src={getImageUrl(item.product.image_url)}
                         alt={item.product.name}
                         fill
                         className="object-cover"

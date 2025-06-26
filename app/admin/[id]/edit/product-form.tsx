@@ -603,17 +603,17 @@ export default function ProductForm({ productId }: ProductFormProps) {
   // Test function for primary image functionality (can be removed after testing)
   const testPrimaryImageFunctionality = () => {
     console.log('🧪 Testing Primary Image Functionality');
-    console.log('Current images:', product?.images.map((img, i) => ({
+    console.log('Current images:', product?.images?.map((img, i) => ({
       index: i,
       url: img.image_url,
       is_primary: img.is_primary
     })));
     
     // Test 1: Check if exactly one image is primary
-    const primaryImages = product?.images.filter(img => img.is_primary) || [];
+    const primaryImages = product?.images?.filter(img => img.is_primary) || [];
     console.log('Primary images count:', primaryImages.length);
     
-    if (primaryImages.length === 0 && product?.images.length > 0) {
+    if (primaryImages.length === 0 && product?.images && product.images.length > 0) {
       console.warn('⚠️ No primary image set but images exist');
     } else if (primaryImages.length > 1) {
       console.error('❌ Multiple primary images detected:', primaryImages);
@@ -624,7 +624,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
   // Call test function when images change
   useEffect(() => {
-    if (product?.images.length > 0) {
+    if (product?.images && product.images.length > 0) {
       testPrimaryImageFunctionality();
     }
   }, [product?.images]);
@@ -1017,7 +1017,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
             {/* Existing Images */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Existing Images</h3>
-              {product.images.length > 0 ? (
+              {product.images && product.images.length > 0 ? (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {product.images.map((image, index) => (
@@ -1145,7 +1145,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
             {/* Existing Specifications */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Existing Specifications</h3>
-              {product.specifications.length > 0 ? (
+              {product.specifications && product.specifications.length > 0 ? (
                 <div className="space-y-3">
                   {product.specifications.map((spec, index) => (
                     <div key={index} className="flex items-center space-x-4 p-4 bg-muted/50 rounded-lg">
@@ -1225,7 +1225,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
             {/* Existing Features */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Existing Features</h3>
-              {product.features.length > 0 ? (
+              {product.features && product.features.length > 0 ? (
                 <div className="space-y-3">
                   {product.features.map((feature, index) => (
                     <div key={index} className="flex items-center space-x-4 p-4 bg-muted/50 rounded-lg">

@@ -134,13 +134,13 @@ export default function Footer() {
               <h4 className="font-medium mb-2">We Accept</h4>
               <div className="flex space-x-3">
                 <div className="bg-white p-1 rounded">
-                  <Image src="/placeholder.svg" alt="M-Pesa" width={50} height={30} />
+                  <Image src="/placeholder.svg" alt="M-Pesa" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
                 </div>
                 <div className="bg-white p-1 rounded">
-                  <Image src="/placeholder.svg" alt="Visa" width={50} height={30} />
+                  <Image src="/placeholder.svg" alt="Visa" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
                 </div>
                 <div className="bg-white p-1 rounded">
-                  <Image src="/placeholder.svg" alt="Mastercard" width={50} height={30} />
+                  <Image src="/placeholder.svg" alt="Mastercard" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
                 </div>
               </div>
             </div>

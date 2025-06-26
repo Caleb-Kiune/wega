@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -21,7 +21,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [error, setError] = useState<string | null>(null)
   const { toast } = useToast()
   const resolvedParams = use(params)
-  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
+  const { addItem, removeItem, isInWishlist } = useWishlist()
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -75,16 +75,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   }
 
   const handleWishlistClick = () => {
-    if (isInWishlist(product.id)) {
-      removeFromWishlist(product.id)
+    if (isInWishlist(product.id.toString())) {
+      removeItem(product.id.toString())
     } else {
-      addToWishlist({
-        id: product.id,
+      addItem({
+        id: product.id.toString(),
         name: product.name,
         price: product.price,
-        image: product.image,
+        image: product.images?.[0]?.image_url || '',
         category: product.category,
-        brand: product.brand,
       })
     }
   }
@@ -201,11 +200,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   </div>
                   <Button 
                     variant="outline" 
-                    className={`w-full flex items-center justify-center gap-2 ${isInWishlist(product.id) ? "text-red-500" : ""}`}
+                    className={`w-full flex items-center justify-center gap-2 ${isInWishlist(product.id.toString()) ? "text-red-500" : ""}`}
                     onClick={handleWishlistClick}
                   >
                     <Heart className="h-4 w-4" />
-                    {isInWishlist(product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
+                    {isInWishlist(product.id.toString()) ? "Remove from Wishlist" : "Add to Wishlist"}
                   </Button>
                 </div>
                 <div className="space-y-2">
@@ -247,13 +246,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 <p className="font-medium text-gray-800 mb-2">We Accept</p>
                 <div className="flex space-x-3">
                   <div className="bg-gray-100 p-1 rounded">
-                    <Image src="/placeholder.svg?height=30&width=50" alt="M-Pesa" width={50} height={30} />
+                    <Image src="/placeholder.svg?height=30&width=50" alt="M-Pesa" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
                   </div>
                   <div className="bg-gray-100 p-1 rounded">
-                    <Image src="/placeholder.svg?height=30&width=50" alt="Visa" width={50} height={30} />
+                    <Image src="/placeholder.svg?height=30&width=50" alt="Visa" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
                   </div>
                   <div className="bg-gray-100 p-1 rounded">
-                    <Image src="/placeholder.svg?height=30&width=50" alt="Mastercard" width={50} height={30} />
+                    <Image src="/placeholder.svg?height=30&width=50" alt="Mastercard" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
                   </div>
                 </div>
               </div>

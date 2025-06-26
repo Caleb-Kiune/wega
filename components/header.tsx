@@ -43,7 +43,11 @@ export default function Header() {
     e.preventDefault()
     if (searchQuery.trim()) {
       // Navigate to products page with search query
-      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`)
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`, { scroll: false })
+      setIsSearchOpen(false)
+    } else {
+      // If search is empty, just go to products page
+      router.push('/products', { scroll: false })
       setIsSearchOpen(false)
     }
   }
@@ -120,8 +124,7 @@ export default function Header() {
                 />
                 <Button
                   type="submit"
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                  disabled={!searchQuery.trim()}
+                  className="bg-green-600 hover:bg-green-700 text-white px-6"
                 >
                   Search
                 </Button>
@@ -312,8 +315,7 @@ export default function Header() {
                 />
                 <Button
                   type="submit"
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                  disabled={!searchQuery.trim()}
+                  className="bg-green-600 hover:bg-green-700 text-white px-6"
                 >
                   Search
                 </Button>

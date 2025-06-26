@@ -276,7 +276,7 @@ export default function CheckoutPage() {
       })
 
       // Redirect to order confirmation page
-      window.location.href = `/orders/${order.id}`
+      window.location.href = `/products/orders/${order.id}`
     } catch (error) {
       console.error('Error creating order:', error)
       toast({
@@ -386,7 +386,7 @@ export default function CheckoutPage() {
                             <Label htmlFor="mpesa" className="font-medium text-gray-800 mr-2">
                               M-Pesa
                             </Label>
-                            <Image src="/placeholder.svg?height=30&width=50" alt="M-Pesa" width={50} height={30} />
+                            <Image src="/placeholder.svg?height=30&width=50" alt="M-Pesa" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
                           </div>
                           <p className="text-sm text-gray-600">Pay via M-Pesa mobile money</p>
                           {paymentMethod === "mpesa" && (
@@ -471,12 +471,13 @@ export default function CheckoutPage() {
                               Credit/Debit Card
                             </Label>
                             <div className="flex space-x-2">
-                              <Image src="/placeholder.svg?height=30&width=50" alt="Visa" width={50} height={30} />
+                              <Image src="/placeholder.svg?height=30&width=50" alt="Visa" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
                               <Image
                                 src="/placeholder.svg?height=30&width=50"
                                 alt="Mastercard"
                                 width={50}
                                 height={30}
+                                style={{ width: 'auto', height: 'auto' }}
                               />
                             </div>
                           </div>
