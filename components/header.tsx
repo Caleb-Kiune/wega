@@ -42,13 +42,26 @@ export default function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
-      // Navigate to products page with search query
-      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`, { scroll: false })
-      setIsSearchOpen(false)
+      // Check if we're already on the products page
+      const currentPath = window.location.pathname;
+      const currentSearch = window.location.search;
+      
+      if (currentPath === '/products') {
+        // We're already on products page, update the URL with search
+        const params = new URLSearchParams(currentSearch);
+        params.set('search', searchQuery.trim());
+        params.delete('page'); // Reset to page 1 when searching
+        router.push(`/products?${params.toString()}`, { scroll: false });
+      } else {
+        // Navigate from other pages to products page with search query
+        router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`, { scroll: false });
+      }
+      setIsSearchOpen(false);
+      setSearchQuery(''); // Clear search input after search
     } else {
       // If search is empty, just go to products page
-      router.push('/products', { scroll: false })
-      setIsSearchOpen(false)
+      router.push('/products', { scroll: false });
+      setIsSearchOpen(false);
     }
   }
 

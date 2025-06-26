@@ -52,6 +52,14 @@ export default function ProductsPage() {
     console.log('=====================');
   }, []);
 
+  // Handle search parameter changes from URL
+  useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    if (urlSearch !== filters.search) {
+      setFilters(prev => ({ ...prev, search: urlSearch || undefined, page: 1 }));
+    }
+  }, [searchParams.get('search')]);
+
   const { products, loading, error, totalPages, currentPage } = useProducts(filters);
 
   // Debug products data
@@ -66,60 +74,6 @@ export default function ProductsPage() {
       console.log('=====================');
     }
   }, [products, totalPages, currentPage]);
-
-  // Update URL when filters change - but only if they're different from current URL params
-  useEffect(() => {
-    const currentSearch = searchParams.get('search');
-    const currentPage = searchParams.get('page');
-    const currentCategories = searchParams.getAll('categories');
-    const currentBrands = searchParams.getAll('brands');
-    const currentMinPrice = searchParams.get('min_price');
-    const currentMaxPrice = searchParams.get('max_price');
-    const currentIsFeatured = searchParams.get('is_featured');
-    const currentIsNew = searchParams.get('is_new');
-    const currentIsSale = searchParams.get('is_sale');
-
-    // Check if filters have actually changed from URL params
-    const hasChanged = 
-      filters.search !== (currentSearch || undefined) ||
-      filters.page !== (Number(currentPage) || 1) ||
-      JSON.stringify(filters.categories) !== JSON.stringify(currentCategories) ||
-      JSON.stringify(filters.brands) !== JSON.stringify(currentBrands) ||
-      filters.min_price !== (Number(currentMinPrice) || undefined) ||
-      filters.max_price !== (Number(currentMaxPrice) || undefined) ||
-      filters.is_featured !== (currentIsFeatured === 'true') ||
-      filters.is_new !== (currentIsNew === 'true') ||
-      filters.is_sale !== (currentIsSale === 'true');
-
-    if (hasChanged) {
-      const params = new URLSearchParams();
-      if (filters.page && filters.page > 1) params.set('page', filters.page.toString());
-      if (filters.categories?.length) {
-        filters.categories.forEach(category => {
-          params.append('categories', category);
-        });
-      }
-      if (filters.brands?.length) {
-        filters.brands.forEach(brand => {
-          params.append('brands', brand);
-        });
-      }
-      if (filters.min_price) params.set('min_price', filters.min_price.toString());
-      if (filters.max_price) params.set('max_price', filters.max_price.toString());
-      if (filters.is_featured) params.set('is_featured', 'true');
-      if (filters.is_new) params.set('is_new', 'true');
-      if (filters.is_sale) params.set('is_sale', 'true');
-      if (filters.search) params.set('search', filters.search);
-
-      const newUrl = params.toString() ? `?${params.toString()}` : '';
-      const currentUrl = window.location.search;
-      
-      // Only update URL if it's actually different
-      if (newUrl !== currentUrl) {
-        router.replace(`/products${newUrl}`, { scroll: false });
-      }
-    }
-  }, [filters, router, searchParams]);
 
   const handleFiltersChange = (newFilters: Partial<ProductsFilters>) => {
     setFilters((prev: ProductsFilters) => ({ ...prev, ...newFilters, page: 1 }));
