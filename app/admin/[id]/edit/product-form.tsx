@@ -233,6 +233,21 @@ export default function ProductForm({ productId }: ProductFormProps) {
           img.is_primary = i === index;
           console.log(`  Image ${i}: is_primary = ${img.is_primary}`);
         });
+      } else if (field === 'is_primary' && value === false) {
+        // If unsetting primary, ensure at least one image remains primary
+        const currentPrimaryIndex = newImages.findIndex(img => img.is_primary);
+        if (currentPrimaryIndex === index && newImages.length > 1) {
+          // Find another image to make primary
+          const nextPrimaryIndex = newImages.findIndex((img, i) => i !== index);
+          if (nextPrimaryIndex !== -1) {
+            newImages[nextPrimaryIndex].is_primary = true;
+            console.log(`🔄 Auto-setting image ${nextPrimaryIndex} as primary since image ${index} was unset`);
+          }
+        }
+        newImages[index] = {
+          ...newImages[index],
+          [field]: value
+        };
       } else {
         // For other fields, just update the specific image
         console.log(`📝 Updating image ${index} field '${field}' to '${value}'`);
@@ -470,9 +485,18 @@ export default function ProductForm({ productId }: ProductFormProps) {
         image => image.image_url.trim() !== ''
       );
 
+      // Validate that at least one image is primary
+      const hasPrimaryImage = validImages.some(image => image.is_primary);
+      if (validImages.length > 0 && !hasPrimaryImage) {
+        toast.error('At least one image must be set as primary');
+        setSaving(false);
+        return;
+      }
+
       console.log('✅ Valid specifications:', validSpecifications);
       console.log('✅ Valid features:', validFeatures);
       console.log('✅ Valid images:', validImages);
+      console.log('✅ Has primary image:', hasPrimaryImage);
 
       // Create product data, excluding invalid brand/category IDs
       const productToUpdate: any = {
@@ -575,6 +599,35 @@ export default function ProductForm({ productId }: ProductFormProps) {
       handleFileUpload(files[0]);
     }
   };
+
+  // Test function for primary image functionality (can be removed after testing)
+  const testPrimaryImageFunctionality = () => {
+    console.log('🧪 Testing Primary Image Functionality');
+    console.log('Current images:', product?.images.map((img, i) => ({
+      index: i,
+      url: img.image_url,
+      is_primary: img.is_primary
+    })));
+    
+    // Test 1: Check if exactly one image is primary
+    const primaryImages = product?.images.filter(img => img.is_primary) || [];
+    console.log('Primary images count:', primaryImages.length);
+    
+    if (primaryImages.length === 0 && product?.images.length > 0) {
+      console.warn('⚠️ No primary image set but images exist');
+    } else if (primaryImages.length > 1) {
+      console.error('❌ Multiple primary images detected:', primaryImages);
+    } else {
+      console.log('✅ Primary image validation passed');
+    }
+  };
+
+  // Call test function when images change
+  useEffect(() => {
+    if (product?.images.length > 0) {
+      testPrimaryImageFunctionality();
+    }
+  }, [product?.images]);
 
   if (loading) {
     return (
@@ -1013,7 +1066,9 @@ export default function ProductForm({ productId }: ProductFormProps) {
                             checked={image.is_primary || false}
                             onCheckedChange={(checked) => handleImageChange(index, 'is_primary', checked)}
                           />
-                          <Label className="text-sm">Primary</Label>
+                          <Label className="text-sm">
+                            {image.is_primary ? 'Primary' : 'Set as Primary'}
+                          </Label>
                         </div>
                         <Button
                           variant="destructive"

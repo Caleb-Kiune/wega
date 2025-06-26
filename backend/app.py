@@ -594,28 +594,49 @@ def update_product(id):
 
             # Handle images - update existing ones and create new ones
             existing_image_ids = set()
+            
+            # First, identify which image should be primary
+            primary_image_id = None
+            for img_data in data['images']:
+                if img_data.get('is_primary', False):
+                    if primary_image_id is not None:
+                        return jsonify({'error': 'Only one image can be primary'}), 400
+                    primary_image_id = img_data.get('id')
+            
+            # If no primary image is specified, set the first one as primary
+            if primary_image_id is None and data['images']:
+                if data['images'][0].get('id'):
+                    primary_image_id = data['images'][0]['id']
+                else:
+                    # This is a new image, it will be set as primary
+                    pass
+            
             for img_data in data['images']:
                 if img_data.get('id'):
                     # Update existing image
                     existing_image = ProductImage.query.get(img_data['id'])
                     if existing_image and existing_image.product_id == id:
                         existing_image.image_url = img_data['image_url']
-                        existing_image.is_primary = bool(img_data.get('is_primary', False))
+                        # Set primary status based on the identified primary image
+                        existing_image.is_primary = (img_data.get('id') == primary_image_id)
                         existing_image.display_order = int(img_data.get('display_order', 0))
                         existing_image_ids.add(existing_image.id)
-                        print(f"Updated existing image {existing_image.id}: {img_data['image_url']}")
+                        print(f"Updated existing image {existing_image.id}: {img_data['image_url']}, is_primary: {existing_image.is_primary}")
                     else:
                         return jsonify({'error': f'Invalid image ID: {img_data["id"]}'}), 400
                 else:
                     # Create new image
+                    is_primary = primary_image_id is None  # If no primary was set, this new image becomes primary
                     new_image = ProductImage(
                         product_id=id,
                         image_url=img_data['image_url'],
-                        is_primary=bool(img_data.get('is_primary', False)),
+                        is_primary=is_primary,
                         display_order=int(img_data.get('display_order', 0))
                     )
                     db.session.add(new_image)
-                    print(f"Created new image: {img_data['image_url']}")
+                    print(f"Created new image: {img_data['image_url']}, is_primary: {is_primary}")
+                    if is_primary:
+                        primary_image_id = 'new'  # Mark that we've set a new image as primary
             
             # Only delete images if there are existing ones
             if existing_image_ids:
