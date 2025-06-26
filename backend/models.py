@@ -89,14 +89,10 @@ class Product(db.Model):
         primary_image = next((img.image_url for img in self.images if img.is_primary), 
                            self.images[0].image_url if self.images else None)
         
-        # Handle both old and new image URL formats
+        # Format image URL using helper function
+        from utils.helpers import format_image_url
         if primary_image:
-            if primary_image.startswith('http'):
-                pass
-            elif primary_image.startswith('/static/'):
-                primary_image = f'http://localhost:5000{primary_image}'
-            else:
-                primary_image = f'http://localhost:5000/static/uploads/{primary_image}'
+            primary_image = format_image_url(primary_image)
         
         return {
             'id': self.id,
@@ -141,13 +137,9 @@ class ProductImage(db.Model):
         return f'<ProductImage {self.id}>'
 
     def to_dict(self):
-        # Handle both old and new image URL formats
-        image_url = self.image_url
-        if image_url and not image_url.startswith('http'):
-            if image_url.startswith('/static/'):
-                image_url = f'http://localhost:5000{image_url}'
-            else:
-                image_url = f'http://localhost:5000/static/uploads/{image_url}'
+        # Format image URL using helper function
+        from utils.helpers import format_image_url
+        image_url = format_image_url(self.image_url)
         
         return {
             'id': self.id,
