@@ -94,18 +94,13 @@ export function ProductCard({ product }: ProductCardProps) {
           <span className="text-sm text-gray-500">{product.brand}</span>
           <span className="text-sm text-gray-500">{product.category}</span>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h3>
+        <h3 className="text-base font-semibold text-gray-900 mb-2">{product.name}</h3>
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <span className="text-lg font-bold text-gray-900">${product.price.toFixed(2)}</span>
+            <span className="text-base font-bold text-gray-900">${product.price.toFixed(2)}</span>
             {product.original_price && product.original_price > product.price && (
               <span className="ml-2 text-sm text-gray-500 line-through">${product.original_price.toFixed(2)}</span>
             )}
-          </div>
-          <div className="flex items-center">
-            <span className="text-yellow-400">★</span>
-            <span className="ml-1 text-sm text-gray-600">{product.rating?.toFixed(1) || '0.0'}</span>
-            <span className="ml-1 text-sm text-gray-500">({product.review_count})</span>
           </div>
         </div>
       </div>

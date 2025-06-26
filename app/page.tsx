@@ -5,6 +5,7 @@ import TestimonialSection from "@/components/testimonial-section"
 import ProductCarousel from "@/components/product-carousel"
 import HeroSection from "@/components/hero-section"
 import TrustSignals from "@/components/trust-signals"
+import ProductGrid from "@/components/product-grid"
 
 export default function Home() {
   return (
@@ -31,7 +32,7 @@ export default function Home() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
-          <FeaturedProducts />
+          <ProductGrid category="featured" />
         </div>
       </section>
 
@@ -51,7 +52,7 @@ export default function Home() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
-          <ProductCarousel category="new-arrivals" />
+          <ProductGrid category="new-arrivals" />
         </div>
       </section>
 
@@ -71,7 +72,7 @@ export default function Home() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
-          <ProductCarousel category="special-offers" />
+          <ProductGrid category="special-offers" />
         </div>
       </section>
 

@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
 // Custom hook for better carousel scroll handling
-export const useCarouselScroll = (carouselRef: React.RefObject<HTMLDivElement>) => {
+export const useCarouselScroll = (carouselRef: React.RefObject<HTMLDivElement | null>) => {
   const [isScrolling, setIsScrolling] = useState(false);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const handleWheel = useCallback((e: WheelEvent) => {
     if (!carouselRef.current) return;

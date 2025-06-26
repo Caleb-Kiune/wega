@@ -1,6 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Star, ShoppingCart, Heart } from "lucide-react"
+import { ShoppingCart, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
@@ -99,35 +99,19 @@ export default function ProductShowcase({ title, variant = "green" }: ProductSho
 
               <div className="p-4">
                 <Link href={`/products/${product.id}`} className="block">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2 hover:text-green-600 transition-colors duration-300">
+                  <h3 className="text-base font-semibold text-gray-800 mb-2 hover:text-green-600 transition-colors duration-300">
                     {product.name}
                   </h3>
                 </Link>
 
                 {/* Price */}
                 <div className="flex items-center mb-3">
-                  <span className="text-xl font-bold text-gray-800">KES {product.price.toLocaleString()}</span>
+                  <span className="text-lg font-bold text-gray-800">KES {product.price.toLocaleString()}</span>
                   {product.originalPrice && (
                     <span className="ml-2 text-sm text-gray-500 line-through">
                       KES {product.originalPrice.toLocaleString()}
                     </span>
                   )}
-                </div>
-
-                {/* Ratings */}
-                <div className="flex items-center mb-4">
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-4 w-4 ${i < Math.floor(product.rating) ? "text-yellow-400" : "text-gray-300"}`}
-                        fill={i < Math.floor(product.rating) ? "currentColor" : "none"}
-                      />
-                    ))}
-                  </div>
-                  <span className="ml-2 text-sm text-gray-600">
-                    {product.rating} ({product.reviewCount} reviews)
-                  </span>
                 </div>
 
                 {/* Add to cart button */}

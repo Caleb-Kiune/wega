@@ -147,17 +147,17 @@ export default function ProductCard({ product }: ProductCardProps) {
           <div className="text-xs font-medium text-green-600">{product.brand}</div>
         </div>
         <Link href={`/products/${product.id}`} className="block">
-          <h3 id={`product-${product.id}`} className="text-lg font-semibold text-gray-800 mb-1 hover:text-green-600 transition-colors line-clamp-2 min-h-[3.5rem]">
+          <h3 id={`product-${product.id}`} className="text-base font-semibold text-gray-800 mb-1 hover:text-green-600 transition-colors line-clamp-2 min-h-[3.5rem]">
             {product.name}
           </h3>
         </Link>
 
         {/* Price */}
         <div className="flex items-center mb-2">
-          <span className="text-xl font-bold text-gray-800">KES {product.price.toLocaleString()}</span>
-          {product.originalPrice && (
+          <span className="text-lg font-bold text-gray-800">KES {product.price.toLocaleString()}</span>
+          {product.original_price && (
             <span className="ml-2 text-sm text-gray-500 line-through">
-              KES {product.originalPrice.toLocaleString()}
+              KES {product.original_price.toLocaleString()}
             </span>
           )}
         </div>

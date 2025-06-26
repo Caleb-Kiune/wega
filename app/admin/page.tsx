@@ -595,11 +595,11 @@ export default function AdminPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-gray-900">
-                          ${product.price.toFixed(2)}
+                          KES {product.price.toLocaleString()}
                         </span>
                         {product.original_price && product.original_price > product.price && (
                           <span className="text-sm text-muted-foreground line-through">
-                            ${product.original_price.toFixed(2)}
+                            KES {product.original_price.toLocaleString()}
                           </span>
                         )}
                       </div>
@@ -614,14 +614,6 @@ export default function AdminPage() {
                         {product.stock > 0 ? `📦 ${product.stock} in stock` : '❌ Out of stock'}
                       </Badge>
                     </div>
-                    
-                    {product.rating > 0 && (
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <span>★</span>
-                        <span>{product.rating.toFixed(1)}</span>
-                        <span>({product.review_count})</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               </Card>

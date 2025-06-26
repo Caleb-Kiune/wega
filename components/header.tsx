@@ -62,13 +62,8 @@ export default function Header() {
   ]
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-300",
-        isScrolled ? "bg-white shadow-md" : "bg-white",
-      )}
-    >
-      {/* Top Bar */}
+    <>
+      {/* Top Bar - Scrollable */}
       <div className="bg-green-600 text-white py-2 px-4 text-center text-sm">
         <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center">
           <div className="flex items-center mb-2 sm:mb-0">
@@ -89,236 +84,244 @@ export default function Header() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between py-4">
-          {/* Logo */}
-          <div className="flex-shrink-0">
-            <Link href="/" className="flex items-center">
-              <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/wega%20kitchenware%20website..jpg-WrrItNFb2yW5TLOQ4Ax5GY0Sv0YPew.jpeg"
-                alt="WEGA Kitchenware Logo"
-                width={120}
-                height={60}
-                className="h-12 w-auto"
-                priority
-              />
-              <span className="ml-2 text-xl font-semibold text-gray-800">WEGA Kitchenware</span>
-            </Link>
-          </div>
+      {/* Main Header - Fixed */}
+      <header
+        className={cn(
+          "sticky top-0 z-50 w-full transition-all duration-300 bg-white",
+          isScrolled ? "shadow-md" : "",
+        )}
+      >
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-4">
+            {/* Logo */}
+            <div className="flex-shrink-0">
+              <Link href="/" className="flex items-center">
+                <Image
+                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/wega%20kitchenware%20website..jpg-WrrItNFb2yW5TLOQ4Ax5GY0Sv0YPew.jpeg"
+                  alt="WEGA Kitchenware Logo"
+                  width={120}
+                  height={60}
+                  className="h-12 w-auto"
+                  priority
+                />
+                <span className="ml-2 text-xl font-semibold text-gray-800">WEGA Kitchenware</span>
+              </Link>
+            </div>
 
-          {/* Search Bar (Desktop) */}
-          <div className="hidden md:flex flex-1 max-w-md mx-8">
-            <form onSubmit={handleSearch} className="relative w-full flex gap-2">
-              <Input
-                type="text"
-                placeholder="Search products..."
-                className="w-full"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <Button
-                type="submit"
-                className="bg-green-600 hover:bg-green-700 text-white"
-                disabled={!searchQuery.trim()}
-              >
-                Search
-              </Button>
-            </form>
-          </div>
-
-          {/* All Icons */}
-          <div className="flex items-center space-x-3">
-            {/* Home */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link
-                    href="/"
-                    className="text-gray-600 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
-                  >
-                    <Home className="h-5 w-5" />
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Home</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            {/* Products */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link
-                    href="/products?limit=100"
-                    className="text-gray-600 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
-                  >
-                    <ShoppingBag className="h-5 w-5" />
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Products</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            {/* Track Order */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link
-                    href="/track-order"
-                    className="text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
-                  >
-                    <Package className="h-5 w-5" />
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Track My Order</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            {/* Wishlist */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link
-                    href="/wishlist"
-                    className="text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 relative transition-colors duration-200"
-                  >
-                    <Heart className="h-5 w-5" />
-                    {wishlistItems.length > 0 && (
-                      <Badge className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                        {wishlistItems.length}
-                      </Badge>
-                    )}
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Wishlist</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            {/* Cart */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link
-                    href="/cart"
-                    className="text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 relative transition-colors duration-200"
-                  >
-                    <ShoppingCart className="h-5 w-5" />
-                    {cartCount > 0 && (
-                      <Badge className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                        {cartCount}
-                      </Badge>
-                    )}
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Cart</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            {/* Mobile Menu Button */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu className="h-6 w-6" />
+            {/* Search Bar (Desktop) */}
+            <div className="hidden md:flex flex-1 max-w-md mx-8">
+              <form onSubmit={handleSearch} className="relative w-full flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="Search products..."
+                  className="w-full"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Button
+                  type="submit"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  disabled={!searchQuery.trim()}
+                >
+                  Search
                 </Button>
-              </SheetTrigger>
-              <SheetContent side="right">
-                <SheetTitle className="sr-only">Mobile Menu</SheetTitle>
-                <div className="flex flex-col space-y-4 mt-8">
-                  <div className="space-y-1 px-2 pb-3 pt-2">
-                    {navigation.map((item) => (
+              </form>
+            </div>
+
+            {/* All Icons */}
+            <div className="flex items-center space-x-3">
+              {/* Home */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link
+                      href="/"
+                      className="text-gray-600 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                    >
+                      <Home className="h-5 w-5" />
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Home</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              {/* Products */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link
+                      href="/products?limit=100"
+                      className="text-gray-600 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                    >
+                      <ShoppingBag className="h-5 w-5" />
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Products</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              {/* Track Order */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link
+                      href="/track-order"
+                      className="text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                    >
+                      <Package className="h-5 w-5" />
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Track My Order</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              {/* Wishlist */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link
+                      href="/wishlist"
+                      className="text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 relative transition-colors duration-200"
+                    >
+                      <Heart className="h-5 w-5" />
+                      {wishlistItems.length > 0 && (
+                        <Badge className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                          {wishlistItems.length}
+                        </Badge>
+                      )}
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Wishlist</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              {/* Cart */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link
+                      href="/cart"
+                      className="text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 relative transition-colors duration-200"
+                    >
+                      <ShoppingCart className="h-5 w-5" />
+                      {cartCount > 0 && (
+                        <Badge className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                          {cartCount}
+                        </Badge>
+                      )}
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Cart</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              {/* Mobile Menu Button */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="md:hidden">
+                    <Menu className="h-6 w-6" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right">
+                  <SheetTitle className="sr-only">Mobile Menu</SheetTitle>
+                  <div className="flex flex-col space-y-4 mt-8">
+                    <div className="space-y-1 px-2 pb-3 pt-2">
+                      {navigation.map((item) => (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-green-600"
+                        >
+                          {item.name}
+                        </Link>
+                      ))}
                       <Link
-                        key={item.name}
-                        href={item.href}
+                        href="/admin"
                         className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-green-600"
                       >
-                        {item.name}
+                        Admin Dashboard
                       </Link>
-                    ))}
+                    </div>
+                    <div className="border-t pt-4">
+                      <p className="font-medium mb-2">Shop by Category</p>
+                      {categories.map((category) => (
+                        <Link
+                          key={category.name}
+                          href={category.href}
+                          className="block py-2 text-gray-600 hover:text-green-600"
+                        >
+                          {category.name}
+                        </Link>
+                      ))}
+                    </div>
+                    <div className="border-t pt-4 flex flex-col space-y-2">
+                      <Link href="/account" className="text-gray-600 hover:text-green-600">
+                        My Account
+                      </Link>
+                      <Link href="/wishlist" className="text-gray-600 hover:text-green-600">
+                        Wishlist
+                      </Link>
+                      <Link href="/cart" className="text-gray-600 hover:text-green-600">
+                        Cart
+                      </Link>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+
+              {/* Admin Dashboard */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
                     <Link
                       href="/admin"
-                      className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-green-600"
+                      className="text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
                     >
-                      Admin Dashboard
+                      <User className="h-5 w-5" />
                     </Link>
-                  </div>
-                  <div className="border-t pt-4">
-                    <p className="font-medium mb-2">Shop by Category</p>
-                    {categories.map((category) => (
-                      <Link
-                        key={category.name}
-                        href={category.href}
-                        className="block py-2 text-gray-600 hover:text-green-600"
-                      >
-                        {category.name}
-                      </Link>
-                    ))}
-                  </div>
-                  <div className="border-t pt-4 flex flex-col space-y-2">
-                    <Link href="/account" className="text-gray-600 hover:text-green-600">
-                      My Account
-                    </Link>
-                    <Link href="/wishlist" className="text-gray-600 hover:text-green-600">
-                      Wishlist
-                    </Link>
-                    <Link href="/cart" className="text-gray-600 hover:text-green-600">
-                      Cart
-                    </Link>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-
-            {/* Admin Dashboard */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link
-                    href="/admin"
-                    className="text-gray-700 hover:text-green-600 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
-                  >
-                    <User className="h-5 w-5" />
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Admin Dashboard</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Admin Dashboard</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
+
+          {/* Mobile Search Bar (Conditional) */}
+          {isSearchOpen && (
+            <div className="md:hidden pb-4">
+              <form onSubmit={handleSearch} className="relative w-full flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="Search products..."
+                  className="w-full"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  autoFocus
+                />
+                <Button
+                  type="submit"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  disabled={!searchQuery.trim()}
+                >
+                  Search
+                </Button>
+              </form>
+            </div>
+          )}
         </div>
-
-        {/* Mobile Search Bar (Conditional) */}
-        {isSearchOpen && (
-          <div className="md:hidden pb-4">
-            <form onSubmit={handleSearch} className="relative w-full flex gap-2">
-              <Input
-                type="text"
-                placeholder="Search products..."
-                className="w-full"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                autoFocus
-              />
-              <Button
-                type="submit"
-                className="bg-green-600 hover:bg-green-700 text-white"
-                disabled={!searchQuery.trim()}
-              >
-                Search
-              </Button>
-            </form>
-          </div>
-        )}
-      </div>
-    </header>
+      </header>
+    </>
   )
 }
