@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/lib/hooks/use-toast"
 import { useCart } from "@/lib/hooks/use-cart"
 import { useWishlist } from "@/lib/hooks/use-wishlist"
-import { Product } from "../app/lib/api/products"
+import { Product, getImageUrl } from "../app/lib/api/products"
 
 interface ProductCardProps {
   product: Product
@@ -28,7 +28,10 @@ export default function ProductCard({ product }: ProductCardProps) {
     category: product.category,
     is_new: product.is_new,
     is_sale: product.is_sale,
-    is_featured: product.is_featured
+    is_featured: product.is_featured,
+    images: product.images,
+    primaryImage: product.images?.find(img => img.is_primary)?.image_url,
+    firstImage: product.images?.[0]?.image_url
   });
 
   const handleAddToCart = () => {
@@ -36,7 +39,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       id: product.id,
       name: product.name,
       price: product.price,
-      image: product.images?.[0]?.image_url || "/placeholder.svg",
+      image: getImageUrl(product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url) || "/placeholder.svg",
       quantity: 1
     })
     toast({
@@ -60,7 +63,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         id: String(product.id),
         name: product.name,
         price: product.price,
-        image: product.images?.[0]?.image_url || "/placeholder.svg",
+        image: getImageUrl(product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url) || "/placeholder.svg",
         category: product.category,
       })
       toast({
@@ -81,7 +84,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <Link href={`/products/${product.id}`} aria-labelledby={`product-${product.id}`}>
           <div className="relative h-64 w-full bg-gray-100">
             <Image 
-              src={product.images?.[0]?.image_url || "/placeholder.svg"} 
+              src={getImageUrl(product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url) || "/placeholder.svg"} 
               alt={`${product.name} product image`}
               fill 
               className="object-cover transition-opacity duration-300" 

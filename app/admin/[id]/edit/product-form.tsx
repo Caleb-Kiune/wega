@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { productsApi, Product, Review } from '@/app/lib/api/products';
+import { productsApi, Product, Review, getImageUrl } from '@/app/lib/api/products';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -610,7 +610,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
                     {product.images.map((image, index) => (
                       <div key={index} className="relative group">
                         <img
-                          src={image.image_url}
+                          src={getImageUrl(image.image_url)}
                           alt={`Product image ${index + 1}`}
                           className="w-full h-24 object-cover rounded-lg border border-border shadow-sm"
                           onError={(e) => {

@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { ordersApi, Order } from '@/app/lib/api/orders';
-import { format } from 'date-fns';
+import { getImageUrl } from '@/app/lib/api/products';
+import { format, isValid, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -61,6 +62,14 @@ const getPaymentStatusColor = (status: Order['payment_status']) => {
   }
 };
 
+// Safe date formatting helper
+const safeFormat = (dateString: string | null | undefined, fmt: string) => {
+  if (!dateString) return 'N/A';
+  const date = typeof dateString === 'string' ? parseISO(dateString) : new Date(dateString);
+  if (!isValid(date)) return 'N/A';
+  return format(date, fmt);
+};
+
 export default function TrackOrderPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -97,6 +106,7 @@ export default function TrackOrderPage() {
 
     try {
       const response = await ordersApi.getByOrderNumber(finalOrderNumber, finalEmail);
+      console.log('Order tracking response:', response);
       setOrder(response);
       toast({
         title: "Order Found",
@@ -218,20 +228,24 @@ export default function TrackOrderPage() {
                     Order #{order.order_number}
                   </h2>
                   <p className="text-gray-600">
-                    Placed on {format(new Date(order.created_at), 'MMMM d, yyyy h:mm a')}
+                    Placed on {safeFormat(order.created_at, 'MMMM d, yyyy h:mm a')}
                   </p>
                 </div>
                 <div className="flex gap-4">
                   <div className="flex items-center gap-2">
                     {getStatusIcon(order.status)}
                     <Badge className={getStatusColor(order.status)}>
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      {order.status
+                        ? order.status.charAt(0).toUpperCase() + order.status.slice(1)
+                        : "Unknown"}
                     </Badge>
                   </div>
                   <div className="flex items-center gap-2">
                     <CreditCard className="h-5 w-5" />
                     <Badge className={getPaymentStatusColor(order.payment_status)}>
-                      {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
+                      {order.payment_status
+                        ? order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)
+                        : "Unknown"}
                     </Badge>
                   </div>
                 </div>
@@ -295,37 +309,45 @@ export default function TrackOrderPage() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {order.items.map((item) => (
-                        <tr key={item.id}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="h-10 w-10 flex-shrink-0 relative">
-                                <Image
-                                  src={`/images/${item.product.image_url}`}
-                                  alt={item.product.name}
-                                  fill
-                                  className="rounded-full object-cover"
-                                  sizes="(max-width: 40px) 100vw, 40px"
-                                />
-                              </div>
-                              <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900 truncate max-w-[200px]">
-                                  {item.product.name}
+                      {order.items && order.items.length > 0 ? (
+                        order.items.map((item) => (
+                          <tr key={item.id}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className="h-10 w-10 flex-shrink-0 relative">
+                                  <Image
+                                    src={getImageUrl(item.product?.image_url) || '/placeholder-product.jpg'}
+                                    alt={item.product?.name || 'Product'}
+                                    fill
+                                    className="rounded-full object-cover"
+                                    sizes="(max-width: 40px) 100vw, 40px"
+                                  />
+                                </div>
+                                <div className="ml-4">
+                                  <div className="text-sm font-medium text-gray-900 truncate max-w-[200px]">
+                                    {item.product?.name || 'Unknown Product'}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            KES {item.price.toLocaleString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {item.quantity}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            KES {(item.price * item.quantity).toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              KES {(item.price || 0).toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {item.quantity || 0}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              KES {((item.price || 0) * (item.quantity || 0)).toLocaleString()}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                            No items found for this order.
                           </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -336,19 +358,19 @@ export default function TrackOrderPage() {
                   <div>
                     <p className="text-sm text-gray-600">Subtotal</p>
                     <p className="text-lg font-medium text-gray-900">
-                      KES {(order.total_amount - order.shipping_cost).toLocaleString()}
+                      KES {((order.total_amount || 0) - (order.shipping_cost || 0)).toLocaleString()}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Shipping</p>
                     <p className="text-lg font-medium text-gray-900">
-                      KES {order.shipping_cost.toLocaleString()}
+                      KES {(order.shipping_cost || 0).toLocaleString()}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Total</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      KES {order.total_amount.toLocaleString()}
+                      KES {(order.total_amount || 0).toLocaleString()}
                     </p>
                   </div>
                 </div>

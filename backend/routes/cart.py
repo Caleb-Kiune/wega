@@ -102,12 +102,13 @@ def update_cart_item(item_id):
 def remove_from_cart(item_id):
     """Remove item from cart"""
     cart_item = CartItem.query.get_or_404(item_id)
+    cart = cart_item.cart
     
     try:
         db.session.delete(cart_item)
         db.session.commit()
         
-        return jsonify({'message': 'Item removed from cart'})
+        return jsonify(cart.to_dict())
         
     except Exception as e:
         db.session.rollback()

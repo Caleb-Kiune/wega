@@ -358,6 +358,13 @@ class OrderItem(db.Model):
         return f'<OrderItem {self.id}>'
 
     def to_dict(self):
+        # Format image URL using helper function
+        from utils.helpers import format_image_url
+        primary_image = None
+        if self.product.images:
+            primary_image = next((img.image_url for img in self.product.images if img.is_primary), 
+                               self.product.images[0].image_url if self.product.images else None)
+        
         return {
             'id': self.id,
             'order_id': self.order_id,
@@ -368,7 +375,7 @@ class OrderItem(db.Model):
             'product': {
                 'id': self.product.id,
                 'name': self.product.name,
-                'image_url': self.product.images[0].image_url if self.product.images else None,
+                'image_url': format_image_url(primary_image) if primary_image else None,
                 'price': float(self.product.price) if self.product.price else 0
             }
         } 

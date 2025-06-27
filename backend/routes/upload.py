@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, current_app
 from werkzeug.utils import secure_filename
-from utils.helpers import validate_image_file, generate_unique_filename
+from utils.helpers import validate_image_file, generate_unique_filename, get_base_url
 import os
 
 upload_bp = Blueprint('upload', __name__)
@@ -31,8 +31,8 @@ def upload_image():
         file_path = os.path.join(upload_folder, unique_filename)
         file.save(file_path)
         
-        # Return the file URL
-        file_url = f"/static/uploads/{unique_filename}"
+        # Return the full file URL
+        file_url = f"{get_base_url()}/static/uploads/{unique_filename}"
         
         return jsonify({
             'message': 'File uploaded successfully',

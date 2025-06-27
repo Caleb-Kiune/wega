@@ -79,34 +79,48 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const removeFromCart = async (productId: number) => {
     try {
-      const updatedCart = await cartApi.removeItem(productId)
-      setCart(updatedCart)
-      setCartCount(updatedCart.items.reduce((total, item) => total + item.quantity, 0))
+      // Find the cart item by product ID
+      const cartItem = cart?.items.find(item => item.product_id === productId);
+      if (!cartItem) {
+        console.error('Cart item not found for product ID:', productId);
+        return;
+      }
+      
+      const updatedCart = await cartApi.removeItem(cartItem.id);
+      setCart(updatedCart);
+      setCartCount(updatedCart.items.reduce((total, item) => total + item.quantity, 0));
     } catch (error) {
-      console.error("Failed to remove item from cart:", error)
+      console.error("Failed to remove item from cart:", error);
       toast({
         title: "Error",
         description: "Failed to remove item from cart. Please try again.",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const updateQuantity = async (productId: number, quantity: number) => {
-    if (quantity < 1) return
+    if (quantity < 1) return;
     try {
-      const updatedCart = await cartApi.updateItem(productId, quantity)
-      setCart(updatedCart)
-      setCartCount(updatedCart.items.reduce((total, item) => total + item.quantity, 0))
+      // Find the cart item by product ID
+      const cartItem = cart?.items.find(item => item.product_id === productId);
+      if (!cartItem) {
+        console.error('Cart item not found for product ID:', productId);
+        return;
+      }
+      
+      const updatedCart = await cartApi.updateItem(cartItem.id, quantity);
+      setCart(updatedCart);
+      setCartCount(updatedCart.items.reduce((total, item) => total + item.quantity, 0));
     } catch (error) {
-      console.error("Failed to update cart item quantity:", error)
+      console.error("Failed to update cart item quantity:", error);
       toast({
         title: "Error",
         description: "Failed to update quantity. Please try again.",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const clearCart = async () => {
     try {

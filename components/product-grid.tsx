@@ -43,26 +43,6 @@ export default function ProductGrid({ category, limit = 4 }: ProductGridProps) {
           }))
         })
         
-        // Validate that products match the category
-        const invalidProducts = response.products.filter((product: Product) => {
-          if (category === 'featured' && !product.is_featured) return true
-          if (category === 'new-arrivals' && !product.is_new) return true
-          if (category === 'special-offers' && !product.is_sale) return true
-          return false
-        })
-        
-        if (invalidProducts.length > 0) {
-          console.error('Invalid products found:', invalidProducts.map((p: Product) => ({
-            id: p.id,
-            name: p.name,
-            is_featured: p.is_featured,
-            is_new: p.is_new,
-            is_sale: p.is_sale
-          })))
-          setError('Error: Invalid products found in response')
-          return
-        }
-        
         setProducts(response.products)
       } catch (err) {
         console.error('Error fetching products:', err)

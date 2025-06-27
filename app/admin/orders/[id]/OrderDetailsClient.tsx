@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ordersApi, Order } from '@/app/lib/api/orders';
+import { getImageUrl } from '@/app/lib/api/products';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -212,7 +213,7 @@ export default function OrderDetailsClient({ initialOrder }: OrderDetailsClientP
                             <div className="h-10 w-10 flex-shrink-0">
                               <img
                                 className="h-10 w-10 rounded-full object-cover"
-                                src={item.product.image_url}
+                                src={getImageUrl(item.product.image_url)}
                                 alt={item.product.name}
                               />
                             </div>

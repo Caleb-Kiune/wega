@@ -37,9 +37,9 @@ export interface CartItem {
 const getImageUrl = (path: string) => {
   if (!path) return "/placeholder.svg";
   if (path.startsWith("http")) return path;
-  // If the path is just a filename, assume it's in the products directory
+  // If the path is just a filename, assume it's in the uploads directory
   if (!path.includes("/")) {
-    return `${API_BASE_URL}/images/products/${path}`;
+    return `${API_BASE_URL}/static/uploads/${path}`;
   }
   return `${API_BASE_URL}${path}`;
 };
@@ -81,8 +81,10 @@ export const cartApi = {
           data.items = data.items.map((item: CartItem) => ({
             ...item,
             product: {
-              ...item.product,
-              image: getImageUrl(item.product.image)
+              id: item.product.id,
+              name: item.product.name,
+              price: item.product.price,
+              image: getImageUrl((item.product as any).image_url || item.product.image)
             }
           }));
         }
@@ -110,10 +112,14 @@ export const cartApi = {
   addItem: async (productId: number, quantity: number): Promise<Cart> => {
     const sessionId = getSessionId();
     console.log('Adding item to cart:', { sessionId, productId, quantity });
-    const response = await fetch(`${API_BASE_URL}/cart/items?session_id=${sessionId}`, {
+    const response = await fetch(`${API_BASE_URL}/cart/items`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product_id: productId, quantity }),
+      body: JSON.stringify({ 
+        session_id: sessionId,
+        product_id: productId, 
+        quantity 
+      }),
     });
     if (!response.ok) {
       console.error('Failed to add item:', response.status, response.statusText);
@@ -121,6 +127,20 @@ export const cartApi = {
     }
     const data = await response.json();
     console.log('Add item response:', data);
+    
+    // Transform the response to match the frontend interface
+    if (data.items) {
+      data.items = data.items.map((item: any) => ({
+        ...item,
+        product: {
+          id: item.product.id,
+          name: item.product.name,
+          price: item.product.price,
+          image: getImageUrl(item.product.image_url || item.product.image)
+        }
+      }));
+    }
+    
     return data;
   },
 
@@ -132,7 +152,22 @@ export const cartApi = {
       body: JSON.stringify({ quantity }),
     });
     if (!response.ok) throw new Error('Failed to update cart item');
-    return response.json();
+    const data = await response.json();
+    
+    // Transform the response to match the frontend interface
+    if (data.items) {
+      data.items = data.items.map((item: any) => ({
+        ...item,
+        product: {
+          id: item.product.id,
+          name: item.product.name,
+          price: item.product.price,
+          image: getImageUrl(item.product.image_url || item.product.image)
+        }
+      }));
+    }
+    
+    return data;
   },
 
   removeItem: async (itemId: number): Promise<Cart> => {
@@ -141,7 +176,22 @@ export const cartApi = {
       method: 'DELETE',
     });
     if (!response.ok) throw new Error('Failed to remove item from cart');
-    return response.json();
+    const data = await response.json();
+    
+    // Transform the response to match the frontend interface
+    if (data.items) {
+      data.items = data.items.map((item: any) => ({
+        ...item,
+        product: {
+          id: item.product.id,
+          name: item.product.name,
+          price: item.product.price,
+          image: getImageUrl(item.product.image_url || item.product.image)
+        }
+      }));
+    }
+    
+    return data;
   },
 
   clearCart: async (): Promise<Cart> => {
@@ -150,7 +200,22 @@ export const cartApi = {
       method: 'DELETE',
     });
     if (!response.ok) throw new Error('Failed to clear cart');
-    return response.json();
+    const data = await response.json();
+    
+    // Transform the response to match the frontend interface
+    if (data.items) {
+      data.items = data.items.map((item: any) => ({
+        ...item,
+        product: {
+          id: item.product.id,
+          name: item.product.name,
+          price: item.product.price,
+          image: getImageUrl(item.product.image_url || item.product.image)
+        }
+      }));
+    }
+    
+    return data;
   },
 };
 

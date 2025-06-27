@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { productsApi, Product, ProductImage, ProductSpecification, ProductFeature, Review } from '../../lib/api/products';
+import { productsApi, Product, ProductImage, ProductSpecification, ProductFeature, Review, getImageUrl } from '../../lib/api/products';
 import apiClient from '../../lib/api/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -815,7 +815,7 @@ export default function CreateProductPage() {
                   <Label>Preview</Label>
                       <div className="relative inline-block">
                         <img
-                          src={newImage.image_url}
+                          src={getImageUrl(newImage.image_url)}
                           alt="Preview"
                       className="w-32 h-32 object-cover rounded-lg border border-border shadow-sm"
                         />
@@ -862,7 +862,7 @@ export default function CreateProductPage() {
                       {newProduct.images.map((image, index) => (
                         <div key={index} className="relative group">
                           <img
-                            src={image.image_url}
+                            src={getImageUrl(image.image_url)}
                             alt={`Product image ${index + 1}`}
                         className="w-full h-24 object-cover rounded-lg border border-border shadow-sm"
                           />

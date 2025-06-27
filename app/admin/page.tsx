@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { productsApi, Product } from '../lib/api/products';
+import { productsApi, Product, getImageUrl } from '../lib/api/products';
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -526,7 +526,7 @@ export default function AdminPage() {
                     className="absolute top-2 right-2 z-10 h-4 w-4 rounded border-gray-300 bg-white shadow-sm"
                   />
                   <img
-                    src={product.images?.[0]?.image_url || '/placeholder.png'}
+                    src={getImageUrl(product.images?.[0]?.image_url) || '/placeholder.png'}
                     alt={product.name}
                     className={`w-full ${viewMode === 'list' ? 'h-48' : 'h-48'} object-cover rounded-t-lg`}
                     onError={(e) => {

@@ -171,7 +171,14 @@ export const ordersApi = {
         throw new Error('Order not found');
       }
 
-      return await response.json();
+      const orders = await response.json();
+      
+      // The backend returns an array of orders, so we take the first one
+      if (Array.isArray(orders) && orders.length > 0) {
+        return orders[0];
+      } else {
+        throw new Error('Order not found');
+      }
     } catch (error) {
       console.error('Error in getByOrderNumber:', error);
       throw error;

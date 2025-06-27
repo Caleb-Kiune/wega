@@ -13,13 +13,22 @@ def get_products():
     # Get query parameters
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
+    limit = request.args.get('limit', type=int)
     search = request.args.get('search', '')
-    category = request.args.get('category', '')
-    brand = request.args.get('brand', '')
+    
+    # Handle both single and multiple category/brand parameters
+    categories = request.args.getlist('categories[]') or request.args.getlist('category')
+    brands = request.args.getlist('brands[]') or request.args.getlist('brand')
+    
     min_price = request.args.get('min_price', type=float)
     max_price = request.args.get('max_price', type=float)
     sort_by = request.args.get('sort_by', 'name')
     sort_order = request.args.get('sort_order', 'asc')
+    
+    # Get boolean filter parameters
+    is_featured = request.args.get('is_featured', '').lower() == 'true'
+    is_new = request.args.get('is_new', '').lower() == 'true'
+    is_sale = request.args.get('is_sale', '').lower() == 'true'
     
     # Build query
     query = Product.query.options(
@@ -42,17 +51,29 @@ def get_products():
             )
         )
     
-    if category:
-        query = query.join(Category).filter(Category.slug == category)
+    # Apply category filters
+    if categories:
+        query = query.join(Category).filter(Category.name.in_(categories))
     
-    if brand:
-        query = query.join(Brand).filter(Brand.slug == brand)
+    # Apply brand filters
+    if brands:
+        query = query.join(Brand).filter(Brand.name.in_(brands))
     
     if min_price is not None:
         query = query.filter(Product.price >= min_price)
     
     if max_price is not None:
         query = query.filter(Product.price <= max_price)
+    
+    # Apply boolean filters
+    if is_featured:
+        query = query.filter(Product.is_featured == True)
+    
+    if is_new:
+        query = query.filter(Product.is_new == True)
+    
+    if is_sale:
+        query = query.filter(Product.is_sale == True)
     
     # Apply sorting
     if sort_by == 'price':
@@ -76,25 +97,22 @@ def get_products():
         else:
             query = query.order_by(Product.name.asc())
     
-    # Paginate results
-    pagination = paginate(query, page, per_page)
-    
     def product_list_dict(product):
-        # Get the primary image URL
-        primary_image = next((img.image_url for img in product.images if img.is_primary), 
-                           product.images[0].image_url if product.images else None)
-        
-        # Format image URL
-        if primary_image:
-            primary_image = format_image_url(primary_image)
-        
         return {
             'id': product.id,
             'name': product.name,
             'description': product.description,
             'price': float(product.price) if product.price else None,
             'original_price': float(product.original_price) if product.original_price else None,
-            'image_url': primary_image,
+            'image_url': format_image_url(next((img.image_url for img in product.images if img.is_primary), 
+                           product.images[0].image_url if product.images else None)),
+            'images': [{
+                'id': img.id,
+                'product_id': img.product_id,
+                'image_url': format_image_url(img.image_url),
+                'is_primary': img.is_primary,
+                'display_order': img.display_order
+            } for img in product.images],
             'is_new': product.is_new,
             'is_sale': product.is_sale,
             'is_featured': product.is_featured,
@@ -106,17 +124,27 @@ def get_products():
             'sku': product.sku
         }
     
-    return jsonify({
-        'products': [product_list_dict(product) for product in pagination.items],
-        'pagination': {
-            'page': page,
-            'per_page': per_page,
+    # Use limit if provided, otherwise use pagination
+    if limit:
+        products = query.limit(limit).all()
+        total = query.count()
+        return jsonify({
+            'products': [product_list_dict(product) for product in products],
+            'total': total,
+            'pages': (total + limit - 1) // limit,
+            'current_page': 1
+        })
+    else:
+        # Paginate results
+        pagination = paginate(query, page, per_page)
+        
+        return jsonify({
+            'products': [product_list_dict(product) for product in pagination.items],
             'total': pagination.total,
             'pages': pagination.pages,
-            'has_next': pagination.has_next,
-            'has_prev': pagination.has_prev
-        }
-    })
+            'current_page': page,
+            'per_page': per_page
+        })
 
 @products_bp.route('/api/products/<int:id>', methods=['GET'])
 def get_product(id):

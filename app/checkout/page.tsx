@@ -185,6 +185,7 @@ export default function CheckoutPage() {
     }
 
     const orderData = {
+      session_id: cart?.session_id,
       first_name: formData.get('firstName') as string,
       last_name: formData.get('lastName') as string,
       email: formData.get('email') as string,
@@ -200,7 +201,7 @@ export default function CheckoutPage() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      console.log('API URL:', `${apiUrl}/orders?session_id=${cart?.session_id}`)
+      console.log('API URL:', `${apiUrl}/orders`)
       console.log('Order data:', orderData)
       console.log('Cart session ID:', cart?.session_id)
       console.log('Cart items count:', cart?.items?.length)
@@ -230,7 +231,7 @@ export default function CheckoutPage() {
         throw new Error('Cannot connect to backend server. Please ensure the backend is running.')
       }
 
-      const response = await fetch(`${apiUrl}/orders?session_id=${cart.session_id}`, {
+      const response = await fetch(`${apiUrl}/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

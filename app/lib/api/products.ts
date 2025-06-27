@@ -4,9 +4,9 @@ import { API_BASE_URL } from './config';
 export const getImageUrl = (path: string) => {
   if (!path) return "/placeholder.svg";
   if (path.startsWith("http")) return path;
-  // If the path is just a filename, assume it's in the products directory
+  // If the path is just a filename, assume it's in the uploads directory
   if (!path.includes("/")) {
-    return `http://localhost:5000/images/products/${path}`;
+    return `http://localhost:5000/static/uploads/${path}`;
   }
   return `http://localhost:5000${path}`;
 };
@@ -151,7 +151,13 @@ export const productsApi = {
     if (!response.ok) {
       throw new Error('Failed to fetch products');
     }
-    return response.json();
+    const data = await response.json();
+    
+    // Apply transformation to products
+    return {
+      ...data,
+      products: data.products.map((product: any) => transformProduct(product))
+    };
   },
   
   getById: async (id: number) => {

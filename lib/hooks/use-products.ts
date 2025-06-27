@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiClient, Product, ProductsParams, ProductsResponse } from '@/app/lib/api';
+import { productsApi, Product, ProductsParams, ProductsResponse } from '@/app/lib/api/products';
 
 interface UseProductsResult {
   products: Product[];
@@ -25,7 +25,7 @@ export function useProducts(filters: ProductsParams = {}): UseProductsResult {
         // Log the filters being used
         console.log('Fetching products with filters:', filters);
         
-        const { data } = await apiClient.get<ProductsResponse>('/products', { params: filters, timeout: 60000 });
+        const data = await productsApi.getAll(filters);
         
         // Log the response data
         console.log('API Response:', {

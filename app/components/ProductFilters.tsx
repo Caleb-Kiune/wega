@@ -59,9 +59,9 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
       brands: undefined,
       min_price: undefined,
       max_price: undefined,
-      is_featured: false,
-      is_new: false,
-      is_sale: false,
+      is_featured: undefined,
+      is_new: undefined,
+      is_sale: undefined,
       search: undefined,
     });
     setMinPriceInput('');
@@ -201,11 +201,11 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id="featured"
-                        checked={filters.is_featured}
+                        checked={filters.is_featured || false}
                         onCheckedChange={(checked) => {
                           onFiltersChange({
                             ...filters,
-                            is_featured: checked as boolean,
+                            is_featured: checked ? true : undefined,
                             page: 1,
                           });
                         }}
@@ -220,11 +220,11 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id="new"
-                        checked={filters.is_new}
+                        checked={filters.is_new || false}
                         onCheckedChange={(checked) => {
                           onFiltersChange({
                             ...filters,
-                            is_new: checked as boolean,
+                            is_new: checked ? true : undefined,
                             page: 1,
                           });
                         }}
@@ -239,11 +239,11 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id="sale"
-                        checked={filters.is_sale}
+                        checked={filters.is_sale || false}
                         onCheckedChange={(checked) => {
                           onFiltersChange({
                             ...filters,
-                            is_sale: checked as boolean,
+                            is_sale: checked ? true : undefined,
                             page: 1,
                           });
                         }}
@@ -376,11 +376,11 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="featured"
-                checked={filters.is_featured}
+                checked={filters.is_featured || false}
                 onCheckedChange={(checked) => {
                   onFiltersChange({
                     ...filters,
-                    is_featured: checked as boolean,
+                    is_featured: checked ? true : undefined,
                     page: 1,
                   });
                 }}
@@ -395,11 +395,11 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="new"
-                checked={filters.is_new}
+                checked={filters.is_new || false}
                 onCheckedChange={(checked) => {
                   onFiltersChange({
                     ...filters,
-                    is_new: checked as boolean,
+                    is_new: checked ? true : undefined,
                     page: 1,
                   });
                 }}
@@ -414,11 +414,11 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="sale"
-                checked={filters.is_sale}
+                checked={filters.is_sale || false}
                 onCheckedChange={(checked) => {
                   onFiltersChange({
                     ...filters,
-                    is_sale: checked as boolean,
+                    is_sale: checked ? true : undefined,
                     page: 1,
                   });
                 }}
