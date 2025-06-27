@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { ordersApi, Order } from '@/app/lib/api/orders';
-import { getImageUrl } from '@/app/lib/api/products';
+import { ordersApi, Order } from '@/lib/orders';
+import { getImageUrl } from '@/lib/products';
 import { format, isValid, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import { Package, Truck, CheckCircle, XCircle, CreditCard, HelpCircle } from 'lu
 import { useToast } from '@/lib/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 // Utility functions for order status
 const getStatusColor = (status: Order['status']) => {

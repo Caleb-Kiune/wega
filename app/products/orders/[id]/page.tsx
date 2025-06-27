@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/lib/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getImageUrl } from "@/app/lib/api/products"
+import { getImageUrl } from "@/lib/products"
 
 interface OrderItem {
   id: number

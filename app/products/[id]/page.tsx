@@ -12,7 +12,7 @@ import AddToCartButton from "@/components/add-to-cart-button"
 import WhatsAppOrderButton from "@/components/whatsapp-order-button"
 import { useToast } from "@/lib/hooks/use-toast"
 import { useWishlist } from "@/lib/hooks/use-wishlist"
-import { productsApi, getImageUrl } from "@/app/lib/api/products"
+import { productsApi, getImageUrl } from "@/lib/products"
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [quantity, setQuantity] = useState(1)

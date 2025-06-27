@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useProducts } from '@/lib/hooks/use-products';
-import ProductFilters from '../components/ProductFilters';
+import ProductFilters from '@/components/ProductFilters';
 import ProductCard from '@/components/product-card';
-import { ProductsLoading } from '../components/products-loading';
+import { ProductsLoading } from '@/components/products-loading';
 import { Button } from '@/components/ui/button';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Product, ProductsParams } from '../lib/api/products';
+import { Product, ProductsParams } from '@/shared/types';
 
 export interface ProductsFilters extends Omit<ProductsParams, 'page' | 'limit'> {
   page: number;

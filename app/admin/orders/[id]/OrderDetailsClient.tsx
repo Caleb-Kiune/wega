@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ordersApi, Order } from '@/app/lib/api/orders';
-import { getImageUrl } from '@/app/lib/api/products';
+import { ordersApi, Order } from '@/lib/orders';
+import { getImageUrl } from '@/lib/products';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

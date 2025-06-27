@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useCart } from "@/lib/hooks/use-cart"
 import { useToast } from "@/lib/hooks/use-toast"
-import { deliveryLocationsApi, DeliveryLocation } from "@/app/lib/api/cart"
+import { deliveryLocationsApi, DeliveryLocation } from "@/lib/cart"
 
 export default function CheckoutPage() {
   const { cart } = useCart()

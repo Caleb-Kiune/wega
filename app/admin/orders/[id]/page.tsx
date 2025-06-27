@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import OrderDetailsClient from './OrderDetailsClient';
-import { ordersApi } from '@/app/lib/api/orders';
+import { ordersApi } from '@/lib/orders';
 
 export default async function OrderDetailsPage({ params }: { params: { id: string } }) {
   const order = await ordersApi.getById(parseInt(params.id));

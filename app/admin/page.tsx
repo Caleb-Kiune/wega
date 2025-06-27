@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { productsApi, Product, getImageUrl } from '../lib/api/products';
+import { productsApi, getImageUrl } from '@/lib/products';
+import { Product } from '@/shared/types';
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
