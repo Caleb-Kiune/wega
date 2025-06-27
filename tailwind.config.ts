@@ -8,7 +8,6 @@ const config: Config = {
     "./frontend/src/components/**/*.{ts,tsx}",
     "./frontend/src/lib/**/*.{ts,tsx}",
     "./frontend/src/shared/**/*.{ts,tsx}",
-    "./styles/**/*.{ts,tsx,css}",
     "./*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {

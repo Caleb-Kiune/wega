@@ -1,20 +1,14 @@
 import os
 import uuid
 import datetime
-import mimetypes
 from decimal import Decimal
-from werkzeug.utils import secure_filename
 from flask import current_app
-
-def allowed_file(filename):
-    """Check if the file extension is allowed"""
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
 
 def validate_image_file(file):
     """Validate image file more thoroughly"""
     # Check file extension
-    if not allowed_file(file.filename):
+    if not ('.' in file.filename and 
+            file.filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']):
         return False, f"Invalid file type. Allowed types: {', '.join(current_app.config['ALLOWED_EXTENSIONS'])}"
     
     # Check file size

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { deliveryLocationsApi, DeliveryLocation } from '../../lib/api/cart';
+import { deliveryLocationsApi, DeliveryLocation } from '@/lib/cart';
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

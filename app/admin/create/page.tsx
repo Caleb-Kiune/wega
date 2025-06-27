@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { productsApi, Product, ProductImage, ProductSpecification, ProductFeature, Review, getImageUrl } from '../../lib/api/products';
-import apiClient from '../../lib/api/client';
+import { productsApi, Product, ProductImage, ProductSpecification, ProductFeature, Review, getImageUrl } from '@/lib/products';
+import apiClient from '@/lib/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';

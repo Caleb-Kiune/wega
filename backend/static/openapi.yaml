@@ -1,0 +1,1455 @@
+openapi: 3.0.3
+info:
+  title: Wega Kitchenware API
+  version: 1.0.0
+  description: REST API for Wega Kitchenware e-commerce backend.
+servers:
+  - url: http://localhost:5000/api
+paths:
+  /products:
+    get:
+      summary: Get all products
+      description: Retrieve a list of products with optional filtering, sorting, and pagination
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            default: 10
+          description: Number of items per page
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Limit total number of results (overrides pagination)
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search term for product name, description, or SKU
+        - in: query
+          name: categories[]
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by category names
+        - in: query
+          name: brands[]
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by brand names
+        - in: query
+          name: min_price
+          schema:
+            type: number
+            format: float
+          description: Minimum price filter
+        - in: query
+          name: max_price
+          schema:
+            type: number
+            format: float
+          description: Maximum price filter
+        - in: query
+          name: sort_by
+          schema:
+            type: string
+            enum: [name, price, rating, created_at]
+            default: name
+          description: Field to sort by
+        - in: query
+          name: sort_order
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+          description: Sort order
+        - in: query
+          name: is_featured
+          schema:
+            type: boolean
+          description: Filter featured products
+        - in: query
+          name: is_new
+          schema:
+            type: boolean
+          description: Filter new products
+        - in: query
+          name: is_sale
+          schema:
+            type: boolean
+          description: Filter sale products
+      responses:
+        '200':
+          description: List of products retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+                  total:
+                    type: integer
+                    description: Total number of products
+                  pages:
+                    type: integer
+                    description: Total number of pages
+                  current_page:
+                    type: integer
+                    description: Current page number
+                  per_page:
+                    type: integer
+                    description: Items per page
+              example:
+                products:
+                  - id: 1
+                    name: "Stainless Steel Cookware Set"
+                    description: "Professional grade cookware set"
+                    price: 299.99
+                    original_price: 399.99
+                    image_url: "/images/cookware-set.jpg"
+                    images:
+                      - id: 1
+                        product_id: 1
+                        image_url: "/images/cookware-set.jpg"
+                        is_primary: true
+                        display_order: 1
+                    is_new: false
+                    is_sale: true
+                    is_featured: true
+                    category: "Cookware"
+                    brand: "Wega Pro"
+                    rating: 4.8
+                    review_count: 156
+                    stock: 25
+                    sku: "WG-CS-001"
+                total: 150
+                pages: 15
+                current_page: 1
+                per_page: 10
+        '400':
+          description: Bad request - invalid parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Invalid sort_by parameter"
+
+  /products/{id}:
+    get:
+      summary: Get a single product by ID
+      description: Retrieve detailed information about a specific product
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Product ID
+      responses:
+        '200':
+          description: Product details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetail'
+              example:
+                id: 1
+                name: "Stainless Steel Cookware Set"
+                description: "Professional grade cookware set with 10 pieces including pots, pans, and lids. Made from premium 18/10 stainless steel with aluminum core for even heat distribution."
+                price: 299.99
+                original_price: 399.99
+                sku: "WG-CS-001"
+                stock: 25
+                is_new: false
+                is_sale: true
+                is_featured: true
+                category:
+                  id: 1
+                  name: "Cookware"
+                  slug: "cookware"
+                brand:
+                  id: 1
+                  name: "Wega Pro"
+                  slug: "wega-pro"
+                images:
+                  - id: 1
+                    product_id: 1
+                    image_url: "/images/cookware-set-1.jpg"
+                    is_primary: true
+                    display_order: 1
+                  - id: 2
+                    product_id: 1
+                    image_url: "/images/cookware-set-2.jpg"
+                    is_primary: false
+                    display_order: 2
+                specifications:
+                  - id: 1
+                    product_id: 1
+                    name: "Material"
+                    value: "18/10 Stainless Steel"
+                  - id: 2
+                    product_id: 1
+                    name: "Pieces"
+                    value: "10"
+                features:
+                  - id: 1
+                    product_id: 1
+                    name: "Even Heat Distribution"
+                    description: "Aluminum core ensures uniform cooking"
+                  - id: 2
+                    product_id: 1
+                    name: "Dishwasher Safe"
+                    description: "Easy cleanup and maintenance"
+                reviews:
+                  - id: 1
+                    product_id: 1
+                    user: "John D."
+                    avatar: "/avatars/john.jpg"
+                    title: "Excellent Quality"
+                    comment: "This cookware set exceeded my expectations. The quality is outstanding."
+                    rating: 5
+                    date: "2024-01-15T10:30:00Z"
+                rating: 4.8
+                review_count: 156
+                created_at: "2024-01-01T00:00:00Z"
+                updated_at: "2024-01-15T12:00:00Z"
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Product not found"
+
+  /orders:
+    get:
+      summary: Get all orders
+      description: Retrieve a list of orders with optional filtering and pagination
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            default: 10
+          description: Number of items per page
+        - in: query
+          name: email
+          schema:
+            type: string
+          description: Filter orders by customer email
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, processing, shipped, delivered, cancelled]
+          description: Filter orders by status
+        - in: query
+          name: order_number
+          schema:
+            type: string
+          description: Filter orders by order number
+      responses:
+        '200':
+          description: List of orders retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+              example:
+                orders:
+                  - id: 1
+                    order_number: "ORD-20240115-A1B2C3D4"
+                    first_name: "John"
+                    last_name: "Doe"
+                    email: "john.doe@example.com"
+                    phone: "+1234567890"
+                    address: "123 Main St"
+                    city: "New York"
+                    state: "NY"
+                    postal_code: "10001"
+                    total_amount: 349.99
+                    shipping_cost: 15.00
+                    notes: "Please deliver after 6 PM"
+                    status: "processing"
+                    payment_status: "paid"
+                    created_at: "2024-01-15T10:30:00Z"
+                    items:
+                      - id: 1
+                        order_id: 1
+                        product_id: 1
+                        product_name: "Stainless Steel Cookware Set"
+                        quantity: 1
+                        price: 299.99
+                      - id: 2
+                        order_id: 1
+                        product_id: 2
+                        product_name: "Chef's Knife"
+                        quantity: 2
+                        price: 25.00
+                pagination:
+                  page: 1
+                  per_page: 10
+                  total: 25
+                  pages: 3
+                  has_next: true
+                  has_prev: false
+
+    post:
+      summary: Create a new order
+      description: Create a new order from cart items
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+            example:
+              session_id: "session_12345"
+              first_name: "John"
+              last_name: "Doe"
+              email: "john.doe@example.com"
+              phone: "+1234567890"
+              address: "123 Main St"
+              city: "New York"
+              state: "NY"
+              postal_code: "10001"
+              delivery_location_id: 1
+              notes: "Please deliver after 6 PM"
+      responses:
+        '201':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              example:
+                id: 1
+                order_number: "ORD-20240115-A1B2C3D4"
+                first_name: "John"
+                last_name: "Doe"
+                email: "john.doe@example.com"
+                phone: "+1234567890"
+                address: "123 Main St"
+                city: "New York"
+                state: "NY"
+                postal_code: "10001"
+                total_amount: 349.99
+                shipping_cost: 15.00
+                notes: "Please deliver after 6 PM"
+                status: "pending"
+                payment_status: "pending"
+                created_at: "2024-01-15T10:30:00Z"
+                items:
+                  - id: 1
+                    order_id: 1
+                    product_id: 1
+                    product_name: "Stainless Steel Cookware Set"
+                    quantity: 1
+                    price: 299.99
+                  - id: 2
+                    order_id: 1
+                    product_id: 2
+                    product_name: "Chef's Knife"
+                    quantity: 2
+                    price: 25.00
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "First name is required"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Failed to create order"
+
+  /orders/{id}:
+    get:
+      summary: Get a single order by ID
+      description: Retrieve detailed information about a specific order
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Order ID
+      responses:
+        '200':
+          description: Order details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              example:
+                id: 1
+                order_number: "ORD-20240115-A1B2C3D4"
+                first_name: "John"
+                last_name: "Doe"
+                email: "john.doe@example.com"
+                phone: "+1234567890"
+                address: "123 Main St"
+                city: "New York"
+                state: "NY"
+                postal_code: "10001"
+                total_amount: 349.99
+                shipping_cost: 15.00
+                notes: "Please deliver after 6 PM"
+                status: "processing"
+                payment_status: "paid"
+                created_at: "2024-01-15T10:30:00Z"
+                updated_at: "2024-01-15T14:20:00Z"
+                items:
+                  - id: 1
+                    order_id: 1
+                    product_id: 1
+                    product_name: "Stainless Steel Cookware Set"
+                    quantity: 1
+                    price: 299.99
+                  - id: 2
+                    order_id: 1
+                    product_id: 2
+                    product_name: "Chef's Knife"
+                    quantity: 2
+                    price: 25.00
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Order not found"
+
+  /orders/{id}/status:
+    patch:
+      summary: Update order status
+      description: Update the status of an existing order
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Order ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [pending, processing, shipped, delivered, cancelled]
+                  description: New order status
+            example:
+              status: "shipped"
+      responses:
+        '200':
+          description: Order status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Bad request - invalid status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Invalid status. Must be one of: pending, processing, shipped, delivered, cancelled"
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Order not found"
+
+  /orders/track:
+    post:
+      summary: Track order by order number or email
+      description: Find orders using order number or customer email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_number:
+                  type: string
+                  description: Order number to search for
+                email:
+                  type: string
+                  format: email
+                  description: Customer email to search for
+            example:
+              order_number: "ORD-20240115-A1B2C3D4"
+              email: "john.doe@example.com"
+      responses:
+        '200':
+          description: Orders found successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+        '400':
+          description: Bad request - missing search criteria
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Order number or email is required"
+        '404':
+          description: No orders found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Order not found"
+
+  /cart:
+    get:
+      summary: Get cart contents
+      description: Retrieve the current cart for a session
+      parameters:
+        - in: query
+          name: session_id
+          required: true
+          schema:
+            type: string
+          description: Session identifier
+      responses:
+        '200':
+          description: Cart contents retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+              example:
+                cart:
+                  id: 1
+                  session_id: "session_12345"
+                  created_at: "2024-01-15T10:00:00Z"
+                items:
+                  - id: 1
+                    cart_id: 1
+                    product_id: 1
+                    product_name: "Stainless Steel Cookware Set"
+                    product_price: 299.99
+                    product_image: "/images/cookware-set.jpg"
+                    quantity: 1
+                    subtotal: 299.99
+                  - id: 2
+                    cart_id: 1
+                    product_id: 2
+                    product_name: "Chef's Knife"
+                    product_price: 25.00
+                    product_image: "/images/chef-knife.jpg"
+                    quantity: 2
+                    subtotal: 50.00
+                total: 349.99
+                item_count: 3
+        '400':
+          description: Bad request - missing session ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Session ID is required"
+
+    delete:
+      summary: Clear entire cart
+      description: Remove all items from the cart
+      parameters:
+        - in: query
+          name: session_id
+          required: true
+          schema:
+            type: string
+          description: Session identifier
+      responses:
+        '200':
+          description: Cart cleared successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              example:
+                message: "Cart cleared successfully"
+        '400':
+          description: Bad request - missing session ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Session ID is required"
+
+  /cart/items:
+    post:
+      summary: Add item to cart
+      description: Add a product to the shopping cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddToCartRequest'
+            example:
+              session_id: "session_12345"
+              product_id: 1
+              quantity: 2
+      responses:
+        '200':
+          description: Item added to cart successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Product ID is required"
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Product not found"
+
+  /cart/items/{item_id}:
+    put:
+      summary: Update cart item quantity
+      description: Update the quantity of an item in the cart
+      parameters:
+        - in: path
+          name: item_id
+          required: true
+          schema:
+            type: integer
+          description: Cart item ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - quantity
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+                  description: New quantity for the item
+            example:
+              quantity: 3
+      responses:
+        '200':
+          description: Cart item updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400':
+          description: Bad request - invalid quantity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Quantity must be greater than 0"
+        '404':
+          description: Cart item not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Cart item not found"
+
+    delete:
+      summary: Remove item from cart
+      description: Remove a specific item from the cart
+      parameters:
+        - in: path
+          name: item_id
+          required: true
+          schema:
+            type: integer
+          description: Cart item ID
+      responses:
+        '200':
+          description: Item removed from cart successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '404':
+          description: Cart item not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Cart item not found"
+
+  /delivery-locations:
+    get:
+      summary: Get all delivery locations
+      description: Retrieve a list of available delivery locations
+      parameters:
+        - in: query
+          name: active_only
+          schema:
+            type: boolean
+            default: false
+          description: Filter to show only active locations
+      responses:
+        '200':
+          description: Delivery locations retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeliveryLocation'
+              example:
+                - id: 1
+                  name: "New York City"
+                  slug: "new-york-city"
+                  city: "New York"
+                  shipping_price: 15.00
+                  is_active: true
+                  created_at: "2024-01-01T00:00:00Z"
+                - id: 2
+                  name: "Los Angeles"
+                  slug: "los-angeles"
+                  city: "Los Angeles"
+                  shipping_price: 12.00
+                  is_active: true
+                  created_at: "2024-01-01T00:00:00Z"
+
+    post:
+      summary: Create a new delivery location
+      description: Create a new delivery location for shipping
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDeliveryLocationRequest'
+            example:
+              name: "Chicago"
+              slug: "chicago"
+              city: "Chicago"
+              shipping_price: 10.00
+              is_active: true
+      responses:
+        '201':
+          description: Delivery location created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryLocation'
+              example:
+                id: 3
+                name: "Chicago"
+                slug: "chicago"
+                city: "Chicago"
+                shipping_price: 10.00
+                is_active: true
+                created_at: "2024-01-15T16:00:00Z"
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Name is required"
+
+  /delivery-locations/{id}:
+    get:
+      summary: Get a single delivery location by ID
+      description: Retrieve detailed information about a specific delivery location
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Delivery location ID
+      responses:
+        '200':
+          description: Delivery location details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryLocation'
+              example:
+                id: 1
+                name: "New York City"
+                slug: "new-york-city"
+                city: "New York"
+                shipping_price: 15.00
+                is_active: true
+                created_at: "2024-01-01T00:00:00Z"
+                updated_at: "2024-01-15T12:00:00Z"
+        '404':
+          description: Delivery location not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Delivery location not found"
+
+    put:
+      summary: Update a delivery location
+      description: Update an existing delivery location
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Delivery location ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDeliveryLocationRequest'
+            example:
+              name: "New York City Updated"
+              slug: "new-york-city"
+              city: "New York"
+              shipping_price: 18.00
+              is_active: true
+      responses:
+        '200':
+          description: Delivery location updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryLocation'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Name is required"
+        '404':
+          description: Delivery location not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Delivery location not found"
+
+    delete:
+      summary: Delete a delivery location
+      description: Remove a delivery location
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Delivery location ID
+      responses:
+        '200':
+          description: Delivery location deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              example:
+                message: "Delivery location deleted successfully"
+        '400':
+          description: Bad request - location has orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Cannot delete delivery location with existing orders"
+        '404':
+          description: Delivery location not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Delivery location not found"
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique product identifier
+        name:
+          type: string
+          description: Product name
+        description:
+          type: string
+          description: Product description
+        price:
+          type: number
+          format: float
+          description: Current product price
+        original_price:
+          type: number
+          format: float
+          description: Original price before discount
+        image_url:
+          type: string
+          description: Primary product image URL
+        images:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              product_id:
+                type: integer
+              image_url:
+                type: string
+              is_primary:
+                type: boolean
+              display_order:
+                type: integer
+        is_new:
+          type: boolean
+          description: Whether the product is new
+        is_sale:
+          type: boolean
+          description: Whether the product is on sale
+        is_featured:
+          type: boolean
+          description: Whether the product is featured
+        category:
+          type: string
+          description: Product category name
+        brand:
+          type: string
+          description: Product brand name
+        rating:
+          type: number
+          format: float
+          description: Average product rating
+        review_count:
+          type: integer
+          description: Number of reviews
+        stock:
+          type: integer
+          description: Available stock quantity
+        sku:
+          type: string
+          description: Stock keeping unit
+
+    ProductDetail:
+      allOf:
+        - $ref: '#/components/schemas/Product'
+        - type: object
+          properties:
+            category:
+              type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                slug:
+                  type: string
+            brand:
+              type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                slug:
+                  type: string
+            specifications:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  product_id:
+                    type: integer
+                  name:
+                    type: string
+                  value:
+                    type: string
+            features:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  product_id:
+                    type: integer
+                  name:
+                    type: string
+                  description:
+                    type: string
+            reviews:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  product_id:
+                    type: integer
+                  user:
+                    type: string
+                  avatar:
+                    type: string
+                  title:
+                    type: string
+                  comment:
+                    type: string
+                  rating:
+                    type: integer
+                    minimum: 1
+                    maximum: 5
+                  date:
+                    type: string
+                    format: date-time
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique order identifier
+        order_number:
+          type: string
+          description: Human-readable order number
+        first_name:
+          type: string
+          description: Customer first name
+        last_name:
+          type: string
+          description: Customer last name
+        email:
+          type: string
+          format: email
+          description: Customer email address
+        phone:
+          type: string
+          description: Customer phone number
+        address:
+          type: string
+          description: Shipping address
+        city:
+          type: string
+          description: Shipping city
+        state:
+          type: string
+          description: Shipping state
+        postal_code:
+          type: string
+          description: Shipping postal code
+        total_amount:
+          type: number
+          format: float
+          description: Total order amount including shipping
+        shipping_cost:
+          type: number
+          format: float
+          description: Shipping cost
+        notes:
+          type: string
+          description: Order notes
+        status:
+          type: string
+          enum: [pending, processing, shipped, delivered, cancelled]
+          description: Order status
+        payment_status:
+          type: string
+          enum: [pending, paid, failed, refunded]
+          description: Payment status
+        created_at:
+          type: string
+          format: date-time
+          description: Order creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique order item identifier
+        order_id:
+          type: integer
+          description: Associated order ID
+        product_id:
+          type: integer
+          description: Associated product ID
+        product_name:
+          type: string
+          description: Product name at time of order
+        quantity:
+          type: integer
+          description: Quantity ordered
+        price:
+          type: number
+          format: float
+          description: Unit price at time of order
+
+    CreateOrderRequest:
+      type: object
+      required:
+        - session_id
+        - first_name
+        - last_name
+        - email
+        - phone
+        - address
+        - city
+        - state
+        - postal_code
+        - delivery_location_id
+      properties:
+        session_id:
+          type: string
+          description: Session identifier for cart
+        first_name:
+          type: string
+          description: Customer first name
+        last_name:
+          type: string
+          description: Customer last name
+        email:
+          type: string
+          format: email
+          description: Customer email address
+        phone:
+          type: string
+          description: Customer phone number
+        address:
+          type: string
+          description: Shipping address
+        city:
+          type: string
+          description: Shipping city
+        state:
+          type: string
+          description: Shipping state
+        postal_code:
+          type: string
+          description: Shipping postal code
+        delivery_location_id:
+          type: integer
+          description: Delivery location ID
+        notes:
+          type: string
+          description: Order notes
+
+    Cart:
+      type: object
+      properties:
+        cart:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              description: Cart identifier
+            session_id:
+              type: string
+              description: Session identifier
+            created_at:
+              type: string
+              format: date-time
+              description: Cart creation timestamp
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+          description: Cart items
+        total:
+          type: number
+          format: float
+          description: Total cart value
+        item_count:
+          type: integer
+          description: Total number of items in cart
+
+    CartItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Cart item identifier
+        cart_id:
+          type: integer
+          description: Associated cart ID
+        product_id:
+          type: integer
+          description: Associated product ID
+        product_name:
+          type: string
+          description: Product name
+        product_price:
+          type: number
+          format: float
+          description: Current product price
+        product_image:
+          type: string
+          description: Product image URL
+        quantity:
+          type: integer
+          description: Item quantity
+        subtotal:
+          type: number
+          format: float
+          description: Item subtotal (price * quantity)
+
+    AddToCartRequest:
+      type: object
+      required:
+        - session_id
+        - product_id
+      properties:
+        session_id:
+          type: string
+          description: Session identifier
+        product_id:
+          type: integer
+          description: Product ID to add
+        quantity:
+          type: integer
+          default: 1
+          minimum: 1
+          description: Quantity to add
+
+    DeliveryLocation:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique delivery location identifier
+        name:
+          type: string
+          description: Location name
+        slug:
+          type: string
+          description: URL-friendly identifier
+        city:
+          type: string
+          description: City name
+        shipping_price:
+          type: number
+          format: float
+          description: Shipping cost for this location
+        is_active:
+          type: boolean
+          description: Whether location is active
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    CreateDeliveryLocationRequest:
+      type: object
+      required:
+        - name
+        - slug
+        - city
+        - shipping_price
+      properties:
+        name:
+          type: string
+          description: Location name
+        slug:
+          type: string
+          description: URL-friendly identifier
+        city:
+          type: string
+          description: City name
+        shipping_price:
+          type: number
+          format: float
+          minimum: 0
+          description: Shipping cost for this location
+        is_active:
+          type: boolean
+          default: true
+          description: Whether location is active
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: Current page number
+        per_page:
+          type: integer
+          description: Items per page
+        total:
+          type: integer
+          description: Total number of items
+        pages:
+          type: integer
+          description: Total number of pages
+        has_next:
+          type: boolean
+          description: Whether there is a next page
+        has_prev:
+          type: boolean
+          description: Whether there is a previous page 
