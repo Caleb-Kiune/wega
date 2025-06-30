@@ -241,6 +241,25 @@ export default function Header() {
                 </Tooltip>
               </TooltipProvider>
 
+              {/* Mobile Search Button */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="md:hidden"
+                      onClick={() => setIsSearchOpen(!isSearchOpen)}
+                    >
+                      {isSearchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{isSearchOpen ? 'Close Search' : 'Search'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
               {/* Mobile Menu Button */}
               <Sheet>
                 <SheetTrigger asChild>
@@ -331,6 +350,15 @@ export default function Header() {
                   className="bg-green-600 hover:bg-green-700 text-white px-6"
                 >
                   Search
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsSearchOpen(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-4 w-4" />
                 </Button>
               </form>
             </div>

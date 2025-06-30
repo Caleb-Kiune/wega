@@ -18,7 +18,16 @@ class Config:
     MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
     
     # CORS configuration
-    CORS_ORIGINS = ['http://localhost:3000']
+    CORS_ORIGINS = [
+        'http://localhost:3000',
+        'http://localhost:3001', 
+        'http://localhost:3002',
+        'http://localhost:3003',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:3001',
+        'http://127.0.0.1:3002',
+        'http://127.0.0.1:3003'
+    ]
     CORS_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
     CORS_ALLOW_HEADERS = ['Content-Type', 'Authorization']
     CORS_SUPPORTS_CREDENTIALS = True
