@@ -11,6 +11,17 @@ env = os.environ.get('FLASK_ENV', 'development')
 # Create the application
 app = create_app(env)
 
+# Auto-run migrations in production
+if env == 'production':
+    with app.app_context():
+        try:
+            from flask_migrate import upgrade
+            upgrade()
+            print("✅ Database migrations completed successfully")
+        except Exception as e:
+            print(f"⚠️  Migration warning: {e}")
+            print("Database tables will be created automatically if they don't exist")
+
 if __name__ == '__main__':
     # Run the application
     app.run(
