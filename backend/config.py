@@ -27,11 +27,11 @@ class Config:
         'http://127.0.0.1:3001',
         'http://127.0.0.1:3002',
         'http://127.0.0.1:3003',
-        # Add your Vercel frontend URL here
-        'https://your-app-name.vercel.app',  # Replace with your actual Vercel URL
-        'https://wega-kitchenware.vercel.app',  # Example URL
-        # Add your Railway backend URL for testing
-        'https://your-railway-app.railway.app'  # Replace with your actual Railway URL
+        # Production URLs
+        'https://wega-one.vercel.app',  # Your actual Vercel frontend URL
+        'https://wega-kitchenware.vercel.app',  # Alternative Vercel URL
+        # Backend URLs for testing
+        'https://wega-backend.onrender.com'  # Your Render backend URL
     ]
     CORS_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
     CORS_ALLOW_HEADERS = ['Content-Type', 'Authorization']
