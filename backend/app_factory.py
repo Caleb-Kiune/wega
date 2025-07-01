@@ -38,6 +38,7 @@ def create_app(config_name='default'):
     from routes.delivery import delivery_bp
     from routes.upload import upload_bp
     from routes.docs import docs_bp
+    from routes.admin import admin_bp
     
     app.register_blueprint(products_bp)
     app.register_blueprint(categories_bp)
@@ -48,6 +49,7 @@ def create_app(config_name='default'):
     app.register_blueprint(delivery_bp)
     app.register_blueprint(upload_bp)
     app.register_blueprint(docs_bp)
+    app.register_blueprint(admin_bp)
     
     # Register main routes
     from routes.main import main_bp
