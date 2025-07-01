@@ -143,9 +143,10 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
     const fetchBrandsAndCategories = async () => {
       try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
         const [brandsResponse, categoriesResponse] = await Promise.all([
-          fetch('http://localhost:5000/api/brands'),
-          fetch('http://localhost:5000/api/categories')
+          fetch(`${apiUrl}/brands`),
+          fetch(`${apiUrl}/categories`)
         ]);
         
         if (brandsResponse.ok) {

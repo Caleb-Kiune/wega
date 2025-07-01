@@ -4,11 +4,16 @@ import { API_BASE_URL } from './config';
 export const getImageUrl = (path: string) => {
   if (!path) return "/placeholder.svg";
   if (path.startsWith("http")) return path;
+  
+  // Get the base URL from environment variable, fallback to localhost
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  const apiBaseUrl = baseUrl.replace('/api', ''); // Remove /api to get the root URL
+  
   // If the path is just a filename, assume it's in the uploads directory
   if (!path.includes("/")) {
-    return `http://localhost:5000/static/uploads/${path}`;
+    return `${apiBaseUrl}/static/uploads/${path}`;
   }
-  return `http://localhost:5000${path}`;
+  return `${apiBaseUrl}${path}`;
 };
 
 // Helper function to transform image URL back to relative path

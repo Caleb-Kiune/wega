@@ -7,7 +7,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ['localhost', 'hebbkx1anhila5yf.public.blob.vercel-storage.com'],
+    domains: ['localhost', 'hebbkx1anhila5yf.public.blob.vercel-storage.com', 'wega-backend.onrender.com'],
     remotePatterns: [
       {
         protocol: 'http',
@@ -25,6 +25,16 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'hebbkx1anhila5yf.public.blob.vercel-storage.com',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'wega-backend.onrender.com',
+        pathname: '/static/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'wega-backend.onrender.com',
+        pathname: '/images/**',
       },
     ],
   },
