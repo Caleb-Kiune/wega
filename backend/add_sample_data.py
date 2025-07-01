@@ -7,8 +7,17 @@ Run this script to populate the database with sample products, categories, and b
 import os
 import sys
 from datetime import datetime
+import re
+
+# Set environment variables for production
+os.environ['FLASK_ENV'] = 'production'
+os.environ['DATABASE_URL'] = 'sqlite:///app.db'
+
 from app_factory import create_app
 from models import db, Category, Brand, Product, ProductImage, ProductFeature, ProductSpecification
+
+def slugify(name):
+    return re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-')
 
 def add_sample_data():
     """Add sample data to the database"""
@@ -31,6 +40,8 @@ def add_sample_data():
         
         categories = {}
         for cat_data in categories_data:
+            if 'slug' not in cat_data:
+                cat_data['slug'] = slugify(cat_data['name'])
             category = Category.query.filter_by(name=cat_data["name"]).first()
             if not category:
                 category = Category(**cat_data)
@@ -48,6 +59,8 @@ def add_sample_data():
         
         brands = {}
         for brand_data in brands_data:
+            if 'slug' not in brand_data:
+                brand_data['slug'] = slugify(brand_data['name'])
             brand = Brand.query.filter_by(name=brand_data["name"]).first()
             if not brand:
                 brand = Brand(**brand_data)
@@ -61,7 +74,6 @@ def add_sample_data():
                 "name": "Stainless Steel Frying Pan",
                 "description": "Professional-grade stainless steel frying pan with non-stick coating",
                 "price": 89.99,
-                "stock_quantity": 50,
                 "category": categories["Cookware"],
                 "brand": brands["Wega Premium"],
                 "is_featured": True,
@@ -79,7 +91,6 @@ def add_sample_data():
                 "name": "Ceramic Baking Dish Set",
                 "description": "Set of 3 ceramic baking dishes in different sizes",
                 "price": 45.99,
-                "stock_quantity": 30,
                 "category": categories["Bakeware"],
                 "brand": brands["Chef's Choice"],
                 "is_featured": True,
@@ -97,7 +108,6 @@ def add_sample_data():
                 "name": "Professional Chef Knife Set",
                 "description": "Complete set of professional chef knives with wooden block",
                 "price": 199.99,
-                "stock_quantity": 25,
                 "category": categories["Cutlery"],
                 "brand": brands["Gourmet Pro"],
                 "is_featured": True,
@@ -115,7 +125,6 @@ def add_sample_data():
                 "name": "Glass Food Storage Containers",
                 "description": "Set of 10 airtight glass storage containers",
                 "price": 34.99,
-                "stock_quantity": 100,
                 "category": categories["Storage"],
                 "brand": brands["Home Essentials"],
                 "is_featured": False,
@@ -133,7 +142,6 @@ def add_sample_data():
                 "name": "Stand Mixer Professional",
                 "description": "Professional stand mixer with 5-quart bowl and attachments",
                 "price": 299.99,
-                "stock_quantity": 15,
                 "category": categories["Appliances"],
                 "brand": brands["Wega Premium"],
                 "is_featured": True,
@@ -167,7 +175,7 @@ def add_sample_data():
             
             # Add features
             for feature_name in features:
-                feature = ProductFeature(product_id=product.id, name=feature_name)
+                feature = ProductFeature(product_id=product.id, feature=feature_name)
                 db.session.add(feature)
             
             # Add specifications
