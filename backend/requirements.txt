@@ -5,8 +5,8 @@ Flask-CORS==4.0.0
 Flask-Migrate==4.0.5
 Flask-RESTX==1.3.0
 
-# Database
-SQLAlchemy==2.0.27
+# Database - Updated for Python 3.13 compatibility
+SQLAlchemy==2.0.28
 psycopg2-binary==2.9.9
 
 # Environment and configuration
