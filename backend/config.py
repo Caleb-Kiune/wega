@@ -40,9 +40,12 @@ class Config:
 class DevelopmentConfig(Config):
     """Development configuration"""
     DEBUG = True
+    # Force Flask to use the main database file instead of instance folder
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///' + os.path.join(
         os.path.abspath(os.path.dirname(__file__)), 'app.db'
     )
+    # Set instance path to prevent Flask from using instance folder
+    INSTANCE_PATH = os.path.abspath(os.path.dirname(__file__))
     BASE_URL = None  # Will use request.host_url in development
 
 class ProductionConfig(Config):

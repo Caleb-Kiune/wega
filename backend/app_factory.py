@@ -7,7 +7,9 @@ import os
 
 def create_app(config_name='default'):
     """Application factory function"""
-    app = Flask(__name__, static_folder='static')
+    # Use custom instance path to force use of main database file
+    instance_path = os.path.abspath(os.path.dirname(__file__))
+    app = Flask(__name__, static_folder='static', instance_path=instance_path)
     
     # Load configuration
     app.config.from_object(config[config_name])
