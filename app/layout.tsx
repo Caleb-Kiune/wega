@@ -5,11 +5,12 @@ import "./globals.css"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/sonner"
 import WhatsAppChat from "@/components/whatsapp-chat"
 import { Providers } from "./providers"
 import { CartProvider } from "@/lib/hooks/use-cart"
 import { WishlistProvider } from "@/lib/hooks/use-wishlist"
+import { AuthProvider } from '@/contexts/auth-context'
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -36,24 +37,26 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className} suppressHydrationWarning>
-        <ThemeProvider attribute="class" defaultTheme="light">
-          <CartProvider>
-            <WishlistProvider>
-              <Providers>
-                <div className="flex min-h-screen flex-col">
-                  <Header />
-                  <div className="flex-grow">{children}</div>
-                  <Footer />
-                  <WhatsAppChat />
-                  <Toaster />
-                </div>
-              </Providers>
-            </WishlistProvider>
-          </CartProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+    <AuthProvider>
+      <html lang="en" suppressHydrationWarning>
+        <body className={inter.className} suppressHydrationWarning>
+          <ThemeProvider attribute="class" defaultTheme="light">
+            <CartProvider>
+              <WishlistProvider>
+                <Providers>
+                  <div className="flex min-h-screen flex-col">
+                    <Header />
+                    <div className="flex-grow">{children}</div>
+                    <Footer />
+                    <WhatsAppChat />
+                    <Toaster />
+                  </div>
+                </Providers>
+              </WishlistProvider>
+            </CartProvider>
+          </ThemeProvider>
+        </body>
+      </html>
+    </AuthProvider>
   )
 }

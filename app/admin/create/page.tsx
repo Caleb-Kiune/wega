@@ -14,6 +14,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import { ProtectedRoute } from '@/components/auth/protected-route';
+import { useAuth } from '@/contexts/auth-context';
+import { LogOut } from 'lucide-react';
 
 type NewProductImage = Omit<ProductImage, 'id' | 'product_id'>;
 type NewProductSpecification = Omit<ProductSpecification, 'id' | 'product_id'>;
@@ -70,8 +73,9 @@ interface NewCategory {
   image_url?: string;
 }
 
-export default function CreateProductPage() {
+function CreateProductPage() {
   const router = useRouter();
+  const { logout, user } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [brands, setBrands] = useState<Array<{ id: number; name: string }>>([]);
   const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([]);
@@ -506,24 +510,45 @@ export default function CreateProductPage() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   return (
     <div className="container mx-auto p-4 sm:p-6 max-w-6xl">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
+          <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Create New Product</h1>
             <p className="text-muted-foreground mt-2 text-sm sm:text-base">
               Add a new product to your catalog with images, specifications, and features
             </p>
-            </div>
+            {user && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Logged in as: {user.username} ({user.role})
+              </p>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             {newProduct.is_new && <Badge variant="default">New</Badge>}
             {newProduct.is_sale && <Badge variant="destructive">Sale</Badge>}
             {newProduct.is_featured && <Badge variant="secondary">Featured</Badge>}
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 min-h-[44px] text-sm sm:text-base border-red-200 text-red-700 hover:bg-red-50"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
           </div>
-                </div>
-                </div>
+        </div>
+      </div>
 
       {error && (
         <Card className="mb-4 sm:mb-6 border-destructive">
@@ -1104,5 +1129,13 @@ export default function CreateProductPage() {
             </div>
           </form>
     </div>
+  );
+}
+
+export default function CreateProductPageWrapper() {
+  return (
+    <ProtectedRoute>
+      <CreateProductPage />
+    </ProtectedRoute>
   );
 } 

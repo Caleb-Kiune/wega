@@ -7,7 +7,7 @@ import { format, isValid, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Package, Truck, CheckCircle, XCircle, Search, Filter, Download, Trash2 } from 'lucide-react';
+import { Eye, Package, Truck, CheckCircle, XCircle, Search, Filter, Download, Trash2, LogOut } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import {
@@ -28,9 +28,12 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
+import { ProtectedRoute } from '@/components/auth/protected-route';
+import { useAuth } from '@/contexts/auth-context';
 
-export default function OrdersPage() {
+function OrdersPage() {
   const router = useRouter();
+  const { logout, user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -203,6 +206,14 @@ export default function OrdersPage() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-4 sm:py-8">
@@ -230,6 +241,11 @@ export default function OrdersPage() {
           <div>
             <h1 className="text-2xl sm:text-4xl font-bold text-gray-900">Order Management</h1>
             <p className="mt-2 text-gray-600 text-sm sm:text-base">Manage and track customer orders</p>
+            {user && (
+              <p className="text-xs text-gray-500 mt-1">
+                Logged in as: {user.username} ({user.role})
+              </p>
+            )}
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
             <Button
@@ -246,6 +262,14 @@ export default function OrdersPage() {
             >
               <Package className="w-4 h-4 mr-2" />
               Manage Products
+            </Button>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="w-full sm:w-auto min-h-[44px] text-base border-red-200 text-red-700 hover:bg-red-50"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
             </Button>
           </div>
         </div>
@@ -532,5 +556,13 @@ export default function OrdersPage() {
         </Dialog>
       </div>
     </div>
+  );
+}
+
+export default function OrdersPageWrapper() {
+  return (
+    <ProtectedRoute>
+      <OrdersPage />
+    </ProtectedRoute>
   );
 } 

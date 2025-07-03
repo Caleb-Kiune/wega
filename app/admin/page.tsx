@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Grid, List, Search, Filter, Trash2, Edit, Eye, MoreVertical, Package, Plus, Check, X, AlertTriangle, MapPin, Settings } from 'lucide-react';
+import { Grid, List, Search, Filter, Trash2, Edit, Eye, MoreVertical, Package, Plus, Check, X, AlertTriangle, MapPin, Settings, LogOut } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +28,8 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
+import { ProtectedRoute } from '@/components/auth/protected-route';
+import { useAuth } from '@/contexts/auth-context';
 
 interface Review {
   id: number;
@@ -54,8 +56,9 @@ interface Brand {
   name: string;
 }
 
-export default function AdminPage() {
+function AdminPage() {
   const router = useRouter();
+  const { logout, user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -220,6 +223,14 @@ export default function AdminPage() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   const filteredProducts = products
     .filter(product => {
       const matchesSearch = !searchTerm || (product.name?.toLowerCase() || '').includes(searchTerm.toLowerCase());
@@ -295,6 +306,11 @@ export default function AdminPage() {
             <p className="text-muted-foreground mt-2 text-sm sm:text-base">
               Manage your product catalog with ease. View, edit, and organize your products.
             </p>
+            {user && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Logged in as: {user.username} ({user.role})
+              </p>
+            )}
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
             <Button
@@ -319,6 +335,14 @@ export default function AdminPage() {
             >
               <Plus className="w-4 h-4 mr-1" />
               Create Product
+            </Button>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 min-h-[44px] text-sm sm:text-base border-red-200 text-red-700 hover:bg-red-50"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
             </Button>
           </div>
         </div>
@@ -680,5 +704,13 @@ export default function AdminPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function AdminPageWrapper() {
+  return (
+    <ProtectedRoute>
+      <AdminPage />
+    </ProtectedRoute>
   );
 } 

@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from models import db, Category, Brand, Product, ProductFeature, ProductSpecification
+from utils.auth import require_auth, require_role
 import re
 import os
 
@@ -10,18 +11,10 @@ def slugify(name):
     return re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-')
 
 @admin_bp.route('/load-sample-data', methods=['POST'])
+@require_auth
+@require_role('admin')
 def load_sample_data():
     """Protected endpoint to load sample data"""
-    
-    # Check for admin secret key
-    admin_key = request.headers.get('X-Admin-Key')
-    expected_key = os.environ.get('ADMIN_SECRET_KEY', 'your-admin-secret-key')
-    
-    if not admin_key or admin_key != expected_key:
-        return jsonify({
-            'error': 'Unauthorized',
-            'message': 'Invalid or missing admin key'
-        }), 401
     
     try:
         # Create database tables if they don't exist
@@ -202,5 +195,38 @@ def load_sample_data():
         db.session.rollback()
         return jsonify({
             'error': 'Failed to load sample data',
+            'message': str(e)
+        }), 500
+
+@admin_bp.route('/stats', methods=['GET'])
+@require_auth
+@require_role('admin')
+def get_admin_stats():
+    """Get admin dashboard statistics"""
+    try:
+        # Get counts
+        total_products = Product.query.count()
+        total_categories = Category.query.count()
+        total_brands = Brand.query.count()
+        
+        # Get recent products
+        recent_products = Product.query.order_by(Product.created_at.desc()).limit(5).all()
+        
+        # Get featured products
+        featured_products = Product.query.filter_by(is_featured=True).limit(5).all()
+        
+        return jsonify({
+            'stats': {
+                'total_products': total_products,
+                'total_categories': total_categories,
+                'total_brands': total_brands
+            },
+            'recent_products': [p.to_dict() for p in recent_products],
+            'featured_products': [p.to_dict() for p in featured_products]
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'error': 'Failed to get admin stats',
             'message': str(e)
         }), 500 
