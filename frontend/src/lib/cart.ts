@@ -37,11 +37,16 @@ export interface CartItem {
 const getImageUrl = (path: string) => {
   if (!path) return "/placeholder.svg";
   if (path.startsWith("http")) return path;
+  
+  // Get the base URL from environment variable, fallback to localhost
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://washing-district-nail-customise.trycloudflare.com';
+  const apiBaseUrl = baseUrl.replace('/api', ''); // Remove /api to get the root URL
+  
   // If the path is just a filename, assume it's in the uploads directory
   if (!path.includes("/")) {
-    return `${API_BASE_URL}/static/uploads/${path}`;
+    return `${apiBaseUrl}/static/uploads/${path}`;
   }
-  return `${API_BASE_URL}${path}`;
+  return `${apiBaseUrl}${path}`;
 };
 
 export interface Cart {

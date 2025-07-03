@@ -3,7 +3,7 @@ import { Brand } from './brands';
 import { Category } from './categories';
 import { Product, ProductsParams, ProductsResponse, getImageUrl } from './products';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://washing-district-nail-customise.trycloudflare.com/api';
 
 interface ApiClient extends AxiosInstance {
   getBrands: () => Promise<Brand[]>;

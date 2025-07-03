@@ -315,7 +315,7 @@ export default function CreateProductPage() {
       formData.append('file', file);
 
       // Use Flask backend for uploads
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://washing-district-nail-customise.trycloudflare.com/api';
       const response = await fetch(`${apiUrl}/upload`, {
         method: 'POST',
         body: formData,

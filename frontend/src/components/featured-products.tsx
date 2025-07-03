@@ -161,7 +161,7 @@ export default function FeaturedProducts() {
           </button>
           {error.includes('Unable to connect to the API') && (
             <p className="text-sm text-gray-600 mt-2">
-              Make sure your backend server is running at {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}
+              Make sure your backend server is running at {process.env.NEXT_PUBLIC_API_URL || 'https://washing-district-nail-customise.trycloudflare.com/api'}
             </p>
           )}
         </div>
