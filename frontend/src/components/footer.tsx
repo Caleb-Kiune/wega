@@ -1,81 +1,80 @@
+"use client"
+
 import Link from "next/link"
 import Image from "next/image"
-import { Facebook, Instagram, MapPin, Phone, Mail } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Facebook, Instagram, MapPin, Phone, Mail, ArrowUp } from "lucide-react"
 
 export default function Footer() {
-  return (
-    <footer className="bg-gray-800 text-white">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Company Info */}
-          <div>
-            <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/wega%20kitchenware%20website..jpg-WrrItNFb2yW5TLOQ4Ax5GY0Sv0YPew.jpeg"
-              alt="WEGA Kitchenware Logo"
-              width={150}
-              height={75}
-              className="h-16 w-auto mb-4 bg-white p-2 rounded"
-            />
-            <p className="text-gray-300 mb-4">
-              Premium kitchenware for your home. Quality products that make cooking a joy.
-            </p>
-            <div className="flex space-x-4">
-              <Link href="https://facebook.com" className="text-gray-300 hover:text-white transition-colors">
-                <Facebook className="h-5 w-5" />
-              </Link>
-              <Link href="https://instagram.com" className="text-gray-300 hover:text-white transition-colors">
-                <Instagram className="h-5 w-5" />
-              </Link>
-              <Link href="https://tiktok.com" className="text-gray-300 hover:text-white transition-colors">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M9 12a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" />
-                  <path d="M15 8h.01" />
-                  <path d="M11 16.01V8a5 5 0 0 1 5-5h3" />
-                </svg>
-              </Link>
-            </div>
-          </div>
+  const [showBackToTop, setShowBackToTop] = useState(false)
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 300)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  return (
+    <footer className="bg-gray-800 text-white relative">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 uppercase tracking-wide">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/about" className="text-gray-300 hover:text-white transition-colors">
+                <Link 
+                  href="/about" 
+                  className="text-gray-300 hover:text-white transition-colors duration-200 hover:underline p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] inline-flex items-center"
+                >
                   About Us
                 </Link>
               </li>
               <li>
-                <Link href="/products" className="text-gray-300 hover:text-white transition-colors">
+                <Link 
+                  href="/products" 
+                  className="text-gray-300 hover:text-white transition-colors duration-200 hover:underline p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] inline-flex items-center"
+                >
                   Shop
                 </Link>
               </li>
               <li>
                 <Link
                   href="/products?category=special-offers"
-                  className="text-gray-300 hover:text-white transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors duration-200 hover:underline p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] inline-flex items-center"
                 >
                   Special Offers
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="text-gray-300 hover:text-white transition-colors">
+                <Link 
+                  href="/blog" 
+                  className="text-gray-300 hover:text-white transition-colors duration-200 hover:underline p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] inline-flex items-center"
+                >
                   Blog
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="text-gray-300 hover:text-white transition-colors">
+                <Link 
+                  href="/faq" 
+                  className="text-gray-300 hover:text-white transition-colors duration-200 hover:underline p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] inline-flex items-center"
+                >
                   FAQs
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/admin" 
+                  className="text-gray-300 hover:text-white transition-colors duration-200 hover:underline p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] inline-flex items-center"
+                >
+                  Admin Dashboard
                 </Link>
               </li>
             </ul>
@@ -83,74 +82,166 @@ export default function Footer() {
 
           {/* Customer Service */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Customer Service</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 uppercase tracking-wide">Customer Service</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/contact" className="text-gray-300 hover:text-white transition-colors">
+                <Link 
+                  href="/contact" 
+                  className="text-gray-300 hover:text-white transition-colors duration-200 hover:underline p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] inline-flex items-center"
+                >
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link href="/shipping" className="text-gray-300 hover:text-white transition-colors">
+                <Link 
+                  href="/shipping" 
+                  className="text-gray-300 hover:text-white transition-colors duration-200 hover:underline p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] inline-flex items-center"
+                >
                   Shipping & Delivery
                 </Link>
               </li>
               <li>
-                <Link href="/returns" className="text-gray-300 hover:text-white transition-colors">
+                <Link 
+                  href="/returns" 
+                  className="text-gray-300 hover:text-white transition-colors duration-200 hover:underline p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] inline-flex items-center"
+                >
                   Returns & Refunds
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="text-gray-300 hover:text-white transition-colors">
+                <Link 
+                  href="/privacy" 
+                  className="text-gray-300 hover:text-white transition-colors duration-200 hover:underline p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] inline-flex items-center"
+                >
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="text-gray-300 hover:text-white transition-colors">
+                <Link 
+                  href="/terms" 
+                  className="text-gray-300 hover:text-white transition-colors duration-200 hover:underline p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] inline-flex items-center"
+                >
                   Terms & Conditions
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Contact Info */}
+          {/* Contact Us */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 uppercase tracking-wide">Contact Us</h3>
             <ul className="space-y-3">
               <li className="flex items-start">
-                <MapPin className="h-5 w-5 mr-2 mt-0.5 text-green-500" />
-                <span className="text-gray-300">Roasters Akai Plaza, next to Mountain Mall, Thika Road, Nairobi</span>
+                <MapPin className="h-5 w-5 mr-2 mt-0.5 text-green-500 flex-shrink-0" />
+                <span className="text-sm sm:text-base text-gray-300">
+                  Roasters Akai Plaza, next to Mountain Mall, Thika Road, Nairobi
+                </span>
               </li>
               <li className="flex items-center">
-                <Phone className="h-5 w-5 mr-2 text-green-500" />
-                <span className="text-gray-300">0769899432</span>
+                <Phone className="h-5 w-5 mr-2 text-green-500 flex-shrink-0" />
+                <span className="text-sm sm:text-base text-gray-300">0769899432</span>
               </li>
               <li className="flex items-center">
-                <Mail className="h-5 w-5 mr-2 text-green-500" />
-                <span className="text-gray-300">info@wegakitchenware.co.ke</span>
+                <Mail className="h-5 w-5 mr-2 text-green-500 flex-shrink-0" />
+                <span className="text-sm sm:text-base text-gray-300">info@wegakitchenware.co.ke</span>
               </li>
             </ul>
-            <div className="mt-4">
-              <h4 className="font-medium mb-2">We Accept</h4>
+          </div>
+
+          {/* Social & Accepted Payments */}
+          <div>
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 uppercase tracking-wide">Social & Accepted Payments</h3>
+            
+            {/* Social Media */}
+            <div className="mb-6">
+              <h4 className="font-medium mb-3 text-gray-300">Follow Us</h4>
+              <div className="flex space-x-4">
+                <Link 
+                  href="https://facebook.com" 
+                  className="text-gray-300 hover:text-white transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                >
+                  <Facebook className="h-5 w-5" />
+                </Link>
+                <Link 
+                  href="https://instagram.com" 
+                  className="text-gray-300 hover:text-white transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                >
+                  <Instagram className="h-5 w-5" />
+                </Link>
+                <Link 
+                  href="https://tiktok.com" 
+                  className="text-gray-300 hover:text-white transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M9 12a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" />
+                    <path d="M15 8h.01" />
+                    <path d="M11 16.01V8a5 5 0 0 1 5-5h3" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+
+            {/* Payment Methods */}
+            <div>
+              <h4 className="font-medium mb-3 text-gray-300">We Accept</h4>
               <div className="flex space-x-3">
-                <div className="bg-white p-1 rounded">
-                  <Image src="/placeholder.svg" alt="M-Pesa" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
+                <div className="bg-white p-2 rounded-lg shadow-sm">
+                  <Image 
+                    src="/images/mpesa-logo.png" 
+                    alt="M-Pesa" 
+                    width={40} 
+                    height={25} 
+                    className="h-6 w-auto"
+                  />
                 </div>
-                <div className="bg-white p-1 rounded">
-                  <Image src="/placeholder.svg" alt="Visa" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
+                <div className="bg-white p-2 rounded-lg shadow-sm">
+                  <Image 
+                    src="/images/visa-logo.png" 
+                    alt="Visa" 
+                    width={40} 
+                    height={25} 
+                    className="h-6 w-auto"
+                  />
                 </div>
-                <div className="bg-white p-1 rounded">
-                  <Image src="/placeholder.svg" alt="Mastercard" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
+                <div className="bg-white p-2 rounded-lg shadow-sm">
+                  <Image 
+                    src="/images/mastercard-logo.png" 
+                    alt="Mastercard" 
+                    width={40} 
+                    height={25} 
+                    className="h-6 w-auto"
+                  />
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400">
-          <p>© {new Date().getFullYear()} WEGA Kitchenware. All rights reserved.</p>
+        <div className="border-t border-gray-700 mt-8 sm:mt-12 pt-6 sm:pt-8 text-center text-gray-400">
+          <p className="text-sm sm:text-base">© {new Date().getFullYear()} WEGA Kitchenware. All rights reserved.</p>
         </div>
       </div>
+
+      {/* Back to Top Button - Mobile Optimized */}
+      {showBackToTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-green-600 hover:bg-green-700 text-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110 z-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
+          aria-label="Back to top"
+        >
+          <ArrowUp className="h-5 w-5" />
+        </button>
+      )}
     </footer>
   )
 }

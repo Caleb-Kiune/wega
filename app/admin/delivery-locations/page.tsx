@@ -185,7 +185,7 @@ export default function DeliveryLocationsPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading delivery locations...</p>
+          <p className="mt-2 text-sm sm:text-base text-gray-600">Loading delivery locations...</p>
         </div>
       </div>
     );
@@ -195,8 +195,8 @@ export default function DeliveryLocationsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={fetchLocations}>Try Again</Button>
+          <p className="text-red-600 mb-4 text-sm sm:text-base">{error}</p>
+          <Button onClick={fetchLocations} className="min-h-[44px] px-6">Try Again</Button>
         </div>
       </div>
     );
@@ -204,27 +204,27 @@ export default function DeliveryLocationsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 mb-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900">Delivery Locations</h1>
-            <p className="mt-2 text-gray-600">Manage delivery locations and shipping costs</p>
+            <h1 className="text-2xl sm:text-4xl font-bold text-gray-900">Delivery Locations</h1>
+            <p className="mt-2 text-sm sm:text-base text-gray-600">Manage delivery locations and shipping costs</p>
           </div>
-          <Button onClick={handleCreate} className="flex items-center gap-2">
+          <Button onClick={handleCreate} className="flex items-center gap-2 min-h-[44px] px-6">
             <Plus className="h-4 w-4" />
             Add Location
           </Button>
         </div>
 
         {/* Search Bar */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex flex-1 items-center gap-2">
             <Search className="text-gray-400 h-4 w-4" />
             <Input
               placeholder="Search locations by name, city, or slug..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="max-w-sm"
+              className="max-w-sm min-h-[44px]"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -233,6 +233,7 @@ export default function DeliveryLocationsPage() {
                 variant={viewMode === 'grid' ? 'default' : 'ghost'}
                 size="icon"
                 onClick={() => setViewMode('grid')}
+                className="min-h-[44px] min-w-[44px]"
               >
                 <Grid className="w-4 h-4" />
               </Button>
@@ -240,6 +241,7 @@ export default function DeliveryLocationsPage() {
                 variant={viewMode === 'list' ? 'default' : 'ghost'}
                 size="icon"
                 onClick={() => setViewMode('list')}
+                className="min-h-[44px] min-w-[44px]"
               >
                 <List className="w-4 h-4" />
               </Button>
@@ -248,45 +250,46 @@ export default function DeliveryLocationsPage() {
         </div>
 
         {/* Locations Grid/List */}
-        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
+        <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6' : 'space-y-4'}>
           {paginatedLocations.map((location) => (
-            <div key={location.id} className={`bg-white rounded-lg shadow-sm border p-6 transition-all duration-200 hover:shadow-md ${viewMode === 'list' ? 'flex items-center' : ''}`}>
+            <div key={location.id} className={`bg-white rounded-lg shadow-sm border p-4 sm:p-6 transition-all duration-200 hover:shadow-md ${viewMode === 'list' ? 'flex flex-col sm:flex-row sm:items-center' : ''}`}>
               <div className="flex-1">
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start justify-between mb-3 sm:mb-4">
                   <div className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5 text-blue-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">{location.name}</h3>
+                    <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900">{location.name}</h3>
                   </div>
-                  <Badge variant={location.isActive ? "default" : "secondary"}>
+                  <Badge variant={location.isActive ? "default" : "secondary"} className="text-xs sm:text-sm">
                     {location.isActive ? "Active" : "Inactive"}
                   </Badge>
                 </div>
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Package className="h-4 w-4" />
+                <div className="space-y-2 mb-3 sm:mb-4">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
+                    <Package className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span>KES {location.shippingPrice.toLocaleString()}</span>
                   </div>
-                  <p className="text-sm text-gray-600">{location.city}</p>
+                  <p className="text-xs sm:text-sm text-gray-600">{location.city}</p>
                   <p className="text-xs text-gray-500 font-mono">{location.slug}</p>
                 </div>
               </div>
-              <div className="flex flex-col gap-2 ml-4">
+              <div className="flex flex-row sm:flex-col gap-2 sm:ml-4">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleEdit(location)}
-                  className="flex items-center"
+                  className="flex items-center min-h-[44px] px-3 sm:px-4"
                 >
-                  <Edit className="h-4 w-4 mr-1" />
-                  Edit
+                  <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                  <span className="text-xs sm:text-sm">Edit</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleDelete(location)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50 flex items-center"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 flex items-center min-h-[44px] px-3 sm:px-4"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="text-xs sm:text-sm ml-1 sm:ml-0">Delete</span>
                 </Button>
               </div>
             </div>
@@ -294,14 +297,14 @@ export default function DeliveryLocationsPage() {
         </div>
 
         {filteredLocations.length === 0 && (
-          <div className="text-center py-12">
-            <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No delivery locations found</h3>
-            <p className="text-gray-600 mb-4">
+          <div className="text-center py-8 sm:py-12">
+            <MapPin className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No delivery locations found</h3>
+            <p className="text-sm sm:text-base text-gray-600 mb-4">
               {search ? 'Try adjusting your search terms.' : 'Get started by creating your first delivery location.'}
             </p>
             {!search && (
-              <Button onClick={handleCreate}>
+              <Button onClick={handleCreate} className="min-h-[44px] px-6">
                 <Plus className="h-4 w-4 mr-2" />
                 Add First Location
               </Button>
@@ -311,13 +314,14 @@ export default function DeliveryLocationsPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center mt-8">
+          <div className="flex justify-center mt-6 sm:mt-8">
             <nav className="inline-flex -space-x-px">
               <Button
                 variant="outline"
                 size="sm"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(currentPage - 1)}
+                className="min-h-[44px] px-3 sm:px-4"
               >
                 Previous
               </Button>
@@ -327,6 +331,7 @@ export default function DeliveryLocationsPage() {
                   variant={currentPage === idx + 1 ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setCurrentPage(idx + 1)}
+                  className="min-h-[44px] min-w-[44px]"
                 >
                   {idx + 1}
                 </Button>
@@ -336,6 +341,7 @@ export default function DeliveryLocationsPage() {
                 size="sm"
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(currentPage + 1)}
+                className="min-h-[44px] px-3 sm:px-4"
               >
                 Next
               </Button>
@@ -351,12 +357,12 @@ export default function DeliveryLocationsPage() {
             setSelectedLocation(null);
           }
         }}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="text-lg sm:text-xl">
                 {isEditModalOpen ? 'Edit Delivery Location' : 'Add Delivery Location'}
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-sm sm:text-base">
                 {isEditModalOpen ? 'Update the delivery location details.' : 'Create a new delivery location with shipping costs.'}
               </DialogDescription>
             </DialogHeader>
@@ -371,6 +377,7 @@ export default function DeliveryLocationsPage() {
                   value={formData.name}
                   onChange={(e) => handleNameChange(e.target.value)}
                   placeholder="e.g., Nairobi CBD"
+                  className="min-h-[44px]"
                 />
               </div>
               
@@ -383,6 +390,7 @@ export default function DeliveryLocationsPage() {
                   value={formData.slug}
                   onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
                   placeholder="e.g., nairobi-cbd"
+                  className="min-h-[44px]"
                 />
               </div>
               
@@ -395,6 +403,7 @@ export default function DeliveryLocationsPage() {
                   value={formData.city}
                   onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
                   placeholder="e.g., Nairobi"
+                  className="min-h-[44px]"
                 />
               </div>
               
@@ -413,6 +422,7 @@ export default function DeliveryLocationsPage() {
                     setFormData(prev => ({ ...prev, shippingPrice: value === '' ? '' : parseFloat(value) }));
                   }}
                   placeholder="0.00"
+                  className="min-h-[44px]"
                 />
               </div>
               
@@ -422,7 +432,7 @@ export default function DeliveryLocationsPage() {
                   type="checkbox"
                   checked={formData.isActive}
                   onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
-                  className="rounded"
+                  className="rounded w-4 h-4"
                 />
                 <label htmlFor="isActive" className="text-sm font-medium">
                   Active
@@ -438,12 +448,14 @@ export default function DeliveryLocationsPage() {
                   setIsEditModalOpen(false);
                   setSelectedLocation(null);
                 }}
+                className="min-h-[44px] px-6"
               >
                 Cancel
               </Button>
               <Button
                 onClick={() => handleSubmit(isEditModalOpen)}
                 disabled={isSubmitting || !formData.name || !formData.slug || !formData.city}
+                className="min-h-[44px] px-6"
               >
                 {isSubmitting ? 'Saving...' : (isEditModalOpen ? 'Update' : 'Create')}
               </Button>
@@ -453,20 +465,19 @@ export default function DeliveryLocationsPage() {
 
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="max-w-[400px]">
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will permanently delete the delivery location "{selectedLocation?.name}". 
-                This action cannot be undone.
+              <AlertDialogTitle className="text-lg sm:text-xl">Delete Delivery Location</AlertDialogTitle>
+              <AlertDialogDescription className="text-sm sm:text-base">
+                Are you sure you want to delete "{selectedLocation?.name}"? This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel className="min-h-[44px] px-6">Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleConfirmDelete}
                 disabled={isSubmitting}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-red-600 hover:bg-red-700 min-h-[44px] px-6"
               >
                 {isSubmitting ? 'Deleting...' : 'Delete'}
               </AlertDialogAction>

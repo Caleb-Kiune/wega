@@ -7,10 +7,11 @@ import { productsApi, Product, ProductsParams } from "@/lib/products"
 import { useCarouselScroll } from "@/lib/hooks/use-carousel-scroll"
 
 interface ProductCarouselProps {
-  category: "new-arrivals" | "special-offers"
+  category?: string;
+  excludeProductId?: number;
 }
 
-export default function ProductCarousel({ category }: ProductCarouselProps) {
+export default function ProductCarousel({ category, excludeProductId }: ProductCarouselProps) {
   const carouselRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(true)
@@ -31,17 +32,33 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
         
         // Set filter parameters based on category
         const filterParams: ProductsParams = {
-          is_new: category === 'new-arrivals',
-          is_sale: category === 'special-offers',
           limit: 10 // Limit to 10 products for the carousel
+        }
+
+        // Add category-specific filters if category is provided and valid
+        if (category && typeof category === 'string' && category.trim() !== '') {
+          if (category === 'new-arrivals') {
+            filterParams.is_new = true;
+          } else if (category === 'special-offers') {
+            filterParams.is_sale = true;
+          } else {
+            // For other categories, filter by category name
+            filterParams.category = category;
+          }
         }
         
         const response = await productsApi.getAll(filterParams)
         
+        // Filter out the excluded product if specified
+        let filteredProducts = response.products;
+        if (excludeProductId && typeof excludeProductId === 'number' && excludeProductId > 0) {
+          filteredProducts = response.products.filter((product: Product) => product.id !== excludeProductId);
+        }
+        
         // Log the full response
         console.log('API Response:', {
           total: response.total,
-          products: response.products.map((p: Product) => ({
+          products: filteredProducts.map((p: Product) => ({
             id: p.id,
             name: p.name,
             is_new: p.is_new,
@@ -49,25 +66,7 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
           }))
         })
         
-        // Validate that products match the category
-        const invalidProducts = response.products.filter((product: Product) => {
-          if (category === 'new-arrivals' && !product.is_new) return true
-          if (category === 'special-offers' && !product.is_sale) return true
-          return false
-        })
-        
-        if (invalidProducts.length > 0) {
-          console.error('Invalid products found:', invalidProducts.map((p: Product) => ({
-            id: p.id,
-            name: p.name,
-            is_new: p.is_new,
-            is_sale: p.is_sale
-          })))
-          setError('Error: Invalid products found in response')
-          return
-        }
-        
-        setProducts(response.products)
+        setProducts(filteredProducts)
       } catch (err) {
         console.error('Error fetching products:', err)
         setError(err instanceof Error ? err.message : 'An error occurred while fetching products')
@@ -77,7 +76,7 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
     }
 
     fetchProducts()
-  }, [category])
+  }, [category, excludeProductId])
 
   const checkScrollButtons = () => {
     if (carouselRef.current) {
@@ -120,12 +119,26 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
 
   // Calculate total slides based on visible cards
   const getTotalSlides = () => {
-    if (carouselRef.current) {
-      const { clientWidth } = carouselRef.current
-      const cardWidth = 280 + 24 // card width + gap
-      return Math.ceil(products.length / Math.floor(clientWidth / cardWidth))
+    try {
+      // Ensure products is a valid array
+      if (!Array.isArray(products) || products.length === 0) {
+        return 1
+      }
+
+      if (carouselRef.current) {
+        const { clientWidth } = carouselRef.current
+        const cardWidth = 280 + 24 // card width + gap
+        const cardsPerView = Math.max(1, Math.floor(clientWidth / cardWidth))
+        const calculatedSlides = Math.ceil(products.length / cardsPerView)
+        return Math.max(1, Math.min(calculatedSlides, 10)) // Ensure it's between 1 and 10
+      }
+      // Fallback calculation
+      const fallbackSlides = Math.ceil(products.length / 3)
+      return Math.max(1, Math.min(fallbackSlides, 10)) // Ensure it's between 1 and 10
+    } catch (error) {
+      console.error('Error calculating total slides:', error)
+      return 1 // Safe fallback
     }
-    return Math.ceil(products.length / 3) // fallback
   }
 
   if (loading) {
@@ -144,7 +157,8 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
     )
   }
 
-  if (!products || products.length === 0) {
+  // Ensure products is a valid array
+  if (!Array.isArray(products) || products.length === 0) {
     return (
       <div className="text-center text-gray-600" role="status">
         No products found
@@ -152,16 +166,28 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
     )
   }
 
-  const totalSlides = getTotalSlides()
+  // Calculate total slides with additional safety checks
+  let totalSlides = 1 // Default safe value
+  try {
+    totalSlides = getTotalSlides()
+    // Ensure totalSlides is a valid positive integer
+    totalSlides = Math.max(1, Math.min(Math.floor(totalSlides), 10))
+    console.log('Total slides calculated:', totalSlides, 'Products count:', products.length)
+  } catch (error) {
+    console.error('Error in totalSlides calculation:', error)
+    totalSlides = 1 // Safe fallback
+  }
+
+  const categoryLabel = category && typeof category === 'string' ? category.replace('-', ' ') : 'related'
 
   return (
-    <div className="relative" role="region" aria-label={`${category.replace('-', ' ')} products carousel`}>
+    <div className="relative" role="region" aria-label={`${categoryLabel} products carousel`}>
       {/* Scroll Buttons */}
       {canScrollLeft && (
         <button
           onClick={() => scroll("left")}
           className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 focus:outline-none transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px]"
-          aria-label={`Scroll ${category.replace('-', ' ')} left`}
+          aria-label={`Scroll ${categoryLabel} left`}
         >
           <ChevronLeft className="h-6 w-6" />
         </button>
@@ -170,7 +196,7 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
         <button
           onClick={() => scroll("right")}
           className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 focus:outline-none transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px]"
-          aria-label={`Scroll ${category.replace('-', ' ')} right`}
+          aria-label={`Scroll ${categoryLabel} right`}
         >
           <ChevronRight className="h-6 w-6" />
         </button>
@@ -217,20 +243,36 @@ export default function ProductCarousel({ category }: ProductCarouselProps) {
       {/* Dot Indicators - Only show on desktop */}
       {totalSlides > 1 && (
         <div className="hidden md:flex justify-center mt-6 space-x-2">
-          {Array.from({ length: totalSlides }, (_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center ${
-                index === currentSlide 
-                  ? 'bg-green-600 scale-110' 
-                  : 'bg-gray-300 hover:bg-gray-400'
-              }`}
-              aria-label={`Go to slide ${index + 1} of ${totalSlides}`}
-              aria-current={index === currentSlide ? "true" : "false"}
-              style={{ willChange: 'transform, background-color' }}
-            />
-          ))}
+          {(() => {
+            try {
+              // Create array safely with additional validation
+              const safeLength = Math.max(1, Math.min(Math.floor(totalSlides), 10))
+              
+              // Final validation to ensure safeLength is a valid positive integer
+              if (!Number.isInteger(safeLength) || safeLength <= 0 || safeLength > 10) {
+                console.warn('Invalid safeLength for dot indicators:', safeLength)
+                return null
+              }
+              
+              return Array.from({ length: safeLength }, (_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center ${
+                    index === currentSlide 
+                      ? 'bg-green-600 scale-110' 
+                      : 'bg-gray-300 hover:bg-gray-400'
+                  }`}
+                  aria-label={`Go to slide ${index + 1} of ${totalSlides}`}
+                  aria-current={index === currentSlide ? "true" : "false"}
+                  style={{ willChange: 'transform, background-color' }}
+                />
+              ))
+            } catch (error) {
+              console.error('Error creating dot indicators:', error)
+              return null // Don't render dots if there's an error
+            }
+          })()}
         </div>
       )}
     </div>

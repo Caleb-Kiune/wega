@@ -205,7 +205,7 @@ export default function OrdersPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 sm:py-8">
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
         </div>
@@ -215,7 +215,7 @@ export default function OrdersPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 sm:py-8">
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           <p>Error: {error}</p>
         </div>
@@ -225,24 +225,24 @@ export default function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 mb-8">
+      <div className="container mx-auto px-4 py-4 sm:py-8">
+        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900">Order Management</h1>
-            <p className="mt-2 text-gray-600">Manage and track customer orders</p>
+            <h1 className="text-2xl sm:text-4xl font-bold text-gray-900">Order Management</h1>
+            <p className="mt-2 text-gray-600 text-sm sm:text-base">Manage and track customer orders</p>
           </div>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
             <Button
               onClick={exportOrders}
               variant="outline"
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto min-h-[44px] text-base"
             >
               <Download className="w-4 h-4 mr-2" />
               Export Orders
             </Button>
             <Button
               onClick={() => router.push('/admin')}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto min-h-[44px] text-base"
             >
               <Package className="w-4 h-4 mr-2" />
               Manage Products
@@ -251,17 +251,17 @@ export default function OrdersPage() {
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="flex flex-1 items-center gap-2">
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-4 sm:mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="flex flex-col sm:flex-row flex-1 items-start sm:items-center gap-2">
               <Input
                 placeholder="Search orders..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-sm"
+                className="max-w-sm min-h-[44px] text-base"
               />
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px] min-h-[44px] text-base">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -274,7 +274,7 @@ export default function OrdersPage() {
                 </SelectContent>
               </Select>
               <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px] min-h-[44px] text-base">
                   <SelectValue placeholder="Payment Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -286,7 +286,7 @@ export default function OrdersPage() {
               </Select>
             </div>
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger>
+              <SelectTrigger className="min-h-[44px] text-base">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
@@ -300,6 +300,7 @@ export default function OrdersPage() {
                 variant="outline"
                 size="icon"
                 onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                className="min-h-[44px] min-w-[44px]"
               >
                 {sortOrder === 'asc' ? '↑' : '↓'}
               </Button>
@@ -309,15 +310,15 @@ export default function OrdersPage() {
 
         {/* Bulk Actions */}
         {selectedOrders.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-            <div className="flex items-center justify-between">
+          <div className="bg-white rounded-lg shadow-sm p-4 mb-4 sm:mb-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <p className="text-sm text-gray-600">
                 {selectedOrders.length} order{selectedOrders.length !== 1 ? 's' : ''} selected
               </p>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="min-h-[44px] text-base">
                       <Filter className="w-4 h-4 mr-2" />
                       Update Status
                     </Button>
@@ -344,6 +345,7 @@ export default function OrdersPage() {
                   variant="destructive"
                   size="sm"
                   onClick={() => setIsDeleteModalOpen(true)}
+                  className="min-h-[44px] text-base"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete Selected
@@ -358,7 +360,7 @@ export default function OrdersPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <input
                       type="checkbox"
                       checked={selectedOrders.length === orders.length}
@@ -372,22 +374,22 @@ export default function OrdersPage() {
                       className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                     />
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Order Details
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Customer
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Total
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Payment
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -395,7 +397,7 @@ export default function OrdersPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {orders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       <input
                         type="checkbox"
                         checked={selectedOrders.includes(order.id)}
@@ -403,7 +405,7 @@ export default function OrdersPage() {
                         className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         #{order.order_number}
                       </div>
@@ -411,14 +413,14 @@ export default function OrdersPage() {
                         {format(new Date(order.created_at), 'MMM d, yyyy h:mm a')}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         {order.first_name} {order.last_name}
                       </div>
                       <div className="text-sm text-gray-500">{order.email}</div>
                       <div className="text-sm text-gray-500">{order.phone}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         KES {order.total_amount.toLocaleString()}
                       </div>
@@ -426,12 +428,12 @@ export default function OrdersPage() {
                         {order.items.length} items
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       <Select
                         value={order.status}
                         onValueChange={(value: Order['status']) => handleStatusChange(order.id, value)}
                       >
-                        <SelectTrigger className="w-[140px]">
+                        <SelectTrigger className="w-[120px] sm:w-[140px] min-h-[44px] text-base">
                           <SelectValue>
                             <Badge className={getStatusColor(order.status)}>
                               {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
@@ -447,12 +449,12 @@ export default function OrdersPage() {
                         </SelectContent>
                       </Select>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       <Select
                         value={order.payment_status}
                         onValueChange={(value: Order['payment_status']) => handlePaymentStatusChange(order.id, value)}
                       >
-                        <SelectTrigger className="w-[120px]">
+                        <SelectTrigger className="w-[100px] sm:w-[120px] min-h-[44px] text-base">
                           <SelectValue>
                             <Badge className={getPaymentStatusColor(order.payment_status)}>
                               {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
@@ -466,11 +468,12 @@ export default function OrdersPage() {
                         </SelectContent>
                       </Select>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => router.push(`/admin/orders/${order.id}`)}
+                        className="min-h-[44px] text-base"
                       >
                         <Eye className="h-4 w-4 mr-2" />
                         View Details
@@ -484,7 +487,7 @@ export default function OrdersPage() {
         </div>
 
         {/* Pagination */}
-        <div className="mt-6 flex items-center justify-between">
+        <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="text-sm text-gray-500">
             Showing page {currentPage} of {totalPages}
           </div>
@@ -493,6 +496,7 @@ export default function OrdersPage() {
               variant="outline"
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
+              className="min-h-[44px] text-base"
             >
               Previous
             </Button>
@@ -500,6 +504,7 @@ export default function OrdersPage() {
               variant="outline"
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
+              className="min-h-[44px] text-base"
             >
               Next
             </Button>
@@ -516,10 +521,10 @@ export default function OrdersPage() {
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
+              <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)} className="min-h-[44px] text-base">
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={handleBulkDelete}>
+              <Button variant="destructive" onClick={handleBulkDelete} className="min-h-[44px] text-base">
                 Delete
               </Button>
             </DialogFooter>

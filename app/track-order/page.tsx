@@ -128,16 +128,16 @@ export default function TrackOrderPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Track Your Order</h1>
-          <p className="text-lg text-gray-600">
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2 sm:mb-4">Track Your Order</h1>
+          <p className="text-base sm:text-lg text-gray-600">
             Enter your order number and email to track your order status
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 mb-6 sm:mb-8">
           <form onSubmit={handleTrackOrder} className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
@@ -151,7 +151,7 @@ export default function TrackOrderPage() {
                   value={orderNumber}
                   onChange={(e) => setOrderNumber(e.target.value)}
                   required
-                  className="w-full"
+                  className="w-full min-h-[44px] text-base"
                   aria-label="Order Number"
                 />
               </div>
@@ -166,14 +166,14 @@ export default function TrackOrderPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full"
+                  className="w-full min-h-[44px] text-base"
                   aria-label="Email Address"
                 />
               </div>
             </div>
             <Button
               type="submit"
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto min-h-[44px] text-base"
               disabled={loading}
               aria-label={loading ? 'Tracking order...' : 'Track Order'}
             >
@@ -183,12 +183,12 @@ export default function TrackOrderPage() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-8" role="alert">
-            <div className="flex items-center justify-between">
-              <p>{error}</p>
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 sm:mb-8" role="alert">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <p className="text-sm sm:text-base">{error}</p>
               <Link
                 href="/contact"
-                className="text-red-700 hover:text-red-800 flex items-center gap-1"
+                className="text-red-700 hover:text-red-800 flex items-center gap-1 text-sm sm:text-base"
               >
                 <HelpCircle className="h-4 w-4" />
                 Contact Support
@@ -199,18 +199,18 @@ export default function TrackOrderPage() {
 
         {loading && (
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="p-6">
-              <Skeleton className="h-8 w-1/3 mb-4" />
-              <Skeleton className="h-4 w-1/4 mb-8" />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="p-4 sm:p-6">
+              <Skeleton className="h-6 sm:h-8 w-1/3 mb-4" />
+              <Skeleton className="h-4 w-1/4 mb-6 sm:mb-8" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                 <div>
-                  <Skeleton className="h-6 w-1/2 mb-4" />
+                  <Skeleton className="h-5 sm:h-6 w-1/2 mb-4" />
                   <Skeleton className="h-4 w-3/4 mb-2" />
                   <Skeleton className="h-4 w-2/3 mb-2" />
                   <Skeleton className="h-4 w-1/2" />
                 </div>
                 <div>
-                  <Skeleton className="h-6 w-1/2 mb-4" />
+                  <Skeleton className="h-5 sm:h-6 w-1/2 mb-4" />
                   <Skeleton className="h-4 w-3/4 mb-2" />
                   <Skeleton className="h-4 w-2/3 mb-2" />
                   <Skeleton className="h-4 w-1/2" />
@@ -222,17 +222,17 @@ export default function TrackOrderPage() {
 
         {order && (
           <div className="bg-white rounded-lg shadow-lg overflow-hidden" role="region" aria-label="Order Details">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex justify-between items-start">
+            <div className="p-4 sm:p-6 border-b border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-start gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                     Order #{order.order_number}
                   </h2>
-                  <p className="text-gray-600">
+                  <p className="text-sm sm:text-base text-gray-600">
                     Placed on {safeFormat(order.created_at, 'MMMM d, yyyy h:mm a')}
                   </p>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                   <div className="flex items-center gap-2">
                     {getStatusIcon(order.status)}
                     <Badge className={getStatusColor(order.status)}>
@@ -242,7 +242,7 @@ export default function TrackOrderPage() {
                     </Badge>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5" />
+                    <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
                     <Badge className={getPaymentStatusColor(order.payment_status)}>
                       {order.payment_status
                         ? order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)
@@ -253,58 +253,58 @@ export default function TrackOrderPage() {
               </div>
             </div>
 
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Customer Information</h3>
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Customer Information</h3>
                   <div className="space-y-2">
-                    <p className="text-gray-600">
+                    <p className="text-sm sm:text-base text-gray-600">
                       <span className="font-medium">Name:</span> {order.first_name} {order.last_name}
                     </p>
-                    <p className="text-gray-600">
+                    <p className="text-sm sm:text-base text-gray-600">
                       <span className="font-medium">Email:</span> {order.email}
                     </p>
-                    <p className="text-gray-600">
+                    <p className="text-sm sm:text-base text-gray-600">
                       <span className="font-medium">Phone:</span> {order.phone}
                     </p>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Shipping Information</h3>
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Shipping Information</h3>
                   <div className="space-y-2">
-                    <p className="text-gray-600">
+                    <p className="text-sm sm:text-base text-gray-600">
                       <span className="font-medium">Address:</span> {order.address}
                     </p>
-                    <p className="text-gray-600">
+                    <p className="text-sm sm:text-base text-gray-600">
                       <span className="font-medium">City:</span> {order.city}
                     </p>
-                    <p className="text-gray-600">
+                    <p className="text-sm sm:text-base text-gray-600">
                       <span className="font-medium">State:</span> {order.state}
                     </p>
-                    <p className="text-gray-600">
+                    <p className="text-sm sm:text-base text-gray-600">
                       <span className="font-medium">Postal Code:</span> {order.postal_code}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Items</h3>
+              <div className="mt-6 sm:mt-8">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Order Items</h3>
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200" role="table">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Product
                         </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Price
                         </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Quantity
                         </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Total
                         </th>
                       </tr>
@@ -313,38 +313,39 @@ export default function TrackOrderPage() {
                       {order.items && order.items.length > 0 ? (
                         order.items.map((item) => (
                           <tr key={item.id}>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
-                                <div className="h-10 w-10 flex-shrink-0 relative">
+                                <div className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 relative">
                                   <Image
                                     src={getImageUrl(item.product?.image_url) || '/placeholder-product.jpg'}
                                     alt={item.product?.name || 'Product'}
                                     fill
                                     className="rounded-full object-cover"
                                     sizes="(max-width: 40px) 100vw, 40px"
+                                    loading="lazy"
                                   />
                                 </div>
-                                <div className="ml-4">
-                                  <div className="text-sm font-medium text-gray-900 truncate max-w-[200px]">
+                                <div className="ml-3 sm:ml-4">
+                                  <div className="text-xs sm:text-sm font-medium text-gray-900 truncate max-w-[150px] sm:max-w-[200px]">
                                     {item.product?.name || 'Unknown Product'}
                                   </div>
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                               KES {(item.price || 0).toLocaleString()}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                               {item.quantity || 0}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                               KES {((item.price || 0) * (item.quantity || 0)).toLocaleString()}
                             </td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                          <td colSpan={4} className="px-3 sm:px-6 py-4 text-center text-gray-500 text-sm sm:text-base">
                             No items found for this order.
                           </td>
                         </tr>
@@ -354,23 +355,23 @@ export default function TrackOrderPage() {
                 </div>
               </div>
 
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <div className="flex justify-between items-center">
+              <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
-                    <p className="text-sm text-gray-600">Subtotal</p>
-                    <p className="text-lg font-medium text-gray-900">
+                    <p className="text-xs sm:text-sm text-gray-600">Subtotal</p>
+                    <p className="text-base sm:text-lg font-medium text-gray-900">
                       KES {((order.total_amount || 0) - (order.shipping_cost || 0)).toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Shipping</p>
-                    <p className="text-lg font-medium text-gray-900">
+                    <p className="text-xs sm:text-sm text-gray-600">Shipping</p>
+                    <p className="text-base sm:text-lg font-medium text-gray-900">
                       KES {(order.shipping_cost || 0).toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Total</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-xs sm:text-sm text-gray-600">Total</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900">
                       KES {(order.total_amount || 0).toLocaleString()}
                     </p>
                   </div>

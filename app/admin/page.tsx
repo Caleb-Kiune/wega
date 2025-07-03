@@ -286,21 +286,21 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
+    <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
+      <div className="mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Product Management</h1>
-            <p className="text-muted-foreground mt-2">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Product Management</h1>
+            <p className="text-muted-foreground mt-2 text-sm sm:text-base">
               Manage your product catalog with ease. View, edit, and organize your products.
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
             <Button
               onClick={() => router.push('/admin/orders')}
               variant="outline"
-              className="flex items-center gap-2 px-4 py-2"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 min-h-[44px] text-sm sm:text-base"
             >
               <Package className="h-4 w-4" />
               Orders
@@ -308,14 +308,14 @@ export default function AdminPage() {
             <Button
               onClick={() => router.push('/admin/delivery-locations')}
               variant="outline"
-              className="flex items-center gap-2 px-4 py-2"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 min-h-[44px] text-sm sm:text-base"
             >
               <MapPin className="h-4 w-4" />
               Delivery
             </Button>
             <Button
               onClick={() => router.push('/admin/create')}
-              className="flex items-center gap-2 px-6 py-2"
+              className="flex items-center gap-2 px-4 sm:px-6 py-2 min-h-[44px] text-sm sm:text-base"
             >
               <Plus className="w-4 h-4 mr-1" />
               Create Product
@@ -324,17 +324,17 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Filters and Search */}
         <Card>
-          <CardHeader>
-            <CardTitle>Filters & Search</CardTitle>
-            <CardDescription>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg sm:text-xl">Filters & Search</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               Find and filter products by name, category, brand, and more
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Search Products</Label>
                 <Input
@@ -342,14 +342,14 @@ export default function AdminPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={handleSearchKeyDown}
-                  className="h-10"
+                  className="h-10 min-h-[44px] text-base"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Category</Label>
                 <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className="h-10 min-h-[44px] text-base">
                     <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
                   <SelectContent>
@@ -366,7 +366,7 @@ export default function AdminPage() {
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Brand</Label>
                 <Select value={brand} onValueChange={setBrand}>
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className="h-10 min-h-[44px] text-base">
                     <SelectValue placeholder="All Brands" />
                   </SelectTrigger>
                   <SelectContent>
@@ -384,7 +384,7 @@ export default function AdminPage() {
                 <Label className="text-sm font-medium">Sort By</Label>
                 <div className="flex gap-2">
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="h-10 flex-1">
+                    <SelectTrigger className="h-10 min-h-[44px] text-base flex-1">
                       <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
                     <SelectContent>
@@ -397,7 +397,7 @@ export default function AdminPage() {
                     variant="outline"
                     size="icon"
                     onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                    className="h-10 w-10"
+                    className="h-10 w-10 min-h-[44px] min-w-[44px]"
                   >
                     {sortOrder === 'asc' ? '↑' : '↓'}
                   </Button>
@@ -410,8 +410,8 @@ export default function AdminPage() {
         {/* Bulk Actions */}
         {selectedProducts.length > 0 && (
           <Card className="border-orange-200 bg-orange-50">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
+            <CardContent className="pt-4 sm:pt-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
                     <Check className="h-5 w-5 text-orange-600" />
@@ -420,12 +420,12 @@ export default function AdminPage() {
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setSelectedProducts([])}
-                    className="h-9"
+                    className="h-9 min-h-[44px] text-sm sm:text-base"
                   >
                     <X className="w-4 h-4 mr-2" />
                     Clear Selection
@@ -434,7 +434,7 @@ export default function AdminPage() {
                     variant="destructive"
                     size="sm"
                     onClick={handleBulkDelete}
-                    className="h-9"
+                    className="h-9 min-h-[44px] text-sm sm:text-base"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
                     Delete Selected
@@ -446,7 +446,7 @@ export default function AdminPage() {
         )}
 
         {/* View Controls */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <input
@@ -468,7 +468,7 @@ export default function AdminPage() {
                 variant={viewMode === 'grid' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('grid')}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 min-h-[44px] min-w-[44px]"
               >
                 <Grid className="w-4 h-4" />
               </Button>
@@ -476,7 +476,7 @@ export default function AdminPage() {
                 variant={viewMode === 'list' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('list')}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 min-h-[44px] min-w-[44px]"
               >
                 <List className="w-4 h-4" />
               </Button>
@@ -487,13 +487,13 @@ export default function AdminPage() {
         {/* Products Display */}
         {filteredProducts.length === 0 ? (
           <Card>
-            <CardContent className="pt-12 pb-12">
+            <CardContent className="pt-8 sm:pt-12 pb-8 sm:pb-12">
               <div className="text-center space-y-4">
-                <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-                  <Package className="w-8 h-8 text-muted-foreground" />
+                <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-muted rounded-full flex items-center justify-center">
+                  <Package className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold">No products found</h3>
+                  <h3 className="text-base sm:text-lg font-semibold">No products found</h3>
                   <p className="text-sm text-muted-foreground mt-1">
                     {search || category !== 'all' || brand !== 'all' 
                       ? 'Try adjusting your filters or search terms'
@@ -502,7 +502,7 @@ export default function AdminPage() {
                   </p>
                 </div>
                 {!search && category === 'all' && brand === 'all' && (
-                  <Button onClick={() => router.push('/admin/create')} className="mt-4">
+                  <Button onClick={() => router.push('/admin/create')} className="mt-4 min-h-[44px] text-sm sm:text-base">
                     <Plus className="w-4 h-4 mr-2" />
                     Create Product
                   </Button>
@@ -511,7 +511,7 @@ export default function AdminPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6' : 'space-y-4'}>
+          <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6' : 'space-y-4'}>
             {filteredProducts.map((product) => (
               <Card
                 key={product.id}
@@ -519,7 +519,7 @@ export default function AdminPage() {
                   viewMode === 'list' ? 'flex' : ''
                 } ${selectedProducts.includes(product.id) ? 'ring-2 ring-primary' : ''}`}
               >
-                <div className={`relative ${viewMode === 'list' ? 'w-48' : 'w-full'}`}>
+                <div className={`relative ${viewMode === 'list' ? 'w-32 sm:w-48' : 'w-full'}`}>
                   <input
                     type="checkbox"
                     checked={selectedProducts.includes(product.id)}
@@ -529,10 +529,11 @@ export default function AdminPage() {
                   <img
                     src={getImageUrl(product.images?.[0]?.image_url) || '/placeholder.png'}
                     alt={product.name}
-                    className={`w-full ${viewMode === 'list' ? 'h-48' : 'h-48'} object-cover rounded-t-lg`}
+                    className={`w-full ${viewMode === 'list' ? 'h-32 sm:h-48' : 'h-40 sm:h-48'} object-cover rounded-t-lg`}
                     onError={(e) => {
                       e.currentTarget.src = '/placeholder.png';
                     }}
+                    loading="lazy"
                   />
                   <div className="absolute top-2 left-2 flex flex-col gap-1.5">
                     {product.is_new && (
@@ -553,10 +554,10 @@ export default function AdminPage() {
                   </div>
                 </div>
                 
-                <div className={`p-4 ${viewMode === 'list' ? 'flex-1' : ''}`}>
+                <div className={`p-3 sm:p-4 ${viewMode === 'list' ? 'flex-1' : ''}`}>
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 truncate">{product.name}</h3>
+                      <h3 className="font-semibold text-gray-900 truncate text-sm sm:text-base">{product.name}</h3>
                       <p className="text-sm text-muted-foreground">{product.brand}</p>
                       {product.category && (
                         <Badge variant="secondary" className="text-xs mt-1 bg-blue-100 text-blue-800 border-blue-200">
@@ -566,7 +567,7 @@ export default function AdminPage() {
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity min-h-[44px] min-w-[44px]">
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -595,7 +596,7 @@ export default function AdminPage() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900">
+                        <span className="font-semibold text-gray-900 text-sm sm:text-base">
                           KES {product.price.toLocaleString()}
                         </span>
                         {product.original_price && product.original_price > product.price && (
@@ -625,8 +626,8 @@ export default function AdminPage() {
         {/* Pagination */}
         {totalPages > 1 && (
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
+            <CardContent className="pt-4 sm:pt-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <p className="text-sm text-muted-foreground">
                   Showing {((currentPage - 1) * 100) + 1} to {Math.min(currentPage * 100, filteredProducts.length)} of {filteredProducts.length} products
                 </p>
@@ -636,7 +637,7 @@ export default function AdminPage() {
                     size="sm"
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="h-8"
+                    className="h-8 min-h-[44px] text-sm sm:text-base"
                   >
                     Previous
                   </Button>
@@ -648,7 +649,7 @@ export default function AdminPage() {
                     size="sm"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="h-8"
+                    className="h-8 min-h-[44px] text-sm sm:text-base"
                   >
                     Next
                   </Button>

@@ -149,8 +149,8 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col lg:flex-row gap-8">
+    <div className="container mx-auto px-4 py-4 sm:py-8">
+      <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
         {/* Filters */}
         <ProductFilters filters={filters} onFiltersChange={handleFiltersChange} loading={loading} />
 
@@ -158,9 +158,9 @@ export default function ProductsPage() {
         <div className="flex-1">
           {/* Search Results Header */}
           {filters.search && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+            <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                   <span className="text-sm text-green-800">
                     Search results for: <span className="font-semibold">"{filters.search}"</span>
                   </span>
@@ -172,7 +172,7 @@ export default function ProductsPage() {
                   variant="outline"
                   size="sm"
                   onClick={handleClearSearch}
-                  className="text-green-700 border-green-300 hover:bg-green-100"
+                  className="text-green-700 border-green-300 hover:bg-green-100 min-h-[44px] w-full sm:w-auto"
                 >
                   Clear Search
                 </Button>
@@ -221,25 +221,26 @@ export default function ProductsPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
 
-              {/* Enhanced Pagination */}
+              {/* Enhanced Pagination - Mobile Optimized */}
               {totalPages > 1 && (
-                <div className="mt-8">
+                <div className="mt-6 sm:mt-8">
                   <div className="flex flex-col items-center gap-4">
                     <div className="text-sm text-gray-600">
                       Page {currentPage} of {totalPages}
                     </div>
-                    <nav className="flex items-center space-x-2">
+                    <nav className="flex flex-wrap items-center justify-center gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         disabled={currentPage === 1}
                         onClick={() => handlePageChange(1)}
+                        className="min-h-[44px] min-w-[44px]"
                       >
                         First
                       </Button>
@@ -248,6 +249,7 @@ export default function ProductsPage() {
                         size="sm"
                         disabled={currentPage === 1}
                         onClick={() => handlePageChange(currentPage - 1)}
+                        className="min-h-[44px] min-w-[44px]"
                       >
                         Previous
                       </Button>
@@ -272,7 +274,7 @@ export default function ProductsPage() {
                                 variant={currentPage === page ? 'default' : 'outline'}
                                 size="sm"
                                 onClick={() => handlePageChange(page)}
-                                className={currentPage === page ? 'bg-green-600 text-white' : ''}
+                                className={`min-h-[44px] min-w-[44px] ${currentPage === page ? 'bg-green-600 text-white' : ''}`}
                               >
                                 {page}
                               </Button>
@@ -285,6 +287,7 @@ export default function ProductsPage() {
                         size="sm"
                         disabled={currentPage === totalPages}
                         onClick={() => handlePageChange(currentPage + 1)}
+                        className="min-h-[44px] min-w-[44px]"
                       >
                         Next
                       </Button>
@@ -293,6 +296,7 @@ export default function ProductsPage() {
                         size="sm"
                         disabled={currentPage === totalPages}
                         onClick={() => handlePageChange(totalPages)}
+                        className="min-h-[44px] min-w-[44px]"
                       >
                         Last
                       </Button>

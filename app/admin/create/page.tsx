@@ -507,13 +507,13 @@ export default function CreateProductPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="container mx-auto p-4 sm:p-6 max-w-6xl">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
+      <div className="mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-            <h1 className="text-3xl font-bold tracking-tight">Create New Product</h1>
-            <p className="text-muted-foreground mt-2">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Create New Product</h1>
+            <p className="text-muted-foreground mt-2 text-sm sm:text-base">
               Add a new product to your catalog with images, specifications, and features
             </p>
             </div>
@@ -526,31 +526,31 @@ export default function CreateProductPage() {
                 </div>
 
       {error && (
-        <Card className="mb-6 border-destructive">
+        <Card className="mb-4 sm:mb-6 border-destructive">
           <CardHeader>
             <CardTitle className="text-destructive">Error</CardTitle>
             <CardDescription>Failed to load required data</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => router.push('/admin')} variant="outline" className="w-full">
+            <Button onClick={() => router.push('/admin')} variant="outline" className="w-full min-h-[44px] text-base">
               Back to Admin
             </Button>
           </CardContent>
         </Card>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
         {/* Basic Information */}
         <Card>
           <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-lg sm:text-xl">Basic Information</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               Essential product details like name, SKU, pricing, and categorization
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <CardContent className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                 <Label htmlFor="name">Product Name</Label>
                 <Input
@@ -559,7 +559,7 @@ export default function CreateProductPage() {
                       value={newProduct.name}
                       onChange={handleInputChange}
                   placeholder="Enter product name"
-                  className="h-11"
+                  className="min-h-[44px] text-base"
                       required
                     />
                   </div>
@@ -572,7 +572,7 @@ export default function CreateProductPage() {
                   value={newProduct.sku}
                       onChange={handleInputChange}
                   placeholder="Product SKU"
-                  className="h-11"
+                  className="min-h-[44px] text-base"
                   required
                     />
                   </div>
@@ -586,7 +586,7 @@ export default function CreateProductPage() {
                   value={newProduct.price || ''}
                   onChange={handleInputChange}
                   placeholder="0.00"
-                  className="h-11"
+                  className="min-h-[44px] text-base"
                   required
                             />
                           </div>
@@ -600,7 +600,7 @@ export default function CreateProductPage() {
                   value={newProduct.original_price || ''}
                   onChange={handleInputChange}
                   placeholder="0.00"
-                  className="h-11"
+                  className="min-h-[44px] text-base"
                             />
                           </div>
 
@@ -613,7 +613,7 @@ export default function CreateProductPage() {
                   value={newProduct.stock || ''}
                   onChange={handleInputChange}
                   placeholder="0"
-                  className="h-11"
+                  className="min-h-[44px] text-base"
                   required
                             />
                           </div>
@@ -628,7 +628,7 @@ export default function CreateProductPage() {
                     setNewProduct(prev => ({ ...prev, brand_id: brand ? brand.id : undefined }));
                   }}
                 >
-                  <SelectTrigger className="h-11">
+                  <SelectTrigger className="min-h-[44px] text-base">
                     <SelectValue placeholder="Select a brand" />
                   </SelectTrigger>
                   <SelectContent>
@@ -651,7 +651,7 @@ export default function CreateProductPage() {
                     setNewProduct(prev => ({ ...prev, category_id: category ? category.id : undefined }));
                   }}
                 >
-                  <SelectTrigger className="h-11">
+                  <SelectTrigger className="min-h-[44px] text-base">
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -674,7 +674,7 @@ export default function CreateProductPage() {
                         onChange={handleInputChange}
                 placeholder="Enter detailed product description..."
                 rows={4}
-                className="resize-none"
+                className="resize-none min-h-[44px] text-base"
                         required
                       />
                     </div>
@@ -684,13 +684,13 @@ export default function CreateProductPage() {
         {/* Product Status */}
         <Card>
           <CardHeader>
-            <CardTitle>Product Status</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-lg sm:text-xl">Product Status</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               Configure product visibility and promotional settings
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <div className="flex items-center space-x-3 p-4 border rounded-lg">
                 <Switch
                   id="is_new"
@@ -733,21 +733,21 @@ export default function CreateProductPage() {
             {/* Images Section */}
         <Card>
           <CardHeader>
-            <CardTitle>Product Images</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-lg sm:text-xl">Product Images</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               Upload and manage product images. At least one image is required.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-8">
+          <CardContent className="space-y-6 sm:space-y-8">
             {/* Upload New Image */}
                 <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Add New Image</h3>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <h3 className="text-base sm:text-lg font-semibold">Add New Image</h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                     {/* File Upload */}
                     <div className="space-y-4">
                   <Label>Upload Image</Label>
                       <div
-                    className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
+                    className={`relative border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all duration-200 ${
                           dragActive
                         ? 'border-primary bg-primary/5'
                         : 'border-muted-foreground/25 hover:border-muted-foreground/50'
@@ -766,7 +766,7 @@ export default function CreateProductPage() {
                         />
                     <div className="space-y-3">
                           <svg
-                        className="mx-auto h-12 w-12 text-muted-foreground"
+                        className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground"
                             stroke="currentColor"
                             fill="none"
                             viewBox="0 0 48 48"
@@ -803,7 +803,7 @@ export default function CreateProductPage() {
                           value={newImage.image_url}
                           onChange={handleImageChange}
                           placeholder="https://example.com/image.jpg"
-                      className="h-11"
+                      className="min-h-[44px] text-base"
                         />
                     <p className="text-xs text-muted-foreground">Enter a direct link to an image</p>
                       </div>
@@ -818,13 +818,13 @@ export default function CreateProductPage() {
                         <img
                           src={getImageUrl(newImage.image_url)}
                           alt="Preview"
-                      className="w-32 h-32 object-cover rounded-lg border border-border shadow-sm"
+                      className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg border border-border shadow-sm"
                         />
                     <Button
                       variant="destructive"
                       size="sm"
                           onClick={() => setNewImage(prev => ({ ...prev, image_url: '' }))}
-                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 min-h-[44px] min-w-[44px]"
                     >
                       ×
                     </Button>
@@ -834,7 +834,7 @@ export default function CreateProductPage() {
 
               {/* Add Image Button */}
               {newImage.image_url && (
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="new-image-primary"
@@ -846,6 +846,7 @@ export default function CreateProductPage() {
                   <Button
                       onClick={addImage}
                     disabled={!newImage.image_url}
+                    className="min-h-[44px] text-base"
                     >
                       Add Image
                   </Button>
@@ -857,18 +858,18 @@ export default function CreateProductPage() {
 
             {/* Existing Images */}
                   <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Added Images</h3>
+              <h3 className="text-base sm:text-lg font-semibold">Added Images</h3>
               {newProduct.images.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
                       {newProduct.images.map((image, index) => (
                         <div key={index} className="relative group">
                           <img
                             src={getImageUrl(image.image_url)}
                             alt={`Product image ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-lg border border-border shadow-sm"
+                        className="w-full h-20 sm:h-24 object-cover rounded-lg border border-border shadow-sm"
                           />
                           {image.is_primary && (
-                        <Badge className="absolute top-2 right-2 text-xs">
+                        <Badge className="absolute top-1 right-1 sm:top-2 sm:right-2 text-xs">
                               Primary
                         </Badge>
                           )}
@@ -876,7 +877,7 @@ export default function CreateProductPage() {
                         variant="destructive"
                         size="sm"
                             onClick={() => removeImage(index)}
-                        className="absolute top-2 left-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                        className="absolute top-1 left-1 sm:top-2 sm:left-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 min-h-[44px] min-w-[44px]"
                       >
                         ×
                       </Button>
@@ -884,8 +885,8 @@ export default function CreateProductPage() {
                       ))}
                   </div>
                 ) : (
-                <div className="text-center py-12 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/25">
-                  <svg className="mx-auto h-12 w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="text-center py-8 sm:py-12 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/25">
+                  <svg className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   <p className="text-sm text-muted-foreground mb-2">No images added yet</p>
@@ -899,15 +900,15 @@ export default function CreateProductPage() {
             {/* Specifications Section */}
         <Card>
           <CardHeader>
-            <CardTitle>Specifications</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-lg sm:text-xl">Specifications</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               Add product specifications like dimensions, materials, and technical details
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 sm:space-y-6">
             {/* Add New Specification */}
               <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Add New Specification</h3>
+              <h3 className="text-base sm:text-lg font-semibold">Add New Specification</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                   <Label>Name</Label>
@@ -916,7 +917,7 @@ export default function CreateProductPage() {
                       value={newSpecification.name}
                       onChange={handleSpecificationChange}
                     placeholder="e.g., Material, Size, Weight"
-                    className="h-10"
+                    className="min-h-[44px] text-base"
                     />
                   </div>
                   <div className="space-y-2">
@@ -927,12 +928,12 @@ export default function CreateProductPage() {
                         value={newSpecification.value}
                         onChange={handleSpecificationChange}
                       placeholder="e.g., Stainless Steel, 10 inches, 2.5 lbs"
-                      className="flex-1 h-10"
+                      className="flex-1 min-h-[44px] text-base"
                       />
                     <Button
                         onClick={addSpecification}
                       disabled={!newSpecification.name || !newSpecification.value}
-                      className="whitespace-nowrap h-10"
+                      className="whitespace-nowrap min-h-[44px] text-base"
                       >
                         Add
                     </Button>
@@ -945,11 +946,11 @@ export default function CreateProductPage() {
 
             {/* Existing Specifications */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Added Specifications</h3>
+              <h3 className="text-base sm:text-lg font-semibold">Added Specifications</h3>
               {newProduct.specifications.length > 0 ? (
                 <div className="space-y-3">
                   {newProduct.specifications.map((spec, index) => (
-                    <div key={index} className="flex items-center space-x-4 p-4 bg-muted/50 rounded-lg">
+                    <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 p-4 bg-muted/50 rounded-lg">
                       <Input
                         value={spec.name}
                         onChange={(e) => {
@@ -958,7 +959,7 @@ export default function CreateProductPage() {
                           setNewProduct(prev => ({ ...prev, specifications: newSpecs }));
                         }}
                         placeholder="Specification name"
-                        className="flex-1 h-10"
+                        className="flex-1 min-h-[44px] text-base"
                       />
                       <Input
                         value={spec.value}
@@ -968,13 +969,13 @@ export default function CreateProductPage() {
                           setNewProduct(prev => ({ ...prev, specifications: newSpecs }));
                         }}
                         placeholder="Specification value"
-                        className="flex-1 h-10"
+                        className="flex-1 min-h-[44px] text-base"
                       />
                       <Button
                         variant="destructive"
                         onClick={() => removeSpecification(index)}
                         size="sm"
-                        className="h-10"
+                        className="min-h-[44px] text-base"
                       >
                         Remove
                       </Button>
@@ -982,8 +983,8 @@ export default function CreateProductPage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/25">
-                  <svg className="mx-auto h-12 w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="text-center py-8 sm:py-12 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/25">
+                  <svg className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   <p className="text-sm text-muted-foreground mb-2">No specifications added yet</p>
@@ -997,16 +998,16 @@ export default function CreateProductPage() {
             {/* Features Section */}
         <Card>
           <CardHeader>
-            <CardTitle>Features</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-lg sm:text-xl">Features</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               Highlight key product features and benefits
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 sm:space-y-6">
             {/* Add New Feature */}
               <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Add New Feature</h3>
-                <div className="flex gap-4">
+              <h3 className="text-base sm:text-lg font-semibold">Add New Feature</h3>
+                <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex-1 space-y-2">
                   <Label>Feature</Label>
                   <Input
@@ -1014,14 +1015,14 @@ export default function CreateProductPage() {
                       value={newFeature.feature}
                       onChange={handleFeatureChange}
                     placeholder="e.g., Dishwasher safe, Non-stick coating, Heat resistant"
-                    className="h-10"
+                    className="min-h-[44px] text-base"
                     />
                   </div>
                   <div className="flex items-end">
                   <Button
                       onClick={addFeature}
                     disabled={!newFeature.feature}
-                    className="whitespace-nowrap h-10"
+                    className="whitespace-nowrap min-h-[44px] text-base"
                     >
                       Add Feature
                   </Button>
@@ -1033,13 +1034,13 @@ export default function CreateProductPage() {
 
             {/* Existing Features */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Added Features</h3>
+              <h3 className="text-base sm:text-lg font-semibold">Added Features</h3>
               {newProduct.features.length > 0 ? (
                 <div className="space-y-3">
                   {newProduct.features.map((feature, index) => (
-                    <div key={index} className="flex items-center space-x-4 p-4 bg-muted/50 rounded-lg">
+                    <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 p-4 bg-muted/50 rounded-lg">
                       <div className="flex items-center flex-1">
-                        <svg className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                         <Input
@@ -1050,14 +1051,14 @@ export default function CreateProductPage() {
                             setNewProduct(prev => ({ ...prev, features: newFeatures }));
                           }}
                           placeholder="Feature description"
-                          className="flex-1 h-10"
+                          className="flex-1 min-h-[44px] text-base"
                         />
                       </div>
                       <Button
                         variant="destructive"
                         onClick={() => removeFeature(index)}
                         size="sm"
-                        className="h-10"
+                        className="min-h-[44px] text-base"
                       >
                         Remove
                       </Button>
@@ -1065,8 +1066,8 @@ export default function CreateProductPage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/25">
-                  <svg className="mx-auto h-12 w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="text-center py-8 sm:py-12 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/25">
+                  <svg className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <p className="text-sm text-muted-foreground mb-2">No features added yet</p>
@@ -1078,18 +1079,18 @@ export default function CreateProductPage() {
         </Card>
 
         {/* Action Buttons */}
-        <div className="flex justify-end space-x-4 pt-6 border-t">
+        <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4 pt-4 sm:pt-6 border-t">
           <Button
             variant="outline"
                 onClick={() => router.push('/admin')}
-            className="px-8"
+            className="px-6 sm:px-8 min-h-[44px] text-base"
               >
                 Cancel
           </Button>
           <Button
                 type="submit"
             disabled={saving}
-            className="px-8"
+            className="px-6 sm:px-8 min-h-[44px] text-base"
           >
             {saving ? (
               <>

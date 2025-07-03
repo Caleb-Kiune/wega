@@ -199,11 +199,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
       }
       
       newImages[index] = { ...newImages[index], [field]: value };
-      
-      return {
-        ...prev,
-        images: newImages
-      };
+      return { ...prev, images: newImages };
     });
   };
 
@@ -212,10 +208,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
       if (!prev) return initialProductState;
       const newSpecifications = [...prev.specifications];
       newSpecifications[index] = { ...newSpecifications[index], [field]: value };
-      return {
-        ...prev,
-        specifications: newSpecifications
-      };
+      return { ...prev, specifications: newSpecifications };
     });
   };
 
@@ -224,72 +217,72 @@ export default function ProductForm({ productId }: ProductFormProps) {
       if (!prev) return initialProductState;
       const newFeatures = [...prev.features];
       newFeatures[index] = { ...newFeatures[index], [field]: value };
-      return {
-        ...prev,
-        features: newFeatures
+      return { ...prev, features: newFeatures };
+    });
+  };
+
+  const addImage = () => {
+    setProduct(prev => {
+      if (!prev) return initialProductState;
+      const newImage = {
+        image_url: '',
+        is_primary: prev.images.length === 0, // First image is primary by default
+        display_order: prev.images.length
       };
+      return { ...prev, images: [...prev.images, newImage] };
     });
   };
 
   const removeImage = (index: number) => {
     setProduct(prev => {
       if (!prev) return initialProductState;
-      const newImages = [...prev.images];
-      const removedImage = newImages[index];
+      const newImages = prev.images.filter((_, i) => i !== index);
       
-      // Remove the image
-      newImages.splice(index, 1);
-      
-      // Update display_order for remaining images
-      newImages.forEach((img, idx) => {
-        img.display_order = idx;
-      });
-      
-      // If the removed image was primary and there are remaining images, set the first one as primary
-      if (removedImage.is_primary && newImages.length > 0) {
+      // If we removed the primary image and there are other images, make the first one primary
+      if (prev.images[index].is_primary && newImages.length > 0) {
         newImages[0].is_primary = true;
       }
       
-      return {
-        ...prev,
-        images: newImages
+      return { ...prev, images: newImages };
+    });
+  };
+
+  const addSpecification = () => {
+    setProduct(prev => {
+      if (!prev) return initialProductState;
+      const newSpec = {
+        name: '',
+        value: '',
+        display_order: prev.specifications.length
       };
+      return { ...prev, specifications: [...prev.specifications, newSpec] };
     });
   };
 
   const removeSpecification = (index: number) => {
-    console.log('🗑️ Removing specification at index:', index);
-    
     setProduct(prev => {
       if (!prev) return initialProductState;
-      const newSpecifications = [...prev.specifications];
-      newSpecifications.splice(index, 1);
-      // Update display_order for remaining specifications
-      newSpecifications.forEach((spec, idx) => {
-        spec.display_order = idx;
-      });
-      return {
-        ...prev,
-        specifications: newSpecifications
+      const newSpecifications = prev.specifications.filter((_, i) => i !== index);
+      return { ...prev, specifications: newSpecifications };
+    });
+  };
+
+  const addFeature = () => {
+    setProduct(prev => {
+      if (!prev) return initialProductState;
+      const newFeature = {
+        feature: '',
+        display_order: prev.features.length
       };
+      return { ...prev, features: [...prev.features, newFeature] };
     });
   };
 
   const removeFeature = (index: number) => {
-    console.log('🗑️ Removing feature at index:', index);
-    
     setProduct(prev => {
       if (!prev) return initialProductState;
-      const newFeatures = [...prev.features];
-      newFeatures.splice(index, 1);
-      // Update display_order for remaining features
-      newFeatures.forEach((feature, idx) => {
-        feature.display_order = idx;
-      });
-      return {
-        ...prev,
-        features: newFeatures
-      };
+      const newFeatures = prev.features.filter((_, i) => i !== index);
+      return { ...prev, features: newFeatures };
     });
   };
 
@@ -370,7 +363,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+        <div className="animate-spin rounded-full h-8 w-8 sm:h-32 sm:w-32 border-b-2 border-gray-900"></div>
       </div>
     );
   }
@@ -379,9 +372,9 @@ export default function ProductForm({ productId }: ProductFormProps) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
-          <p className="text-gray-600">{error}</p>
-          <Button onClick={() => router.push('/admin')} className="mt-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-red-600 mb-4">Error</h2>
+          <p className="text-sm sm:text-base text-gray-600">{error}</p>
+          <Button onClick={() => router.push('/admin')} className="mt-4 min-h-[44px] px-6">
             Back to Admin
           </Button>
         </div>
@@ -393,8 +386,8 @@ export default function ProductForm({ productId }: ProductFormProps) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-600 mb-4">Product Not Found</h2>
-          <Button onClick={() => router.push('/admin')} className="mt-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-600 mb-4">Product Not Found</h2>
+          <Button onClick={() => router.push('/admin')} className="mt-4 min-h-[44px] px-6">
             Back to Admin
           </Button>
         </div>
@@ -403,17 +396,18 @@ export default function ProductForm({ productId }: ProductFormProps) {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="container mx-auto py-6 sm:py-8 px-4 sm:px-6">
+      <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Edit Product</h1>
-            <p className="text-muted-foreground">Update product information and details</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">Edit Product</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Update product information and details</p>
           </div>
           <Button
             variant="outline"
             onClick={() => router.push('/admin')}
+            className="min-h-[44px] px-6"
           >
             Back to Admin
           </Button>
@@ -422,39 +416,39 @@ export default function ProductForm({ productId }: ProductFormProps) {
         {/* Basic Information */}
         <Card>
           <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-lg sm:text-xl">Basic Information</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               Update the basic product details like name, description, and pricing
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <CardContent className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-2">
-                <Label htmlFor="name">Product Name *</Label>
+                <Label htmlFor="name" className="text-sm sm:text-base">Product Name *</Label>
                 <Input
                   id="name"
                   name="name"
                   value={product.name}
                   onChange={handleInputChange}
                   placeholder="Enter product name"
-                  className="h-10"
+                  className="min-h-[44px]"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="sku">SKU</Label>
+                <Label htmlFor="sku" className="text-sm sm:text-base">SKU</Label>
                 <Input
                   id="sku"
                   name="sku"
                   value={product.sku}
                   onChange={handleInputChange}
                   placeholder="Enter SKU"
-                  className="h-10"
+                  className="min-h-[44px]"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description" className="text-sm sm:text-base">Description</Label>
               <Textarea
                 id="description"
                 name="description"
@@ -462,12 +456,13 @@ export default function ProductForm({ productId }: ProductFormProps) {
                 onChange={handleInputChange}
                 placeholder="Enter product description"
                 rows={4}
+                className="min-h-[120px]"
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <div className="space-y-2">
-                <Label htmlFor="price">Price *</Label>
+                <Label htmlFor="price" className="text-sm sm:text-base">Price *</Label>
                 <Input
                   id="price"
                   name="price"
@@ -477,11 +472,11 @@ export default function ProductForm({ productId }: ProductFormProps) {
                   value={product.price}
                   onChange={handleNumberInputChange}
                   placeholder="0.00"
-                  className="h-10"
+                  className="min-h-[44px]"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="original_price">Original Price</Label>
+                <Label htmlFor="original_price" className="text-sm sm:text-base">Original Price</Label>
                 <Input
                   id="original_price"
                   name="original_price"
@@ -491,11 +486,11 @@ export default function ProductForm({ productId }: ProductFormProps) {
                   value={product.original_price}
                   onChange={handleNumberInputChange}
                   placeholder="0.00"
-                  className="h-10"
+                  className="min-h-[44px]"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="stock">Stock *</Label>
+                <Label htmlFor="stock" className="text-sm sm:text-base">Stock *</Label>
                 <Input
                   id="stock"
                   name="stock"
@@ -504,27 +499,26 @@ export default function ProductForm({ productId }: ProductFormProps) {
                   value={product.stock}
                   onChange={handleNumberInputChange}
                   placeholder="0"
-                  className="h-10"
+                  className="min-h-[44px]"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-2">
-                <Label htmlFor="brand">Brand</Label>
+                <Label htmlFor="brand" className="text-sm sm:text-base">Brand</Label>
                 <Select
                   value={product.brand_id?.toString() || ''}
                   onValueChange={(value) => {
-                    const brandId = parseInt(value);
-                    const selectedBrand = brands.find(b => b.id === brandId);
+                    const brand = brands.find(b => b.id.toString() === value);
                     setProduct(prev => prev ? {
                       ...prev,
-                      brand_id: brandId,
-                      brand: selectedBrand?.name || ''
+                      brand_id: parseInt(value) || 0,
+                      brand: brand?.name || ''
                     } : initialProductState);
                   }}
                 >
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className="min-h-[44px]">
                     <SelectValue placeholder="Select brand" />
                   </SelectTrigger>
                   <SelectContent>
@@ -537,20 +531,19 @@ export default function ProductForm({ productId }: ProductFormProps) {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category" className="text-sm sm:text-base">Category</Label>
                 <Select
                   value={product.category_id?.toString() || ''}
                   onValueChange={(value) => {
-                    const categoryId = parseInt(value);
-                    const selectedCategory = categories.find(c => c.id === categoryId);
+                    const category = categories.find(c => c.id.toString() === value);
                     setProduct(prev => prev ? {
                       ...prev,
-                      category_id: categoryId,
-                      category: selectedCategory?.name || ''
+                      category_id: parseInt(value) || 0,
+                      category: category?.name || ''
                     } : initialProductState);
                   }}
                 >
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className="min-h-[44px]">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -564,250 +557,164 @@ export default function ProductForm({ productId }: ProductFormProps) {
               </div>
             </div>
 
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-2">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="is_new" className="text-sm sm:text-base">New Product</Label>
                 <Switch
                   id="is_new"
                   checked={product.is_new}
                   onCheckedChange={handleSwitchChange('is_new')}
                 />
-                <Label htmlFor="is_new">New Product</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="is_sale" className="text-sm sm:text-base">On Sale</Label>
                 <Switch
                   id="is_sale"
                   checked={product.is_sale}
                   onCheckedChange={handleSwitchChange('is_sale')}
                 />
-                <Label htmlFor="is_sale">On Sale</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="is_featured" className="text-sm sm:text-base">Featured</Label>
                 <Switch
                   id="is_featured"
                   checked={product.is_featured}
                   onCheckedChange={handleSwitchChange('is_featured')}
                 />
-                <Label htmlFor="is_featured">Featured</Label>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Images Section */}
+        {/* Product Images */}
         <Card>
           <CardHeader>
-            <CardTitle>Product Images</CardTitle>
-            <CardDescription>
-              Manage product images. At least one image must be set as primary.
+            <CardTitle className="text-lg sm:text-xl">Product Images</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
+              Add and manage product images. The first image will be the primary image.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Existing Images */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Existing Images</h3>
-              {product.images && product.images.length > 0 ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {product.images.map((image, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={getImageUrl(image.image_url)}
-                          alt={`Product image ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-lg border border-border shadow-sm"
-                          onError={(e) => {
-                            console.error('Failed to load image:', image.image_url);
-                            e.currentTarget.src = '/placeholder.png';
-                          }}
-                        />
-                        {image.is_primary && (
-                          <Badge className="absolute top-2 right-2 text-xs">
-                            Primary
-                          </Badge>
-                        )}
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => removeImage(index)}
-                          className="absolute top-2 left-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                        >
-                          ×
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Image Controls */}
-                  <div className="space-y-3">
-                    {product.images.map((image, index) => (
-                      <div key={`controls-${index}`} className="flex items-center space-x-4 p-3 bg-muted/30 rounded-lg">
-                        <span className="text-sm font-medium text-muted-foreground min-w-[60px]">
-                          Image {index + 1}
-                        </span>
-                        <Input
-                          value={image.image_url || ''}
-                          onChange={(e) => handleImageChange(index, 'image_url', e.target.value)}
-                          placeholder="Image URL"
-                          className="flex-1 h-9 text-sm"
-                        />
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            checked={image.is_primary || false}
-                            onCheckedChange={(checked) => handleImageChange(index, 'is_primary', checked)}
-                          />
-                          <Label className="text-sm">
-                            {image.is_primary ? 'Primary' : 'Set as Primary'}
-                          </Label>
-                        </div>
-                        <Button
-                          variant="destructive"
-                          onClick={() => removeImage(index)}
-                          size="sm"
-                          className="h-9 px-3"
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    ))}
+          <CardContent className="space-y-4">
+            {product.images.map((image, index) => (
+              <div key={index} className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg">
+                <div className="flex-1 space-y-2">
+                  <Label className="text-sm sm:text-base">Image URL {index + 1}</Label>
+                  <Input
+                    value={image.image_url}
+                    onChange={(e) => handleImageChange(index, 'image_url', e.target.value)}
+                    placeholder="Enter image URL"
+                    className="min-h-[44px]"
+                  />
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={`primary-${index}`}
+                      checked={image.is_primary}
+                      onChange={(e) => handleImageChange(index, 'is_primary', e.target.checked)}
+                      className="w-4 h-4"
+                    />
+                    <Label htmlFor={`primary-${index}`} className="text-sm">Primary Image</Label>
                   </div>
                 </div>
-              ) : (
-                <div className="text-center py-12 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/25">
-                  <svg className="mx-auto h-12 w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <p className="text-sm text-muted-foreground mb-2">No images available</p>
-                  <p className="text-xs text-muted-foreground">Images can only be added during product creation</p>
-                </div>
-              )}
-            </div>
+                <Button
+                  variant="outline"
+                  onClick={() => removeImage(index)}
+                  className="text-red-600 hover:text-red-700 min-h-[44px] px-4"
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+            <Button onClick={addImage} variant="outline" className="min-h-[44px] px-6">
+              Add Image
+            </Button>
           </CardContent>
         </Card>
 
-        {/* Specifications Section */}
+        {/* Specifications */}
         <Card>
           <CardHeader>
-            <CardTitle>Specifications</CardTitle>
-            <CardDescription>
-              Edit product specifications like dimensions, materials, and technical details
+            <CardTitle className="text-lg sm:text-xl">Specifications</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
+              Add product specifications and technical details
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Existing Specifications */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Existing Specifications</h3>
-              {product.specifications && product.specifications.length > 0 ? (
-                <div className="space-y-3">
-                  {product.specifications.map((spec, index) => (
-                    <div key={index} className="flex items-center space-x-4 p-4 bg-muted/50 rounded-lg">
-                      <Input
-                        value={spec.name || ''}
-                        onChange={(e) => handleSpecificationChange(index, 'name', e.target.value)}
-                        placeholder="Specification name"
-                        className="flex-1 h-10"
-                      />
-                      <Input
-                        value={spec.value || ''}
-                        onChange={(e) => handleSpecificationChange(index, 'value', e.target.value)}
-                        placeholder="Specification value"
-                        className="flex-1 h-10"
-                      />
-                      <Button
-                        variant="destructive"
-                        onClick={() => removeSpecification(index)}
-                        size="sm"
-                        className="h-10"
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
+          <CardContent className="space-y-4">
+            {product.specifications.map((spec, index) => (
+              <div key={index} className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg">
+                <div className="flex-1 space-y-2">
+                  <Label className="text-sm sm:text-base">Specification {index + 1}</Label>
+                  <Input
+                    value={spec.name}
+                    onChange={(e) => handleSpecificationChange(index, 'name', e.target.value)}
+                    placeholder="Specification name"
+                    className="min-h-[44px]"
+                  />
+                  <Input
+                    value={spec.value}
+                    onChange={(e) => handleSpecificationChange(index, 'value', e.target.value)}
+                    placeholder="Specification value"
+                    className="min-h-[44px]"
+                  />
                 </div>
-              ) : (
-                <div className="text-center py-12 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/25">
-                  <svg className="mx-auto h-12 w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <p className="text-sm text-muted-foreground mb-2">No specifications available</p>
-                  <p className="text-xs text-muted-foreground">Specifications can only be added during product creation</p>
-                </div>
-              )}
-            </div>
+                <Button
+                  variant="outline"
+                  onClick={() => removeSpecification(index)}
+                  className="text-red-600 hover:text-red-700 min-h-[44px] px-4"
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+            <Button onClick={addSpecification} variant="outline" className="min-h-[44px] px-6">
+              Add Specification
+            </Button>
           </CardContent>
         </Card>
 
-        {/* Features Section */}
+        {/* Features */}
         <Card>
           <CardHeader>
-            <CardTitle>Features</CardTitle>
-            <CardDescription>
-              Edit key product features and benefits
+            <CardTitle className="text-lg sm:text-xl">Features</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
+              Add product features and highlights
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Existing Features */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Existing Features</h3>
-              {product.features && product.features.length > 0 ? (
-                <div className="space-y-3">
-                  {product.features.map((feature, index) => (
-                    <div key={index} className="flex items-center space-x-4 p-4 bg-muted/50 rounded-lg">
-                      <div className="flex items-center flex-1">
-                        <svg className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        <Input
-                          value={feature.feature || ''}
-                          onChange={(e) => handleFeatureChange(index, 'feature', e.target.value)}
-                          placeholder="Feature description"
-                          className="flex-1 h-10"
-                        />
-                      </div>
-                      <Button
-                        variant="destructive"
-                        onClick={() => removeFeature(index)}
-                        size="sm"
-                        className="h-10"
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
+          <CardContent className="space-y-4">
+            {product.features.map((feature, index) => (
+              <div key={index} className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg">
+                <div className="flex-1 space-y-2">
+                  <Label className="text-sm sm:text-base">Feature {index + 1}</Label>
+                  <Input
+                    value={feature.feature}
+                    onChange={(e) => handleFeatureChange(index, 'feature', e.target.value)}
+                    placeholder="Enter feature description"
+                    className="min-h-[44px]"
+                  />
                 </div>
-              ) : (
-                <div className="text-center py-12 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/25">
-                  <svg className="mx-auto h-12 w-12 text-muted-foreground mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-sm text-muted-foreground mb-2">No features available</p>
-                  <p className="text-xs text-muted-foreground">Features can only be added during product creation</p>
-                </div>
-              )}
-            </div>
+                <Button
+                  variant="outline"
+                  onClick={() => removeFeature(index)}
+                  className="text-red-600 hover:text-red-700 min-h-[44px] px-4"
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+            <Button onClick={addFeature} variant="outline" className="min-h-[44px] px-6">
+              Add Feature
+            </Button>
           </CardContent>
         </Card>
 
-        {/* Action Buttons */}
-        <div className="flex justify-end space-x-4 pt-6 border-t">
-          <Button
-            variant="outline"
-            onClick={() => router.push('/admin')}
-            className="px-8"
-          >
-            Cancel
-          </Button>
+        {/* Save Button */}
+        <div className="flex justify-end">
           <Button
             onClick={handleSave}
             disabled={saving}
-            className="px-8"
+            className="min-h-[44px] px-8"
           >
-            {saving ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Saving...
-              </>
-            ) : (
-              'Save Changes'
-            )}
+            {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </div>

@@ -48,7 +48,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Loading...</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Loading...</h1>
         </div>
       </div>
     )
@@ -58,7 +58,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Product Not Found</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Product Not Found</h1>
           <Link href="/products" className="text-green-600 hover:text-green-700">
             Return to Products
           </Link>
@@ -91,9 +91,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Breadcrumb */}
-      <div className="bg-white py-4 border-b">
-        <div className="container mx-auto max-w-7xl px-4">
-          <div className="flex items-center text-sm text-gray-500">
+      <div className="bg-white py-3 sm:py-4 border-b">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="flex items-center text-xs sm:text-sm text-gray-500 flex-wrap">
             <Link href="/" className="hover:text-green-600">
               Home
             </Link>
@@ -106,18 +106,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               {product.category}
             </Link>
             <span className="mx-2">/</span>
-            <span>{product.name}</span>
+            <span className="truncate">{product.name}</span>
           </div>
         </div>
       </div>
 
       {/* Product Details */}
-      <div className="container mx-auto max-w-7xl py-8 px-4">
+      <div className="container mx-auto max-w-7xl py-6 sm:py-8 px-4 sm:px-6">
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 p-4 sm:p-6">
             {/* Product Images */}
             <div>
-              <div className="relative h-[400px] mb-4 rounded-lg overflow-hidden">
+              <div className="relative h-[300px] sm:h-[400px] mb-4 rounded-lg overflow-hidden">
                 <Image
                   src={getImageUrl(product.images?.[0]?.image_url)}
                   alt={product.name}
@@ -130,13 +130,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 {product.images?.map((image: any, index: number) => (
                   <div
                     key={index}
-                    className="relative h-24 rounded-md overflow-hidden border cursor-pointer hover:border-green-600"
+                    className="relative h-16 sm:h-24 rounded-md overflow-hidden border cursor-pointer hover:border-green-600"
                   >
                     <Image
                       src={getImageUrl(image.image_url)}
                       alt={`${product.name} - Image ${index + 1}`}
                       fill
                       className="object-cover"
+                      loading="lazy"
                     />
                   </div>
                 ))}
@@ -148,186 +149,161 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <div className="mb-2">
                 <Link
                   href={`/products?brand=${product.brand?.toLowerCase()}`}
-                  className="text-sm text-green-600 hover:underline"
+                  className="text-xs sm:text-sm text-green-600 hover:underline"
                 >
                   {product.brand}
                 </Link>
               </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">{product.name}</h1>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-3 sm:mb-4">{product.name}</h1>
 
               {/* Price */}
-              <div className="mb-6">
-                <span className="text-3xl font-bold text-gray-800">KES {product.price?.toLocaleString()}</span>
+              <div className="mb-4 sm:mb-6">
+                <span className="text-2xl sm:text-3xl font-bold text-gray-800">KES {product.price?.toLocaleString()}</span>
                 {product.originalPrice && (
-                  <span className="ml-2 text-lg text-gray-500 line-through">
+                  <span className="ml-2 text-base sm:text-lg text-gray-500 line-through">
                     KES {product.originalPrice?.toLocaleString()}
                   </span>
                 )}
-                <p className="text-sm text-gray-500 mt-1">Inclusive of all taxes</p>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">Inclusive of all taxes</p>
               </div>
 
               {/* Short Description */}
-              <p className="text-gray-600 mb-6">{product.description}</p>
+              <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">{product.description}</p>
 
               {/* Stock Status */}
-              <div className="mb-6">
+              <div className="mb-4 sm:mb-6">
                 <span
-                  className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${product.stock > 0 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
+                  className={`inline-block px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${product.stock > 0 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
                 >
                   {product.stock > 0 ? `In Stock (${product.stock} available)` : "Out of Stock"}
                 </span>
               </div>
 
               {/* Add to Cart */}
-              <div className="mb-6">
+              <div className="mb-4 sm:mb-6">
                 <div className="flex items-center mb-4">
                   <div className="flex items-center border rounded-md mr-4">
                     <button 
-                      className="px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50"
+                      className="px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
                       onClick={() => handleQuantityChange(false)}
                       disabled={quantity <= 1}
                     >
                       <Minus className="h-4 w-4" />
                     </button>
-                    <span className="px-4 py-2 border-x">{quantity}</span>
+                    <span className="px-4 py-2 border-x min-w-[60px] text-center">{quantity}</span>
                     <button 
-                      className="px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50"
+                      className="px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
                       onClick={() => handleQuantityChange(true)}
                       disabled={quantity >= product.stock}
                     >
                       <Plus className="h-4 w-4" />
                     </button>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    className={`w-full flex items-center justify-center gap-2 ${isInWishlist(product.id.toString()) ? "text-red-500" : ""}`}
+                  <button
                     onClick={handleWishlistClick}
+                    className={`p-2 rounded-full border min-h-[44px] min-w-[44px] flex items-center justify-center ${
+                      isInWishlist(product.id.toString())
+                        ? "bg-red-50 border-red-200 text-red-600"
+                        : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+                    }`}
                   >
-                    <Heart className="h-4 w-4" />
-                    {isInWishlist(product.id.toString()) ? "Remove from Wishlist" : "Add to Wishlist"}
-                  </Button>
+                    <Heart className="h-5 w-5" fill={isInWishlist(product.id.toString()) ? "currentColor" : "none"} />
+                  </button>
                 </div>
-                <div className="space-y-2">
-                  <AddToCartButton product={product} quantity={quantity} />
-                  <WhatsAppOrderButton product={product} quantity={quantity} />
+
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                  <AddToCartButton
+                    product={product}
+                    quantity={quantity}
+                    className="flex-1 min-h-[44px]"
+                  />
+                  <WhatsAppOrderButton
+                    product={product}
+                    quantity={quantity}
+                    className="flex-1 min-h-[44px]"
+                  />
                 </div>
               </div>
 
-              {/* SKU and Category */}
-              <div className="text-sm text-gray-600 mb-6">
-                <p>
-                  <span className="font-medium">SKU:</span> {product.sku}
-                </p>
-                <p>
-                  <span className="font-medium">Category:</span> {product.category}
-                </p>
-              </div>
-
-              {/* Shipping Info */}
-              <div className="space-y-3 mb-6">
-                <div className="flex items-start">
-                  <Truck className="h-5 w-5 text-green-600 mt-0.5 mr-3" />
-                  <div>
-                    <p className="font-medium text-gray-800">Free Delivery</p>
-                    <p className="text-sm text-gray-600">For orders above KES 5,000</p>
-                  </div>
+              {/* Features */}
+              <div className="space-y-3 sm:space-y-4 mb-6">
+                <div className="flex items-center text-sm sm:text-base text-gray-600">
+                  <Truck className="h-5 w-5 mr-3 text-green-600 flex-shrink-0" />
+                  <span>Free delivery on orders above KES 5,000</span>
                 </div>
-                <div className="flex items-start">
-                  <ShieldCheck className="h-5 w-5 text-green-600 mt-0.5 mr-3" />
-                  <div>
-                    <p className="font-medium text-gray-800">2-Year Warranty</p>
-                    <p className="text-sm text-gray-600">Manufacturer warranty</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment Methods */}
-              <div>
-                <p className="font-medium text-gray-800 mb-2">We Accept</p>
-                <div className="flex space-x-3">
-                  <div className="bg-gray-100 p-1 rounded">
-                    <Image src="/placeholder.svg?height=30&width=50" alt="M-Pesa" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
-                  </div>
-                  <div className="bg-gray-100 p-1 rounded">
-                    <Image src="/placeholder.svg?height=30&width=50" alt="Visa" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
-                  </div>
-                  <div className="bg-gray-100 p-1 rounded">
-                    <Image src="/placeholder.svg?height=30&width=50" alt="Mastercard" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
-                  </div>
+                <div className="flex items-center text-sm sm:text-base text-gray-600">
+                  <ShieldCheck className="h-5 w-5 mr-3 text-green-600 flex-shrink-0" />
+                  <span>1 year warranty on all products</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Product Tabs */}
-          <div className="p-6 border-t">
-            <Tabs defaultValue="details">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="details">Details</TabsTrigger>
-                <TabsTrigger value="specifications">Specifications</TabsTrigger>
-                <TabsTrigger value="reviews">Reviews ({product.reviewCount || 0})</TabsTrigger>
+          {/* Product Details Tabs */}
+          <div className="p-4 sm:p-6 border-t">
+            <Tabs defaultValue="description" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-4 sm:mb-6">
+                <TabsTrigger value="description" className="text-xs sm:text-sm">Description</TabsTrigger>
+                <TabsTrigger value="specifications" className="text-xs sm:text-sm">Specifications</TabsTrigger>
+                <TabsTrigger value="reviews" className="text-xs sm:text-sm">Reviews</TabsTrigger>
               </TabsList>
-              <TabsContent value="details" className="p-4">
-                <h3 className="text-xl font-semibold text-gray-800 mb-4">Product Features</h3>
-                <ul className="list-disc pl-5 space-y-2 text-gray-600">
-                  {product.features?.map((feature: any, index: number) => (
-                    <li key={index}>{feature.feature}</li>
-                  ))}
-                </ul>
-              </TabsContent>
-              <TabsContent value="specifications" className="p-4">
-                <h3 className="text-xl font-semibold text-gray-800 mb-4">Technical Specifications</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {product.specifications?.map((spec: any) => (
-                    <div key={spec.id} className="flex border-b pb-2">
-                      <span className="font-medium text-gray-800 w-1/2">{spec.name}</span>
-                      <span className="text-gray-600">{spec.value}</span>
-                    </div>
-                  ))}
+              
+              <TabsContent value="description" className="space-y-4">
+                <div className="prose prose-sm sm:prose-base max-w-none">
+                  <p className="text-sm sm:text-base text-gray-600">{product.description}</p>
                 </div>
               </TabsContent>
-              <TabsContent value="reviews" className="p-4">
-                <h3 className="text-xl font-semibold text-gray-800 mb-4">Customer Reviews</h3>
-                <div className="space-y-6">
-                  {product.reviews?.map((review: any) => (
-                    <div key={review.id} className="border-b pb-6">
-                      <div className="flex items-center mb-3">
-                        <div className="relative h-10 w-10 rounded-full overflow-hidden mr-3">
-                          <Image
-                            src={review.avatar || "/placeholder.svg"}
-                            alt={review.user}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-800">{review.user}</p>
-                          <p className="text-sm text-gray-500">{review.date}</p>
-                        </div>
+              
+              <TabsContent value="specifications" className="space-y-4">
+                {product.specifications && product.specifications.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {product.specifications.map((spec: any, index: number) => (
+                      <div key={index} className="flex justify-between py-2 border-b">
+                        <span className="font-medium text-sm sm:text-base">{spec.name}</span>
+                        <span className="text-gray-600 text-sm sm:text-base">{spec.value}</span>
                       </div>
-                      <h4 className="font-medium text-gray-800 mb-2">{review.title}</h4>
-                      <p className="text-gray-600">{review.comment}</p>
-                    </div>
-                  ))}
-                </div>
-                <Button className="mt-6 bg-green-600 hover:bg-green-700 text-white">Write a Review</Button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm sm:text-base text-gray-500">No specifications available.</p>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="reviews" className="space-y-4">
+                {product.reviews && product.reviews.length > 0 ? (
+                  <div className="space-y-4">
+                    {product.reviews.map((review: any, index: number) => (
+                      <div key={index} className="border-b pb-4">
+                        <div className="flex items-center mb-2">
+                          <div className="flex text-yellow-400">
+                            {[...Array(5)].map((_, i) => (
+                              <svg
+                                key={i}
+                                className={`h-4 w-4 ${i < review.rating ? "fill-current" : "fill-gray-300"}`}
+                                viewBox="0 0 20 20"
+                              >
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                              </svg>
+                            ))}
+                          </div>
+                          <span className="ml-2 text-sm sm:text-base font-medium">{review.user_name}</span>
+                        </div>
+                        <p className="text-sm sm:text-base text-gray-600">{review.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm sm:text-base text-gray-500">No reviews yet.</p>
+                )}
               </TabsContent>
             </Tabs>
           </div>
         </div>
 
         {/* Related Products */}
-        <div className="mt-12">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-            <h2 className="text-2xl font-bold text-gray-800">You May Also Like</h2>
-            <Link
-              href="/products"
-              className="inline-flex items-center text-green-600 font-medium mt-2 md:mt-0 hover:text-green-700"
-            >
-              View more products
-            </Link>
-          </div>
-          <ProductCarousel category="new-arrivals" />
+        <div className="mt-8 sm:mt-12">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Related Products</h2>
+          <ProductCarousel category={product.category} excludeProductId={product.id} />
         </div>
       </div>
     </div>

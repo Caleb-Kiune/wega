@@ -83,14 +83,14 @@ export default function ProductCard({ product }: ProductCardProps) {
     >
       <div className="relative">
         <Link href={`/products/${product.id}`} aria-labelledby={`product-${product.id}`}>
-          <div className="relative h-64 w-full bg-gray-100">
+          <div className="relative h-48 sm:h-56 lg:h-64 w-full bg-gray-100">
             <Image 
               src={getImageUrl(product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url) || "/placeholder.svg"} 
               alt={`${product.name} product image`}
               fill 
               className="object-cover transition-opacity duration-300" 
               loading="lazy"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
               placeholder="blur"
               blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
             />
@@ -113,7 +113,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <Button
               size="icon"
               variant="secondary"
-              className="rounded-full bg-white hover:bg-gray-100 min-h-[44px] min-w-[44px] transition-transform duration-200 hover:scale-105"
+              className="rounded-full bg-white hover:bg-gray-100 min-h-[44px] min-w-[44px] transition-transform duration-200 hover:scale-105 p-2"
               onClick={handleAddToCart}
               aria-label={`Add ${product.name} to cart`}
               style={{ willChange: 'transform' }}
@@ -123,7 +123,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <Button
               size="icon"
               variant="secondary"
-              className="rounded-full bg-white hover:bg-gray-100 min-h-[44px] min-w-[44px] transition-transform duration-200 hover:scale-105"
+              className="rounded-full bg-white hover:bg-gray-100 min-h-[44px] min-w-[44px] transition-transform duration-200 hover:scale-105 p-2"
               onClick={toggleWishlist}
               aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
               style={{ willChange: 'transform' }}
@@ -133,7 +133,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <Button 
               size="icon" 
               variant="secondary" 
-              className="rounded-full bg-white hover:bg-gray-100 min-h-[44px] min-w-[44px] transition-transform duration-200 hover:scale-105" 
+              className="rounded-full bg-white hover:bg-gray-100 min-h-[44px] min-w-[44px] transition-transform duration-200 hover:scale-105 p-2" 
               asChild
               style={{ willChange: 'transform' }}
             >
@@ -145,22 +145,22 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       </div>
 
-      <div className="p-3 flex flex-col flex-grow">
+      <div className="p-3 sm:p-4 flex flex-col flex-grow">
         <div className="flex items-center justify-between mb-1">
           <div className="text-xs text-gray-500">{product.category}</div>
           <div className="text-xs font-medium text-green-600">{product.brand}</div>
         </div>
         <Link href={`/products/${product.id}`} className="block">
-          <h3 id={`product-${product.id}`} className="text-base font-semibold text-gray-800 mb-2 hover:text-green-600 transition-colors line-clamp-2">
+          <h3 id={`product-${product.id}`} className="text-sm sm:text-base font-semibold text-gray-800 mb-2 hover:text-green-600 transition-colors line-clamp-2">
             {product.name}
           </h3>
         </Link>
 
         {/* Price */}
         <div className="flex items-center mb-3">
-          <span className="text-lg font-bold text-gray-800">KES {product.price.toLocaleString()}</span>
+          <span className="text-base sm:text-lg font-bold text-gray-800">KES {product.price.toLocaleString()}</span>
           {product.original_price && (
-            <span className="ml-2 text-sm text-gray-500 line-through">
+            <span className="ml-2 text-xs sm:text-sm text-gray-500 line-through">
               KES {product.original_price.toLocaleString()}
             </span>
           )}
@@ -172,7 +172,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           style={{ willChange: 'opacity, transform' }}
         >
           <Button 
-            className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2 min-h-[44px] transition-transform duration-200 hover:scale-105"
+            className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2 min-h-[44px] transition-transform duration-200 hover:scale-105 text-sm sm:text-base"
             onClick={handleAddToCart}
             aria-label={`Add ${product.name} to cart`}
             style={{ willChange: 'transform' }}

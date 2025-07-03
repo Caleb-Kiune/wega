@@ -103,19 +103,20 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
       <div className="lg:hidden mb-4">
         <Sheet open={isMobileFiltersOpen} onOpenChange={setIsMobileFiltersOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full min-h-[44px] text-base">
               <Filter className="mr-2 h-4 w-4" />
               Filters
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-[300px] sm:w-[400px]">
-            <div className="py-6">
+            <SheetTitle className="sr-only">Product Filters</SheetTitle>
+            <div className="py-4 sm:py-6">
               <h2 className="text-lg font-semibold mb-4">Filters</h2>
               {/* Mobile Filters Content */}
               <div className="space-y-6">
                 {/* Categories */}
                 <div>
-                  <h3 className="text-sm font-medium mb-2">Categories</h3>
+                  <h3 className="text-sm font-medium mb-3">Categories</h3>
                   <div className="space-y-2">
                     {categoriesLoading ? (
                       <div className="flex items-center justify-center py-2">
@@ -123,7 +124,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                       </div>
                     ) : (
                       categories.map((category) => (
-                        <div key={category.id} className="flex items-center space-x-2">
+                        <div key={category.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150 cursor-pointer group">
                           <Checkbox
                             id={`category-${category.id}`}
                             checked={filters.categories?.includes(category.name) || false}
@@ -131,7 +132,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                           />
                           <label
                             htmlFor={`category-${category.id}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1 group-hover:text-green-700 transition-colors duration-150"
                           >
                             {category.name}
                           </label>
@@ -143,7 +144,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
 
                 {/* Brands */}
                 <div>
-                  <h3 className="text-sm font-medium mb-2">Brands</h3>
+                  <h3 className="text-sm font-medium mb-3">Brands</h3>
                   <div className="space-y-2">
                     {brandsLoading ? (
                       <div className="flex items-center justify-center py-2">
@@ -151,7 +152,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                       </div>
                     ) : (
                       brands.map((brand) => (
-                        <div key={brand.id} className="flex items-center space-x-2">
+                        <div key={brand.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150 cursor-pointer group">
                           <Checkbox
                             id={`brand-${brand.id}`}
                             checked={filters.brands?.includes(brand.name) || false}
@@ -159,7 +160,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                           />
                           <label
                             htmlFor={`brand-${brand.id}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1 group-hover:text-green-700 transition-colors duration-150"
                           >
                             {brand.name}
                           </label>
@@ -171,7 +172,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
 
                 {/* Price Range */}
                 <div>
-                  <h3 className="text-sm font-medium mb-2">Price Range</h3>
+                  <h3 className="text-sm font-medium mb-3">Price Range</h3>
                   <div className="space-y-4">
                     <div className="flex items-center space-x-2">
                       <input
@@ -179,7 +180,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                         placeholder="Min"
                         value={minPriceInput}
                         onChange={(e) => setMinPriceInput(e.target.value)}
-                        className="w-24 px-2 py-1 border rounded"
+                        className="w-24 px-3 py-2 border rounded text-base min-h-[44px]"
                       />
                       <span>-</span>
                       <input
@@ -187,10 +188,10 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                         placeholder="Max"
                         value={maxPriceInput}
                         onChange={(e) => setMaxPriceInput(e.target.value)}
-                        className="w-24 px-2 py-1 border rounded"
+                        className="w-24 px-3 py-2 border rounded text-base min-h-[44px]"
                       />
                     </div>
-                    <Button onClick={handleApplyPriceFilters} className="w-full">
+                    <Button onClick={handleApplyPriceFilters} className="w-full min-h-[44px] text-base">
                       Apply Price Filter
                     </Button>
                   </div>
@@ -198,9 +199,9 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
 
                 {/* Product Status */}
                 <div>
-                  <h3 className="text-sm font-medium mb-2">Product Status</h3>
+                  <h3 className="text-sm font-medium mb-3">Product Status</h3>
                   <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150 cursor-pointer group">
                       <Checkbox
                         id="featured"
                         checked={filters.is_featured || false}
@@ -214,12 +215,12 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                       />
                       <label
                         htmlFor="featured"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1 group-hover:text-green-700 transition-colors duration-150"
                       >
                         Featured Products
                       </label>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150 cursor-pointer group">
                       <Checkbox
                         id="new"
                         checked={filters.is_new || false}
@@ -233,12 +234,12 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                       />
                       <label
                         htmlFor="new"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1 group-hover:text-green-700 transition-colors duration-150"
                       >
                         New Arrivals
                       </label>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150 cursor-pointer group">
                       <Checkbox
                         id="sale"
                         checked={filters.is_sale || false}
@@ -252,7 +253,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                       />
                       <label
                         htmlFor="sale"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1 group-hover:text-green-700 transition-colors duration-150"
                       >
                         On Sale
                       </label>
@@ -264,7 +265,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                 <Button
                   variant="outline"
                   onClick={clearFilters}
-                  className="w-full"
+                  className="w-full min-h-[44px] text-base"
                 >
                   Clear All Filters
                 </Button>
@@ -282,7 +283,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
             variant="ghost"
             size="sm"
             onClick={clearFilters}
-            className="text-sm"
+            className="text-sm min-h-[44px] min-w-[44px]"
           >
             Clear all
           </Button>
@@ -298,7 +299,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
               </div>
             ) : (
               categories.map((category) => (
-                <div key={category.id} className="flex items-center space-x-2">
+                <div key={category.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150 cursor-pointer group">
                   <Checkbox
                     id={`desktop-category-${category.id}`}
                     checked={filters.categories?.includes(category.name) || false}
@@ -306,7 +307,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                   />
                   <label
                     htmlFor={`desktop-category-${category.id}`}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1 group-hover:text-green-700 transition-colors duration-150"
                   >
                     {category.name}
                   </label>
@@ -326,7 +327,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
               </div>
             ) : (
               brands.map((brand) => (
-                <div key={brand.id} className="flex items-center space-x-2">
+                <div key={brand.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150 cursor-pointer group">
                   <Checkbox
                     id={`desktop-brand-${brand.id}`}
                     checked={filters.brands?.includes(brand.name) || false}
@@ -334,7 +335,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                   />
                   <label
                     htmlFor={`desktop-brand-${brand.id}`}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1 group-hover:text-green-700 transition-colors duration-150"
                   >
                     {brand.name}
                   </label>
@@ -354,7 +355,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                 placeholder="Min"
                 value={minPriceInput}
                 onChange={(e) => setMinPriceInput(e.target.value)}
-                className="w-24 px-2 py-1 border rounded"
+                className="w-24 px-3 py-2 border rounded text-base min-h-[44px]"
               />
               <span>-</span>
               <input
@@ -362,10 +363,10 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                 placeholder="Max"
                 value={maxPriceInput}
                 onChange={(e) => setMaxPriceInput(e.target.value)}
-                className="w-24 px-2 py-1 border rounded"
+                className="w-24 px-2 py-1 border rounded text-base min-h-[44px]"
               />
             </div>
-            <Button onClick={handleApplyPriceFilters} className="w-full">
+            <Button onClick={handleApplyPriceFilters} className="w-full min-h-[44px] text-base">
               Apply Price Filter
             </Button>
           </div>
@@ -375,7 +376,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
         <div>
           <h3 className="text-sm font-medium mb-2">Product Status</h3>
           <div className="space-y-2">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150 cursor-pointer group">
               <Checkbox
                 id="featured"
                 checked={filters.is_featured || false}
@@ -389,12 +390,12 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
               />
               <label
                 htmlFor="featured"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1 group-hover:text-green-700 transition-colors duration-150"
               >
                 Featured Products
               </label>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150 cursor-pointer group">
               <Checkbox
                 id="new"
                 checked={filters.is_new || false}
@@ -408,12 +409,12 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
               />
               <label
                 htmlFor="new"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1 group-hover:text-green-700 transition-colors duration-150"
               >
                 New Arrivals
               </label>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150 cursor-pointer group">
               <Checkbox
                 id="sale"
                 checked={filters.is_sale || false}
@@ -427,7 +428,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
               />
               <label
                 htmlFor="sale"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1 group-hover:text-green-700 transition-colors duration-150"
               >
                 On Sale
               </label>

@@ -115,16 +115,16 @@ export default function CartPage() {
   const hasItems = cart?.items && cart.items.length > 0
 
   return (
-    <div className="bg-gray-50 min-h-screen py-8 px-4">
+    <div className="bg-gray-50 min-h-screen py-4 sm:py-8 px-4">
       <div className="container mx-auto max-w-7xl">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8">Your Shopping Cart</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-8">Your Shopping Cart</h1>
 
         {hasItems ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
             {/* Cart Items */}
             <div className="lg:col-span-2">
               <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                   <div className="hidden md:grid md:grid-cols-5 text-sm font-medium text-gray-500 mb-4">
                     <div className="col-span-2">Product</div>
                     <div>Price</div>
@@ -134,21 +134,22 @@ export default function CartPage() {
 
                   <div className="divide-y">
                     {cart?.items.map((item) => (
-                      <div key={item.id} className="py-6 grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+                      <div key={item.id} className="py-4 sm:py-6 grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
                         {/* Product */}
                         <div className="col-span-2 flex items-center">
-                          <div className="relative h-20 w-20 rounded-md overflow-hidden mr-4">
+                          <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-md overflow-hidden mr-3 sm:mr-4">
                             <Image
                               src={item.product.image || "/placeholder.svg"}
                               alt={item.product.name}
                               fill
                               className="object-cover"
+                              loading="lazy"
                             />
                           </div>
-                          <div>
+                          <div className="flex-1 min-w-0">
                             <Link
                               href={`/products/${item.product.id}`}
-                              className="font-medium text-gray-800 hover:text-green-600"
+                              className="font-medium text-gray-800 hover:text-green-600 text-sm sm:text-base block"
                             >
                               {item.product.name}
                             </Link>
@@ -156,7 +157,7 @@ export default function CartPage() {
                         </div>
 
                         {/* Price */}
-                        <div className="text-gray-800">
+                        <div className="text-gray-800 text-sm sm:text-base">
                           <span className="md:hidden font-medium text-gray-500 mr-2">Price:</span>
                           KES {item.product.price.toLocaleString()}
                         </div>
@@ -166,14 +167,14 @@ export default function CartPage() {
                           <span className="md:hidden font-medium text-gray-500 mr-2">Quantity:</span>
                           <div className="flex items-center border rounded-md w-fit">
                             <button
-                              className="px-2 py-1 text-gray-600 hover:text-gray-800"
+                              className="px-3 py-2 text-gray-600 hover:text-gray-800 min-h-[44px] min-w-[44px] flex items-center justify-center"
                               onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                             >
                               <Minus className="h-4 w-4" />
                             </button>
-                            <span className="px-4 py-1 border-x">{item.quantity}</span>
+                            <span className="px-4 py-2 border-x min-h-[44px] flex items-center justify-center">{item.quantity}</span>
                             <button
-                              className="px-2 py-1 text-gray-600 hover:text-gray-800"
+                              className="px-3 py-2 text-gray-600 hover:text-gray-800 min-h-[44px] min-w-[44px] flex items-center justify-center"
                               onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
                             >
                               <Plus className="h-4 w-4" />
@@ -185,12 +186,12 @@ export default function CartPage() {
                         <div className="flex items-center justify-between">
                           <div>
                             <span className="md:hidden font-medium text-gray-500 mr-2">Total:</span>
-                            <span className="font-medium text-gray-800">
+                            <span className="font-medium text-gray-800 text-sm sm:text-base">
                               KES {(item.product.price * item.quantity).toLocaleString()}
                             </span>
                           </div>
                           <button
-                            className="text-gray-400 hover:text-red-500"
+                            className="text-gray-400 hover:text-red-500 min-h-[44px] min-w-[44px] flex items-center justify-center p-2"
                             onClick={() => handleRemoveItem(item.id, item.product.name)}
                           >
                             <X className="h-5 w-5" />
@@ -203,16 +204,16 @@ export default function CartPage() {
               </div>
 
               {/* Continue Shopping */}
-              <div className="mt-6 flex justify-between">
-                <Link href="/products">
-                  <Button variant="outline" className="flex items-center gap-2">
+              <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row justify-between gap-4">
+                <Link href="/products" className="w-full sm:w-auto">
+                  <Button variant="outline" className="flex items-center gap-2 w-full sm:w-auto min-h-[44px] text-base">
                     <ShoppingBag className="h-4 w-4" />
                     Continue Shopping
                   </Button>
                 </Link>
                 <Button
                   variant="outline"
-                  className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50 w-full sm:w-auto min-h-[44px] text-base"
                   onClick={handleClearCart}
                 >
                   Clear Cart
@@ -223,16 +224,16 @@ export default function CartPage() {
             {/* Order Summary */}
             <div>
               <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                <div className="p-6">
-                  <h2 className="text-xl font-bold text-gray-800 mb-6">Order Summary</h2>
+                <div className="p-4 sm:p-6">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 sm:mb-6">Order Summary</h2>
 
                   {/* Location Selector */}
-                  <div className="mb-6">
+                  <div className="mb-4 sm:mb-6">
                     <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
                       Delivery Location
                     </label>
                     <Select value={selectedLocation} onValueChange={handleLocationChange}>
-                      <SelectTrigger id="location">
+                      <SelectTrigger id="location" className="min-h-[44px] text-base">
                         <SelectValue placeholder="Select your delivery location" />
                       </SelectTrigger>
                       <SelectContent>
@@ -245,36 +246,37 @@ export default function CartPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-4 mb-6">
+                  <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Subtotal</span>
-                      <span className="font-medium text-gray-800">KES {subtotal.toLocaleString()}</span>
+                      <span className="text-gray-600 text-sm sm:text-base">Subtotal</span>
+                      <span className="font-medium text-gray-800 text-sm sm:text-base">KES {subtotal.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Shipping</span>
-                      <span className="font-medium text-gray-800">
+                      <span className="text-gray-600 text-sm sm:text-base">Shipping</span>
+                      <span className="font-medium text-gray-800 text-sm sm:text-base">
                         KES {shipping.toLocaleString()}
                       </span>
                     </div>
-                    <div className="border-t pt-4 flex justify-between">
-                      <span className="font-medium text-gray-800">Total</span>
-                      <span className="font-bold text-xl text-gray-800">KES {total.toLocaleString()}</span>
+                    <div className="border-t pt-3 sm:pt-4 flex justify-between">
+                      <span className="font-medium text-gray-800 text-sm sm:text-base">Total</span>
+                      <span className="font-bold text-lg sm:text-xl text-gray-800">KES {total.toLocaleString()}</span>
                     </div>
                   </div>
 
                   {/* Promo Code */}
-                  <div className="mb-6">
+                  <div className="mb-4 sm:mb-6">
                     <label htmlFor="promo" className="block text-sm font-medium text-gray-700 mb-2">
                       Promo Code
                     </label>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Input
                         id="promo"
                         placeholder="Enter code"
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value)}
+                        className="min-h-[44px] text-base"
                       />
-                      <Button variant="outline" onClick={handleApplyPromoCode}>
+                      <Button variant="outline" onClick={handleApplyPromoCode} className="min-h-[44px] text-base">
                         Apply
                       </Button>
                     </div>
@@ -282,7 +284,7 @@ export default function CartPage() {
 
                   {/* Checkout Button */}
                   <Button
-                    className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2 min-h-[44px] text-base"
                     asChild
                   >
                     <Link href="/checkout">
@@ -292,17 +294,35 @@ export default function CartPage() {
                   </Button>
 
                   {/* Payment Methods */}
-                  <div className="mt-6">
+                  <div className="mt-4 sm:mt-6">
                     <p className="text-sm text-gray-500 mb-2">We Accept</p>
                     <div className="flex space-x-3">
-                      <div className="bg-gray-100 p-1 rounded">
-                        <Image src="/placeholder.svg?height=30&width=50" alt="M-Pesa" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
+                      <div className="bg-white p-2 rounded-lg shadow-sm">
+                        <Image 
+                          src="/images/mpesa-logo.png" 
+                          alt="M-Pesa" 
+                          width={40} 
+                          height={25} 
+                          className="h-6 w-auto"
+                        />
                       </div>
-                      <div className="bg-gray-100 p-1 rounded">
-                        <Image src="/placeholder.svg?height=30&width=50" alt="Visa" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
+                      <div className="bg-white p-2 rounded-lg shadow-sm">
+                        <Image 
+                          src="/images/visa-logo.png" 
+                          alt="Visa" 
+                          width={40} 
+                          height={25} 
+                          className="h-6 w-auto"
+                        />
                       </div>
-                      <div className="bg-gray-100 p-1 rounded">
-                        <Image src="/placeholder.svg?height=30&width=50" alt="Mastercard" width={50} height={30} style={{ width: 'auto', height: 'auto' }} />
+                      <div className="bg-white p-2 rounded-lg shadow-sm">
+                        <Image 
+                          src="/images/mastercard-logo.png" 
+                          alt="Mastercard" 
+                          width={40} 
+                          height={25} 
+                          className="h-6 w-auto"
+                        />
                       </div>
                     </div>
                   </div>
@@ -311,14 +331,14 @@ export default function CartPage() {
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+          <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8 text-center">
             <div className="flex justify-center mb-4">
-              <ShoppingBag className="h-16 w-16 text-gray-300" />
+              <ShoppingBag className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Your cart is empty</h2>
-            <p className="text-gray-600 mb-6">Looks like you haven't added any products to your cart yet.</p>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Your cart is empty</h2>
+            <p className="text-gray-600 mb-6 text-sm sm:text-base">Looks like you haven't added any products to your cart yet.</p>
             <Link href="/products">
-              <Button className="bg-green-600 hover:bg-green-700 text-white">Start Shopping</Button>
+              <Button className="bg-green-600 hover:bg-green-700 text-white min-h-[44px] text-base">Start Shopping</Button>
             </Link>
           </div>
         )}
