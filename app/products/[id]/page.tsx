@@ -19,6 +19,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [product, setProduct] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const { toast } = useToast()
   const resolvedParams = use(params)
   const { addItem, removeItem, isInWishlist } = useWishlist()
@@ -28,6 +29,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       try {
         const data = await productsApi.getById(Number(resolvedParams.id))
         setProduct(data)
+        
+        // Find primary image index
+        if (data.images && data.images.length > 0) {
+          const primaryIndex = data.images.findIndex((img: any) => img.is_primary)
+          setSelectedImageIndex(primaryIndex >= 0 ? primaryIndex : 0)
+        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'An error occurred'
         setError(errorMessage)
@@ -116,32 +123,61 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 p-4 sm:p-6">
             {/* Product Images */}
-            <div>
+            <div className="flex flex-col h-full">
               <div className="relative h-[300px] sm:h-[400px] mb-4 rounded-lg overflow-hidden">
                 <Image
-                  src={getImageUrl(product.images?.[0]?.image_url)}
+                  src={getImageUrl(product.images?.[selectedImageIndex]?.image_url)}
                   alt={product.name}
                   fill
                   className="object-contain"
                   priority
                 />
               </div>
-              <div className="grid grid-cols-4 gap-2">
-                {product.images?.map((image: any, index: number) => (
-                  <div
-                    key={index}
-                    className="relative h-16 sm:h-24 rounded-md overflow-hidden border cursor-pointer hover:border-green-600"
-                  >
-                    <Image
-                      src={getImageUrl(image.image_url)}
-                      alt={`${product.name} - Image ${index + 1}`}
-                      fill
-                      className="object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                ))}
-              </div>
+              
+              {/* Primary Image - Takes remaining space */}
+              {product.images?.filter((image: any) => image.is_primary).map((image: any, index: number) => (
+                <div
+                  key={`primary-${index}`}
+                  className="relative flex-1 min-h-[200px] mb-4 rounded-lg overflow-hidden cursor-pointer transition-all duration-200"
+                  onClick={() => setSelectedImageIndex(product.images.findIndex((img: any) => img.id === image.id))}
+                >
+                  <Image
+                    src={getImageUrl(image.image_url)}
+                    alt={`${product.name} - Primary Image`}
+                    fill
+                    className="object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              ))}
+              
+              {/* Secondary Images - Fixed at bottom */}
+              {product.images?.filter((image: any) => !image.is_primary).length > 0 && (
+                <div className="grid grid-cols-4 gap-2 mt-auto">
+                  {product.images?.filter((image: any) => !image.is_primary).map((image: any, index: number) => {
+                    const originalIndex = product.images.findIndex((img: any) => img.id === image.id);
+                    return (
+                      <div
+                        key={`secondary-${index}`}
+                        className={`relative h-16 sm:h-24 rounded-md overflow-hidden border cursor-pointer transition-all duration-200 ${
+                          selectedImageIndex === originalIndex
+                            ? 'border-green-600 ring-2 ring-green-600/20' 
+                            : 'border-gray-200 hover:border-green-600'
+                        }`}
+                        onClick={() => setSelectedImageIndex(originalIndex)}
+                      >
+                        <Image
+                          src={getImageUrl(image.image_url)}
+                          alt={`${product.name} - Image ${originalIndex + 1}`}
+                          fill
+                          className="object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Product Info */}

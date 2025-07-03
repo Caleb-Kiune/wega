@@ -18,6 +18,14 @@ import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useAuth } from '@/contexts/auth-context';
 import { LogOut } from 'lucide-react';
 
+// Utility function to create URL-friendly slugs
+const slugify = (text: string): string => {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
+
 type NewProductImage = Omit<ProductImage, 'id' | 'product_id'>;
 type NewProductSpecification = Omit<ProductSpecification, 'id' | 'product_id'>;
 type NewProductFeature = Omit<ProductFeature, 'id' | 'product_id'>;
@@ -178,10 +186,24 @@ function CreateProductPage() {
 
   const addImage = () => {
     if (!newImage.image_url) return;
-    setNewProduct(prev => ({
-      ...prev,
-      images: [...prev.images, { ...newImage, display_order: prev.images.length }]
-    }));
+    
+    setNewProduct(prev => {
+      const newImages = [...prev.images];
+      
+      // If this new image is being set as primary, unset all other primary images
+      if (newImage.is_primary) {
+        newImages.forEach(img => img.is_primary = false);
+      }
+      
+      // Add the new image
+      newImages.push({ ...newImage, display_order: prev.images.length });
+      
+      return {
+        ...prev,
+        images: newImages
+      };
+    });
+    
     setNewImage({ image_url: '', is_primary: false, display_order: 0 });
   };
 
@@ -190,6 +212,23 @@ function CreateProductPage() {
       ...prev,
       images: prev.images.filter((_, i) => i !== index)
     }));
+  };
+
+  const setPrimaryImage = (index: number) => {
+    setNewProduct(prev => {
+      const newImages = [...prev.images];
+      
+      // Unset all primary images first
+      newImages.forEach(img => img.is_primary = false);
+      
+      // Set the selected image as primary
+      newImages[index].is_primary = true;
+      
+      return {
+        ...prev,
+        images: newImages
+      };
+    });
   };
 
   const addSpecification = () => {
@@ -266,47 +305,63 @@ function CreateProductPage() {
 
   const handleCreateBrand = async () => {
     try {
-      if (!newBrandName) {
+      if (!newBrandName.trim()) {
         setError('Brand name is required');
         return;
       }
 
-      const response = await apiClient.post('/brands', { name: newBrandName });
+      const brandData = {
+        name: newBrandName.trim(),
+        slug: slugify(newBrandName.trim())
+      };
+
+      const response = await apiClient.post('/brands', brandData);
       const createdBrand = response.data;
       
       setBrands(prev => [...prev, createdBrand]);
+      setSelectedBrand(createdBrand.id);
       setNewProduct(prev => ({
         ...prev,
         brand_id: createdBrand.id
       }));
       setIsCreatingNewBrand(false);
       setNewBrandName('');
+      toast.success(`Brand "${createdBrand.name}" created successfully!`);
     } catch (err) {
       console.error('Error creating brand:', err);
       setError(err instanceof Error ? err.message : 'Failed to create brand');
+      toast.error('Failed to create brand');
     }
   };
 
   const handleCreateCategory = async () => {
     try {
-      if (!newCategoryName) {
+      if (!newCategoryName.trim()) {
         setError('Category name is required');
         return;
       }
 
-      const response = await apiClient.post('/categories', { name: newCategoryName });
+      const categoryData = {
+        name: newCategoryName.trim(),
+        slug: slugify(newCategoryName.trim())
+      };
+
+      const response = await apiClient.post('/categories', categoryData);
       const createdCategory = response.data;
       
       setCategories(prev => [...prev, createdCategory]);
+      setSelectedCategory(createdCategory.id);
       setNewProduct(prev => ({
         ...prev,
         category_id: createdCategory.id
       }));
       setIsCreatingNewCategory(false);
       setNewCategoryName('');
+      toast.success(`Category "${createdCategory.name}" created successfully!`);
     } catch (err) {
       console.error('Error creating category:', err);
       setError(err instanceof Error ? err.message : 'Failed to create category');
+      toast.error('Failed to create category');
     }
   };
 
@@ -648,9 +703,15 @@ function CreateProductPage() {
                 <Select
                   value={selectedBrand?.toString() || ''}
                   onValueChange={(value) => {
-                    const brand = brands.find(b => b.id.toString() === value);
-                    setSelectedBrand(brand ? brand.id : null);
-                    setNewProduct(prev => ({ ...prev, brand_id: brand ? brand.id : undefined }));
+                    if (value === 'new') {
+                      setIsCreatingNewBrand(true);
+                      setSelectedBrand(null);
+                      setNewProduct(prev => ({ ...prev, brand_id: undefined }));
+                    } else {
+                      const brand = brands.find(b => b.id.toString() === value);
+                      setSelectedBrand(brand ? brand.id : null);
+                      setNewProduct(prev => ({ ...prev, brand_id: brand ? brand.id : undefined }));
+                    }
                   }}
                 >
                   <SelectTrigger className="min-h-[44px] text-base">
@@ -662,8 +723,54 @@ function CreateProductPage() {
                               {brand.name}
                       </SelectItem>
                           ))}
+                    <SelectItem value="new" className="text-primary font-medium">
+                      + Add New Brand
+                    </SelectItem>
                   </SelectContent>
                 </Select>
+                
+                {/* Add New Brand Form */}
+                {isCreatingNewBrand && (
+                  <div className="mt-4 p-4 border rounded-lg bg-muted/50">
+                    <div className="space-y-3">
+                      <Label htmlFor="newBrandName">New Brand Name</Label>
+                      <Input
+                        id="newBrandName"
+                        value={newBrandName}
+                        onChange={(e) => setNewBrandName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && newBrandName.trim()) {
+                            e.preventDefault();
+                            handleCreateBrand();
+                          }
+                        }}
+                        placeholder="Enter brand name"
+                        className="min-h-[44px] text-base"
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          onClick={handleCreateBrand}
+                          disabled={!newBrandName.trim()}
+                          size="sm"
+                        >
+                          Create Brand
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setIsCreatingNewBrand(false);
+                            setNewBrandName('');
+                          }}
+                          size="sm"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
                     </div>
 
                     <div className="space-y-2">
@@ -671,9 +778,15 @@ function CreateProductPage() {
                 <Select
                   value={selectedCategory?.toString() || ''}
                   onValueChange={(value) => {
-                    const category = categories.find(c => c.id.toString() === value);
-                    setSelectedCategory(category ? category.id : null);
-                    setNewProduct(prev => ({ ...prev, category_id: category ? category.id : undefined }));
+                    if (value === 'new') {
+                      setIsCreatingNewCategory(true);
+                      setSelectedCategory(null);
+                      setNewProduct(prev => ({ ...prev, category_id: undefined }));
+                    } else {
+                      const category = categories.find(c => c.id.toString() === value);
+                      setSelectedCategory(category ? category.id : null);
+                      setNewProduct(prev => ({ ...prev, category_id: category ? category.id : undefined }));
+                    }
                   }}
                 >
                   <SelectTrigger className="min-h-[44px] text-base">
@@ -685,8 +798,54 @@ function CreateProductPage() {
                               {category.name}
                       </SelectItem>
                           ))}
+                    <SelectItem value="new" className="text-primary font-medium">
+                      + Add New Category
+                    </SelectItem>
                   </SelectContent>
                 </Select>
+                
+                {/* Add New Category Form */}
+                {isCreatingNewCategory && (
+                  <div className="mt-4 p-4 border rounded-lg bg-muted/50">
+                    <div className="space-y-3">
+                      <Label htmlFor="newCategoryName">New Category Name</Label>
+                      <Input
+                        id="newCategoryName"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && newCategoryName.trim()) {
+                            e.preventDefault();
+                            handleCreateCategory();
+                          }
+                        }}
+                        placeholder="Enter category name"
+                        className="min-h-[44px] text-base"
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          onClick={handleCreateCategory}
+                          disabled={!newCategoryName.trim()}
+                          size="sm"
+                        >
+                          Create Category
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setIsCreatingNewCategory(false);
+                            setNewCategoryName('');
+                          }}
+                          size="sm"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
                     </div>
                   </div>
 
@@ -760,7 +919,7 @@ function CreateProductPage() {
           <CardHeader>
             <CardTitle className="text-lg sm:text-xl">Product Images</CardTitle>
             <CardDescription className="text-sm sm:text-base">
-              Upload and manage product images. At least one image is required.
+              Upload and manage product images. At least one image is required. Only one image can be set as primary.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 sm:space-y-8">
@@ -863,19 +1022,22 @@ function CreateProductPage() {
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="new-image-primary"
-                        checked={newImage.is_primary}
+                      checked={newImage.is_primary}
+                      disabled={newProduct.images.some(img => img.is_primary)}
                       onCheckedChange={(checked) => setNewImage(prev => ({ ...prev, is_primary: checked }))}
                     />
-                    <Label htmlFor="new-image-primary">Set as Primary</Label>
+                    <Label htmlFor="new-image-primary" className={newProduct.images.some(img => img.is_primary) ? "text-muted-foreground" : ""}>
+                      Set as Primary {newProduct.images.some(img => img.is_primary) && "(Primary image already set)"}
+                    </Label>
                   </div>
                   <Button
-                      onClick={addImage}
+                    onClick={addImage}
                     disabled={!newImage.image_url}
                     className="min-h-[44px] text-base"
-                    >
-                      Add Image
+                  >
+                    Add Image
                   </Button>
-                  </div>
+                </div>
               )}
                 </div>
 
@@ -891,21 +1053,32 @@ function CreateProductPage() {
                           <img
                             src={getImageUrl(image.image_url)}
                             alt={`Product image ${index + 1}`}
-                        className="w-full h-20 sm:h-24 object-cover rounded-lg border border-border shadow-sm"
+                            className="w-full h-20 sm:h-24 object-cover rounded-lg border border-border shadow-sm"
                           />
                           {image.is_primary && (
-                        <Badge className="absolute top-1 right-1 sm:top-2 sm:right-2 text-xs">
+                            <Badge className="absolute top-1 right-1 sm:top-2 sm:right-2 text-xs">
                               Primary
-                        </Badge>
+                            </Badge>
                           )}
-                      <Button
-                        variant="destructive"
-                        size="sm"
+                          <Button
+                            variant="destructive"
+                            size="sm"
                             onClick={() => removeImage(index)}
-                        className="absolute top-1 left-1 sm:top-2 sm:left-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 min-h-[44px] min-w-[44px]"
-                      >
-                        ×
-                      </Button>
+                            className="absolute top-1 left-1 sm:top-2 sm:left-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 min-h-[44px] min-w-[44px]"
+                          >
+                            ×
+                          </Button>
+                          {!image.is_primary && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => setPrimaryImage(index)}
+                              className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 h-6 px-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 min-h-[44px]"
+                              title="Set as primary image"
+                            >
+                              Set Primary
+                            </Button>
+                          )}
                         </div>
                       ))}
                   </div>
