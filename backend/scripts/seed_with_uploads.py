@@ -1,12 +1,12 @@
-from app import app, db
-from models import Category, Brand, Product, ProductImage, ProductSpecification, ProductFeature, Review, DeliveryLocation, Order, OrderItem, Cart, CartItem
+from app_factory import create_app
+from models import db, Category, Brand, Product, ProductImage, ProductSpecification, ProductFeature, Review, DeliveryLocation, Order, OrderItem, Cart, CartItem
 from datetime import datetime, timedelta
 import random
 import os
 
 def get_upload_images():
     """Get all image files from the uploads folder"""
-    upload_dir = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
+    upload_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static', 'uploads'))
     image_files = []
     
     if os.path.exists(upload_dir):
@@ -18,6 +18,7 @@ def get_upload_images():
     return image_files
 
 def seed_database():
+    app = create_app('development')
     with app.app_context():
         # Clear existing data in correct order to avoid foreign key violations
         OrderItem.query.delete()
@@ -80,18 +81,41 @@ def seed_database():
         db.session.commit()
         
         # Create products with random images
-        product_names = [
-            'Frying Pan', 'Stand Mixer', 'Dinner Plates Set', 'Coffee Maker', 'Storage Containers',
-            'Mixing Bowls', 'Electric Kettle', 'Cooking Pan Set', 'Food Processor', 'Baking Sheet Set',
-            'Chef Knife', 'Cutting Board', 'Toaster', 'Blender', 'Rice Cooker',
-            'Pressure Cooker', 'Slow Cooker', 'Waffle Maker', 'Juicer', 'Grill Pan',
-            'Salad Spinner', 'Measuring Cups', 'Spice Rack', 'Bread Box', 'Water Bottle',
-            'Lunch Box', 'Thermos', 'Wine Glasses', 'Mug Set', 'Serving Tray',
-            'Colander', 'Rolling Pin', 'Ice Cream Scoop', 'Pizza Cutter', 'Can Opener',
-            'Garlic Press', 'Peeler', 'Mandoline Slicer', 'Egg Slicer', 'Salad Bowl',
-            'Soup Pot', 'Stock Pot', 'Dutch Oven', 'Casserole Dish', 'Grater',
-            'Zester', 'Mortar and Pestle', 'Butter Dish', 'Oil Dispenser', 'Salt Shaker'
+        adjectives = [
+            'Stainless Steel', 'Ceramic', 'Glass', 'Bamboo', 'Premium', 'Non-Stick', 'Insulated',
+            'Digital', 'Cast Iron', 'Adjustable', 'Electric', 'Programmable', 'Eco-Friendly',
+            'Heavy Duty', 'Lightweight', 'Compact', 'Large', 'Small', 'Professional', 'Classic',
+            'Modern', 'Elegant', 'Multi-Purpose', 'High Capacity', 'Portable', 'Stackable', 'Microwave Safe',
+            'Oven Safe', 'Dishwasher Safe', 'Ergonomic', 'Heat Resistant', 'Leakproof', 'Reusable', 'Decorative'
         ]
+        materials = [
+            'Steel', 'Ceramic', 'Glass', 'Bamboo', 'Plastic', 'Silicone', 'Wood', 'Copper', 'Aluminum', 'Porcelain', 'Marble', 'Stoneware'
+        ]
+        product_types = [
+            'Chef Knife', 'Frying Pan', 'Food Storage Set', 'Kettle', 'Cutting Board', 'Bakeware Set', 'Travel Mug',
+            'Kitchen Scale', 'Dutch Oven', 'Rolling Pin', 'Mixing Bowl', 'Measuring Cups', 'Spice Rack', 'Bread Box',
+            'Water Bottle', 'Lunch Box', 'Thermos', 'Wine Glasses', 'Serving Tray', 'Colander', 'Ice Cream Scoop',
+            'Pizza Cutter', 'Can Opener', 'Garlic Press', 'Peeler', 'Mandoline Slicer', 'Egg Slicer', 'Salad Bowl',
+            'Soup Pot', 'Stock Pot', 'Casserole Dish', 'Grater', 'Zester', 'Mortar and Pestle', 'Butter Dish',
+            'Oil Dispenser', 'Salt Shaker', 'Waffle Maker', 'Toaster', 'Blender', 'Rice Cooker', 'Pressure Cooker',
+            'Slow Cooker', 'Juicer', 'Grill Pan', 'Salad Spinner', 'Measuring Spoons', 'Food Processor', 'Baking Sheet',
+            'Stand Mixer', 'Electric Griddle', 'Bread Maker', 'Ice Cream Maker', 'Electric Skillet', 'Food Dehydrator',
+            'Coffee Maker', 'Toaster Oven', 'Multi-Cooker', 'Immersion Blender', 'Electric Kettle', 'Pan Set', 'Tableware Set',
+            'Serving Utensils', 'Storage Jar', 'Tea Pot', 'Chopping Board', 'Pastry Brush', 'Cookie Cutter', 'Cake Stand',
+            'Serving Bowl', 'Salad Plate', 'Dinner Plate', 'Soup Bowl', 'Mug Set', 'Espresso Cup', 'Wine Decanter',
+            'Champagne Flute', 'Shot Glass', 'Pitcher', 'Carafe', 'Butter Keeper', 'Egg Cup', 'Napkin Holder', 'Trivet',
+            'Pot Holder', 'Apron', 'Oven Mitt', 'Kitchen Tongs', 'Whisk', 'Ladle', 'Slotted Spoon', 'Spatula', 'Turner',
+            'Skimmer', 'Soup Ladle', 'Serving Fork', 'Carving Knife', 'Bread Knife', 'Utility Knife', 'Paring Knife'
+        ]
+        used_names = set()
+        def generate_unique_name():
+            for _ in range(1000):
+                name = f"{random.choice(adjectives)} {random.choice(materials)} {random.choice(product_types)}"
+                if name not in used_names:
+                    used_names.add(name)
+                    return name
+            # fallback if exhausted
+            return f"{random.choice(adjectives)} {random.choice(product_types)}"
         categories_list = list(categories.values())
         brands_list = list(brands.values())
         features_list = [
@@ -103,8 +127,8 @@ def seed_database():
         colors = ['Red', 'Black', 'Silver', 'White', 'Blue', 'Green', 'Yellow', 'Gray']
 
         products_data = []
-        for i in range(50):
-            name = f"{random.choice(product_names)} {random.randint(100,999)}"
+        for _ in range(50):
+            name = generate_unique_name()
             sku = f"SKU-{random.randint(10000,99999)}"
             category = random.choice(categories_list)
             brand = random.choice(brands_list)
