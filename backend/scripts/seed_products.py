@@ -1,9 +1,10 @@
-from app import app, db
-from models import Product, ProductImage, Category, Brand
+from app_factory import create_app
+from models import db, Product, ProductImage, Category, Brand
 from datetime import datetime
 import random
 
 def seed_products():
+    app = create_app('development')
     with app.app_context():
         # Clear existing data
         ProductImage.query.delete()
