@@ -143,7 +143,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
     const fetchBrandsAndCategories = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://washing-district-nail-customise.trycloudflare.com/api';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://wega-backend.onrender.com/api';
         const [brandsResponse, categoriesResponse] = await Promise.all([
           fetch(`${apiUrl}/brands`),
           fetch(`${apiUrl}/categories`)

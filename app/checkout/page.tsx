@@ -200,7 +200,7 @@ export default function CheckoutPage() {
     }
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://washing-district-nail-customise.trycloudflare.com/api';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://wega-backend.onrender.com/api';
       console.log('API URL:', `${apiUrl}/orders`)
       console.log('Order data:', orderData)
       console.log('Cart session ID:', cart?.session_id)
