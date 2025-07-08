@@ -1,7 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import TestimonialSection from "@components/testimonial-section"
+import TestimonialSection from "@/components/testimonial-section"
 
 export default function AboutPage() {
   return (

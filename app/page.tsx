@@ -1,10 +1,10 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import FeaturedProducts from "@components/featured-products"
-import ProductCarousel from "@components/product-carousel"
-import HeroSection from "@components/hero-section"
-import TrustSignals from "@components/trust-signals"
-import ProductGrid from "@components/product-grid"
+import FeaturedProducts from "@/components/featured-products"
+import ProductCarousel from "@/components/product-carousel"
+import HeroSection from "@/components/hero-section"
+import TrustSignals from "@/components/trust-signals"
+import ProductGrid from "@/components/product-grid"
 
 export default function Home() {
   return (

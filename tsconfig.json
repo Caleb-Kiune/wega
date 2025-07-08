@@ -20,10 +20,10 @@
       }
     ],
     "paths": {
-      "@/*": ["./app/*", "./frontend/src/*"],
-      "@components/*": ["./app/components/*", "./frontend/src/components/*"],
-      "@lib/*": ["./app/lib/*", "./frontend/src/lib/*"],
-      "@shared/*": ["./app/shared/*", "./frontend/src/shared/*"],
+      "@/*": ["./app/*"],
+      "@components/*": ["./app/components/*"],
+      "@lib/*": ["./app/lib/*"],
+      "@shared/*": ["./app/shared/*"],
       "@contexts/*": ["./app/contexts/*"]
     }
   },

@@ -1,7 +1,14 @@
 import pytest
-from app import app, db
-from models import Order, OrderItem, Product
+from app_factory import create_app
+from models import db
+from models.order import Order
+from models.order_item import OrderItem
+from models.product import Product
+from models.category import Category
+from models.brand import Brand
 from datetime import datetime
+
+app = create_app()
 
 @pytest.fixture
 def client():
@@ -17,13 +24,21 @@ def client():
 
 @pytest.fixture
 def sample_product():
+    # Create category and brand first
+    category = Category(name='Test Category', slug='test-category', description='Test Description')
+    brand = Brand(name='Test Brand', slug='test-brand', description='Test Brand Description')
+    db.session.add(category)
+    db.session.add(brand)
+    db.session.commit()
+    
     product = Product(
         name='Test Product',
         description='Test Description',
         price=1000.00,
-        image_url='http://example.com/image.jpg',
-        category='test',
-        stock=10
+        sku='TEST123',
+        stock=10,
+        category_id=category.id,
+        brand_id=brand.id
     )
     db.session.add(product)
     db.session.commit()

@@ -19,7 +19,8 @@ import { ordersApi, CreateOrderRequest } from "@/lib/orders"
 import { getSessionId } from "@/lib/session"
 
 export default function CheckoutPage() {
-  const { items, clearCart } = useCart()
+  const { cart, clearCart } = useCart()
+  const items = cart?.items || []
   const { toast } = useToast()
   const router = useRouter()
   
@@ -50,7 +51,7 @@ export default function CheckoutPage() {
   }, [])
 
   // Calculate totals
-  const subtotal = items?.reduce((total, item) => total + (item.price * item.quantity), 0) || 0
+  const subtotal = items?.reduce((total, item) => total + ((item.product?.price || 0) * item.quantity), 0) || 0
   const shipping = selectedLocation ? 500 : 0 // Fixed shipping cost for now
   const total = subtotal + shipping
 
@@ -187,9 +188,9 @@ export default function CheckoutPage() {
         delivery_location_id: deliveryLocationId,
         notes: formData.get('notes') as string || undefined,
         cart_items: items.map(item => ({
-          product_id: item.id,
+          product_id: item.product?.id,
           quantity: item.quantity,
-          price: item.price
+          price: item.product?.price || 0
         }))
       }
 
@@ -552,13 +553,13 @@ export default function CheckoutPage() {
                     {items.map((item) => (
                       <div key={item.id} className="flex items-center">
                         <div className="relative h-12 w-12 sm:h-16 sm:w-16 rounded-md overflow-hidden mr-3 sm:mr-4">
-                          <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover" loading="lazy" />
+                          <Image src={item.product?.image || "/placeholder.svg"} alt={item.product?.name || "Product"} fill className="object-cover" loading="lazy" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-medium text-gray-800 truncate">{item.name}</h3>
+                          <h3 className="text-sm font-medium text-gray-800 truncate">{item.product?.name}</h3>
                           <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                         </div>
-                        <div className="text-sm font-medium text-gray-800">KES {(item.price * item.quantity).toLocaleString()}</div>
+                        <div className="text-sm font-medium text-gray-800">KES {(item.product?.price || 0) * item.quantity}</div>
                       </div>
                     ))}
                   </div>

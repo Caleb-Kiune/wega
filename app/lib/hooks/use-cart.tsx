@@ -1,120 +1,162 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from "react"
+import { useToast } from "@/lib/hooks/use-toast"
+import { cartApi, Cart, CartItem } from "@/lib/cart"
 
-type CartItem = {
+interface Product {
   id: number
   name: string
   price: number
   image: string
-  quantity: number
+  quantity?: number
 }
 
 interface CartContextType {
+  cart: Cart | null
   cartCount: number
-  items: CartItem[]
-  addToCart: (item: CartItem) => void
-  removeFromCart: (id: number) => void
-  updateQuantity: (id: number, quantity: number) => void
-  clearCart: () => void
+  addToCart: (product: Product) => Promise<void>
+  removeFromCart: (productId: number) => Promise<void>
+  updateQuantity: (productId: number, quantity: number) => Promise<void>
+  clearCart: () => Promise<void>
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
-export const useCart = () => {
-  const context = useContext(CartContext)
-  if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider')
-  }
-  return context
-}
+export function CartProvider({ children }: { children: ReactNode }) {
+  const [cart, setCart] = useState<Cart | null>(null)
+  const [cartCount, setCartCount] = useState(0)
+  const { toast } = useToast()
 
-interface CartProviderProps {
-  children: ReactNode
-}
-
-export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
-  const [items, setItems] = useState<CartItem[]>([])
-
-  // Load cart from localStorage on mount
+  // Load cart from server on initial render
   useEffect(() => {
-    const savedCart = localStorage.getItem("cart")
-    if (savedCart) {
+    const loadCart = async () => {
       try {
-        const parsedCart = JSON.parse(savedCart)
-        setItems(parsedCart)
-        console.log('Cart loaded from localStorage:', parsedCart)
+        const cartData = await cartApi.getCart()
+        setCart(cartData)
+        setCartCount(cartData.items.reduce((total, item) => total + item.quantity, 0))
       } catch (error) {
-        console.error('Error parsing cart from localStorage:', error)
-        localStorage.removeItem("cart")
+        console.error("Failed to load cart:", error)
+        // Show user-friendly error message for connection issues
+        if (error instanceof Error) {
+          if (error.message.includes('Cannot connect to server')) {
+            toast({
+              title: "Connection Error",
+              description: "Cannot connect to the server. Please ensure the backend is running.",
+              variant: "destructive",
+            })
+          } else {
+            toast({
+              title: "Error",
+              description: "Failed to load cart. Please refresh the page.",
+              variant: "destructive",
+            })
+          }
+        }
       }
     }
-  }, [])
+    loadCart()
+  }, [toast])
 
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(items))
-    console.log('Cart saved to localStorage:', items)
-  }, [items])
+  const addToCart = async (product: Product) => {
+    try {
+      const updatedCart = await cartApi.addItem(product.id, product.quantity || 1)
+      setCart(updatedCart)
+      setCartCount(updatedCart.items.reduce((total, item) => total + item.quantity, 0))
+      toast({
+        title: "Added to cart",
+        description: `${product.name} has been added to your cart.`,
+      })
+    } catch (error) {
+      console.error("Failed to add item to cart:", error)
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
 
-  const addToCart = (newItem: CartItem) => {
-    console.log('Adding item to cart:', newItem)
-    setItems((prev) => {
-      const existingItem = prev.find((item) => item.id === newItem.id)
-      if (existingItem) {
-        const updatedItems = prev.map((item) =>
-          item.id === newItem.id
-            ? { ...item, quantity: item.quantity + newItem.quantity }
-            : item
-        )
-        console.log('Updated existing item in cart:', updatedItems)
-        return updatedItems
+  const removeFromCart = async (productId: number) => {
+    try {
+      // Find the cart item by product ID
+      const cartItem = cart?.items.find(item => item.product_id === productId);
+      if (!cartItem) {
+        console.error('Cart item not found for product ID:', productId);
+        return;
       }
-      const updatedItems = [...prev, newItem]
-      console.log('Added new item to cart:', updatedItems)
-      return updatedItems
-    })
-  }
+      
+      const updatedCart = await cartApi.removeItem(cartItem.id);
+      setCart(updatedCart);
+      setCartCount(updatedCart.items.reduce((total, item) => total + item.quantity, 0));
+    } catch (error) {
+      console.error("Failed to remove item from cart:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove item from cart. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
-  const removeFromCart = (id: number) => {
-    console.log('Removing item from cart:', id)
-    setItems((prev) => {
-      const updatedItems = prev.filter((item) => item.id !== id)
-      console.log('Removed item from cart:', updatedItems)
-      return updatedItems
-    })
-  }
+  const updateQuantity = async (productId: number, quantity: number) => {
+    if (quantity < 1) return;
+    try {
+      // Find the cart item by product ID
+      const cartItem = cart?.items.find(item => item.product_id === productId);
+      if (!cartItem) {
+        console.error('Cart item not found for product ID:', productId);
+        return;
+      }
+      
+      const updatedCart = await cartApi.updateItem(cartItem.id, quantity);
+      setCart(updatedCart);
+      setCartCount(updatedCart.items.reduce((total, item) => total + item.quantity, 0));
+    } catch (error) {
+      console.error("Failed to update cart item quantity:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update quantity. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
-  const updateQuantity = (id: number, quantity: number) => {
-    console.log('Updating quantity for item:', id, 'to:', quantity)
-    setItems((prev) => {
-      const updatedItems = prev.map((item) =>
-        item.id === id ? { ...item, quantity } : item
-      )
-      console.log('Updated quantity in cart:', updatedItems)
-      return updatedItems
-    })
-  }
-
-  const clearCart = () => {
-    console.log('Clearing cart')
-    setItems([])
-  }
-
-  const cartCount = items.reduce((total, item) => total + item.quantity, 0)
-
-  const value: CartContextType = {
-    cartCount,
-    items,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    clearCart
+  const clearCart = async () => {
+    try {
+      const updatedCart = await cartApi.clearCart()
+      setCart(updatedCart)
+      setCartCount(0)
+    } catch (error) {
+      console.error("Failed to clear cart:", error)
+      toast({
+        title: "Error",
+        description: "Failed to clear cart. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
-    <CartContext.Provider value={value}>
+    <CartContext.Provider
+      value={{
+        cart,
+        cartCount,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+      }}
+    >
       {children}
     </CartContext.Provider>
   )
+}
+
+export function useCart() {
+  const context = useContext(CartContext)
+  if (context === undefined) {
+    throw new Error("useCart must be used within a CartProvider")
+  }
+  return context
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect } from "react"
 
 type WishlistItem = {
   id: string
@@ -10,7 +10,7 @@ type WishlistItem = {
   category: string
 }
 
-interface WishlistContextType {
+type WishlistContextType = {
   items: WishlistItem[]
   addItem: (item: WishlistItem) => void
   removeItem: (id: string) => void
@@ -20,19 +20,7 @@ interface WishlistContextType {
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined)
 
-export const useWishlist = () => {
-  const context = useContext(WishlistContext)
-  if (context === undefined) {
-    throw new Error('useWishlist must be used within a WishlistProvider')
-  }
-  return context
-}
-
-interface WishlistProviderProps {
-  children: ReactNode
-}
-
-export const WishlistProvider: React.FC<WishlistProviderProps> = ({ children }) => {
+export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<WishlistItem[]>([])
 
   // Load wishlist from localStorage on mount
@@ -69,17 +57,25 @@ export const WishlistProvider: React.FC<WishlistProviderProps> = ({ children }) 
     setItems([])
   }
 
-  const value: WishlistContextType = {
-    items,
-    addItem,
-    removeItem,
-    isInWishlist,
-    clearWishlist
-  }
-
   return (
-    <WishlistContext.Provider value={value}>
+    <WishlistContext.Provider
+      value={{
+        items,
+        addItem,
+        removeItem,
+        isInWishlist,
+        clearWishlist,
+      }}
+    >
       {children}
     </WishlistContext.Provider>
   )
+}
+
+export function useWishlist() {
+  const context = useContext(WishlistContext)
+  if (context === undefined) {
+    throw new Error("useWishlist must be used within a WishlistProvider")
+  }
+  return context
 } 

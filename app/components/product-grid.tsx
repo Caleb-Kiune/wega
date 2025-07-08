@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import ProductCard from "@components/product-card"
-import { productsApi } from "@lib/products"
-import { Product, ProductsParams } from "@shared/types"
+import ProductCard from "@/components/product-card"
+import { productsApi } from "@/lib/products"
+import { Product, ProductsParams } from "@/lib/types"
 
 interface ProductGridProps {
   category: "featured" | "new-arrivals" | "special-offers"

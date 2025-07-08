@@ -13,7 +13,8 @@ import { useDeliveryLocations } from "@/lib/hooks/use-delivery-locations"
 
 export default function CartPage() {
   const { toast } = useToast()
-  const { items, updateQuantity, removeFromCart, clearCart } = useCart()
+  const { cart, updateQuantity, removeFromCart, clearCart } = useCart()
+  const items = cart?.items || []
   const { deliveryLocations, loading: locationsLoading } = useDeliveryLocations()
   const [selectedLocation, setSelectedLocation] = useState<string>("")
   const [promoCode, setPromoCode] = useState("")
@@ -38,7 +39,7 @@ export default function CartPage() {
 
   // Calculate totals
   const subtotal = items?.reduce((total, item) => 
-    total + (item.price * item.quantity), 0) || 0
+    total + ((item.product?.price || 0) * item.quantity), 0) || 0
   
   // Get shipping cost based on selected location
   const selectedDeliveryLocation = deliveryLocations.find(location => location.slug === selectedLocation)
@@ -123,8 +124,8 @@ export default function CartPage() {
                         <div className="col-span-2 flex items-center">
                           <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-md overflow-hidden mr-3 sm:mr-4">
                             <Image
-                              src={item.image || "/placeholder.svg"}
-                              alt={item.name}
+                              src={item.product?.image || "/placeholder.svg"}
+                              alt={item.product?.name || "Product image"}
                               fill
                               className="object-cover"
                               loading="lazy"
@@ -132,10 +133,10 @@ export default function CartPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <Link
-                              href={`/products/${item.id}`}
+                              href={`/products/${item.product?.id}`}
                               className="font-medium text-gray-800 hover:text-green-600 text-sm sm:text-base block"
                             >
-                              {item.name}
+                              {item.product?.name}
                             </Link>
                           </div>
                         </div>
@@ -143,7 +144,7 @@ export default function CartPage() {
                         {/* Price */}
                         <div className="text-gray-800 text-sm sm:text-base">
                           <span className="md:hidden font-medium text-gray-500 mr-2">Price:</span>
-                          KES {item.price.toLocaleString()}
+                          KES {item.product?.price?.toLocaleString()}
                         </div>
 
                         {/* Quantity */}
@@ -152,14 +153,14 @@ export default function CartPage() {
                           <div className="flex items-center border rounded-md w-fit">
                             <button
                               className="px-3 py-2 text-gray-600 hover:text-gray-800 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                              onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                              onClick={() => handleQuantityChange(item.product?.id, item.quantity - 1)}
                             >
                               <Minus className="h-4 w-4" />
                             </button>
                             <span className="px-4 py-2 border-x min-h-[44px] flex items-center justify-center">{item.quantity}</span>
                             <button
                               className="px-3 py-2 text-gray-600 hover:text-gray-800 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                              onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                              onClick={() => handleQuantityChange(item.product?.id, item.quantity + 1)}
                             >
                               <Plus className="h-4 w-4" />
                             </button>
@@ -171,12 +172,12 @@ export default function CartPage() {
                           <div>
                             <span className="md:hidden font-medium text-gray-500 mr-2">Total:</span>
                             <span className="font-medium text-gray-800 text-sm sm:text-base">
-                              KES {(item.price * item.quantity).toLocaleString()}
+                              KES {((item.product?.price || 0) * item.quantity).toLocaleString()}
                             </span>
                           </div>
                           <button
                             className="text-gray-400 hover:text-red-500 min-h-[44px] min-w-[44px] flex items-center justify-center p-2"
-                            onClick={() => handleRemoveItem(item.id, item.name)}
+                            onClick={() => handleRemoveItem(item.product?.id, item.product?.name)}
                           >
                             <X className="h-5 w-5" />
                           </button>

@@ -1,7 +1,16 @@
 import pytest
-from app import app, db
-from models import Product, Category, Brand, ProductImage, ProductSpecification, ProductFeature, Review
+from app_factory import create_app
+from models import db
+from models.category import Category
+from models.brand import Brand
+from models.product import Product
+from models.product_image import ProductImage
+from models.product_specification import ProductSpecification
+from models.product_feature import ProductFeature
+from models.review import Review
 import json
+
+app = create_app()
 
 @pytest.fixture
 def client():
