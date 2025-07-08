@@ -3,7 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect } from "react"
-import { Facebook, Instagram, MapPin, Phone, Mail, ArrowUp, Twitter, Youtube } from "lucide-react"
+import { Facebook, Instagram, MapPin, Phone, Mail, ArrowUp, Twitter, Tiktok } from "lucide-react"
 
 export default function Footer() {
   const [showBackToTop, setShowBackToTop] = useState(false)
@@ -176,13 +176,6 @@ export default function Footer() {
                   aria-label="Follow us on Twitter"
                 >
                   <Twitter className="h-5 w-5" />
-                </Link>
-                <Link 
-                  href="https://youtube.com" 
-                  className="text-gray-300 hover:text-red-500 transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center bg-gray-700 hover:bg-gray-600"
-                  aria-label="Follow us on YouTube"
-                >
-                  <Youtube className="h-5 w-5" />
                 </Link>
               </div>
             </div>

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
-import { Menu, ShoppingCart, Heart, Phone, Package, User, Facebook, Instagram, Twitter, Home, ShoppingBag, Search, X, LogOut, Settings, Info, Mail, Loader2 } from "lucide-react"
+import { Menu, ShoppingCart, Heart, Phone, Package, User, Facebook, Instagram, Twitter, Home, ShoppingBag, Search, X, LogOut, Settings, Info, Mail, Loader2, Tiktok } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
@@ -215,7 +215,7 @@ export default function Header() {
                     target="_blank" 
                     rel="noopener noreferrer" 
                     aria-label="Facebook" 
-                    className="hover:text-green-200 transition-colors focus-visible:ring-2 focus-visible:ring-white rounded-full p-2 -m-2"
+                    className="text-white hover:text-blue-500 transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center bg-green-700 hover:bg-green-600"
                   >
                     <Facebook className="h-5 w-5" />
                   </Link>
@@ -231,7 +231,7 @@ export default function Header() {
                     target="_blank" 
                     rel="noopener noreferrer" 
                     aria-label="Instagram" 
-                    className="hover:text-green-200 transition-colors focus-visible:ring-2 focus-visible:ring-white rounded-full p-2 -m-2"
+                    className="text-white hover:text-pink-500 transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center bg-green-700 hover:bg-green-600"
                   >
                     <Instagram className="h-5 w-5" />
                   </Link>
@@ -247,7 +247,7 @@ export default function Header() {
                     target="_blank" 
                     rel="noopener noreferrer" 
                     aria-label="Twitter" 
-                    className="hover:text-green-200 transition-colors focus-visible:ring-2 focus-visible:ring-white rounded-full p-2 -m-2"
+                    className="text-white hover:text-blue-400 transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center bg-green-700 hover:bg-green-600"
                   >
                     <Twitter className="h-5 w-5" />
                   </Link>
