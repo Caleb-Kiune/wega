@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import apiClient from '@/lib/client';
+import { productsApi } from '@/lib/products';
 
 interface Brand {
   id: number;
@@ -23,7 +23,7 @@ export const useBrands = (): UseBrandsResult => {
     const fetchBrands = async () => {
       try {
         setLoading(true);
-        const data = await apiClient.getBrands();
+        const data = await productsApi.getBrands();
         setBrands(data);
         setError(null);
       } catch (err) {

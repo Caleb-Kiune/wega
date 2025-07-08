@@ -9,18 +9,21 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/lib/hooks/use-toast"
 import { useCart } from "@/lib/hooks/use-cart"
+import { useDeliveryLocations } from "@/lib/hooks/use-delivery-locations"
 
 export default function CartPage() {
   const { toast } = useToast()
   const { items, updateQuantity, removeFromCart, clearCart } = useCart()
+  const { deliveryLocations, loading: locationsLoading } = useDeliveryLocations()
   const [selectedLocation, setSelectedLocation] = useState<string>("")
   const [promoCode, setPromoCode] = useState("")
 
   // Load selected location from localStorage on mount
   useEffect(() => {
-    // Clear any existing location from localStorage
-    localStorage.removeItem('selectedDeliveryLocation')
-    setSelectedLocation("")
+    const savedLocation = localStorage.getItem('selectedDeliveryLocation')
+    if (savedLocation) {
+      setSelectedLocation(savedLocation)
+    }
   }, [])
 
   // Save selected location to localStorage when it changes
@@ -36,8 +39,23 @@ export default function CartPage() {
   // Calculate totals
   const subtotal = items?.reduce((total, item) => 
     total + (item.price * item.quantity), 0) || 0
-  const shipping = selectedLocation ? 500 : 0 // Fixed shipping cost for now
+  
+  // Get shipping cost based on selected location
+  const selectedDeliveryLocation = deliveryLocations.find(location => location.slug === selectedLocation)
+  const shipping = selectedDeliveryLocation ? selectedDeliveryLocation.shippingPrice : 0
   const total = subtotal + shipping
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Cart Debug:', {
+      selectedLocation,
+      selectedDeliveryLocation,
+      shipping,
+      subtotal,
+      total,
+      deliveryLocations: deliveryLocations.length
+    })
+  }, [selectedLocation, selectedDeliveryLocation, shipping, subtotal, total, deliveryLocations])
 
   const handleQuantityChange = (itemId: number, newQuantity: number) => {
     if (newQuantity < 1) return
@@ -199,15 +217,15 @@ export default function CartPage() {
                       Delivery Location
                     </label>
                     <Select value={selectedLocation} onValueChange={handleLocationChange}>
-                      <SelectTrigger className="min-h-[44px] text-base">
-                        <SelectValue placeholder="Select location" />
+                      <SelectTrigger className="min-h-[44px] text-base" disabled={locationsLoading}>
+                        <SelectValue placeholder={locationsLoading ? "Loading locations..." : "Select location"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="nairobi">Nairobi - KES 500</SelectItem>
-                        <SelectItem value="mombasa">Mombasa - KES 800</SelectItem>
-                        <SelectItem value="kisumu">Kisumu - KES 600</SelectItem>
-                        <SelectItem value="nakuru">Nakuru - KES 400</SelectItem>
-                        <SelectItem value="eldoret">Eldoret - KES 700</SelectItem>
+                        {deliveryLocations.map((location) => (
+                          <SelectItem key={location.id} value={location.slug}>
+                            {location.name} - KES {location.shippingPrice.toLocaleString()}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -220,12 +238,24 @@ export default function CartPage() {
                     <div className="flex justify-between">
                       <span className="text-gray-600 text-sm sm:text-base">Shipping</span>
                       <span className="font-medium text-gray-800 text-sm sm:text-base">
-                        KES {shipping.toLocaleString()}
+                        {locationsLoading ? (
+                          <span className="text-gray-400">Loading...</span>
+                        ) : selectedLocation ? (
+                          `KES ${shipping.toLocaleString()}`
+                        ) : (
+                          <span className="text-gray-400">Select location</span>
+                        )}
                       </span>
                     </div>
                     <div className="border-t pt-3 sm:pt-4 flex justify-between">
                       <span className="font-medium text-gray-800 text-sm sm:text-base">Total</span>
-                      <span className="font-bold text-lg sm:text-xl text-gray-800">KES {total.toLocaleString()}</span>
+                      <span className="font-bold text-lg sm:text-xl text-gray-800">
+                        {selectedLocation ? (
+                          `KES ${total.toLocaleString()}`
+                        ) : (
+                          <span className="text-gray-400">Select location</span>
+                        )}
+                      </span>
                     </div>
                   </div>
 

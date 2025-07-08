@@ -7,7 +7,7 @@ import ProductCard from '@/components/product-card';
 import { ProductsLoading } from '@/components/products-loading';
 import { Button } from '@/components/ui/button';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Product, ProductsParams } from '@/shared/types';
+import { Product, ProductsParams } from '@/lib/products';
 
 export interface ProductsFilters extends Omit<ProductsParams, 'page' | 'limit'> {
   page: number;

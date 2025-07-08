@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import apiClient from '@/lib/client';
+import { productsApi } from '@/lib/products';
 
 interface Category {
   id: number;
@@ -23,7 +23,7 @@ export const useCategories = (): UseCategoriesResult => {
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const data = await apiClient.getCategories();
+        const data = await productsApi.getCategories();
         setCategories(data);
         setError(null);
       } catch (err) {
