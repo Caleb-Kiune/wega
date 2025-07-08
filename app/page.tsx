@@ -3,7 +3,6 @@ import { ArrowRight } from "lucide-react"
 import FeaturedProducts from "@/components/featured-products"
 import ProductCarousel from "@/components/product-carousel"
 import HeroSection from "@/components/hero-section"
-import TrustSignals from "@/components/trust-signals"
 import ProductGrid from "@/components/product-grid"
 
 export default function Home() {
@@ -11,9 +10,6 @@ export default function Home() {
     <main className="flex min-h-screen flex-col">
       {/* Hero Section */}
       <HeroSection />
-
-      {/* Trust Signals & Payment Methods */}
-      <TrustSignals />
 
       {/* Featured Products */}
       <section className="py-8 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-white">

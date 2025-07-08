@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import TestimonialSection from "@/components/testimonial-section"
+import { Shield, RefreshCw, CreditCard } from "lucide-react"
 
 export default function AboutPage() {
   return (
@@ -124,6 +125,49 @@ export default function AboutPage() {
                 We conduct our business with honesty, transparency, and ethical practices. We stand behind our products
                 and take responsibility for our actions.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Signals */}
+      <section className="py-8 sm:py-16 px-4 sm:px-6 bg-gray-50" aria-labelledby="trust-signals-heading">
+        <div className="container mx-auto max-w-7xl">
+          <h2 id="trust-signals-heading" className="text-2xl sm:text-3xl font-bold text-gray-800 mb-8 sm:mb-12 text-center">Secure Payment & Trust</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div 
+              className="flex flex-col items-center text-center p-6 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow duration-300"
+              role="article"
+              aria-labelledby="trust-item-1"
+            >
+              <div className="mb-4 p-3 bg-green-50 rounded-full flex items-center justify-center w-16 h-16" aria-hidden="true">
+                <Shield className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 id="trust-item-1" className="font-semibold text-gray-800 mb-2">Secure Payment</h3>
+              <p className="text-sm text-gray-600">SSL encrypted transactions</p>
+            </div>
+            <div 
+              className="flex flex-col items-center text-center p-6 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow duration-300"
+              role="article"
+              aria-labelledby="trust-item-2"
+            >
+              <div className="mb-4 p-3 bg-green-50 rounded-full flex items-center justify-center w-16 h-16" aria-hidden="true">
+                <RefreshCw className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 id="trust-item-2" className="font-semibold text-gray-800 mb-2">Money-back Guarantee</h3>
+              <p className="text-sm text-gray-600">14-day return policy</p>
+            </div>
+            <div 
+              className="flex flex-col items-center text-center p-6 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow duration-300"
+              role="article"
+              aria-labelledby="trust-item-3"
+            >
+              <div className="mb-4 p-3 bg-green-50 rounded-full flex items-center justify-center w-16 h-16" aria-hidden="true">
+                <CreditCard className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 id="trust-item-3" className="font-semibold text-gray-800 mb-2">Multiple Payment Options</h3>
+              <p className="text-sm text-gray-600">Cards, M-Pesa & more</p>
             </div>
           </div>
         </div>
