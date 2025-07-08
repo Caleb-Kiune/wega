@@ -96,6 +96,7 @@ function CreateProductPage() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [skuCheckTimeout, setSkuCheckTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const [newProduct, setNewProduct] = useState<CreateProductData>({
     name: '',
@@ -152,12 +153,43 @@ function CreateProductPage() {
     fetchBrandsAndCategories();
   }, []);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (skuCheckTimeout) {
+        clearTimeout(skuCheckTimeout);
+      }
+    };
+  }, [skuCheckTimeout]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     setNewProduct(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
     }));
+
+    // Check SKU uniqueness when user enters a SKU
+    if (name === 'sku' && value.trim()) {
+      // Clear existing timeout
+      if (skuCheckTimeout) {
+        clearTimeout(skuCheckTimeout);
+      }
+      
+      // Set new timeout for debounced SKU check
+      const timeoutId = setTimeout(async () => {
+        try {
+          const isUnique = await productsApi.checkSkuUnique(value.trim());
+          if (!isUnique) {
+            toast.error('This SKU already exists. Please use a different SKU.');
+          }
+        } catch (error) {
+          console.error('Error checking SKU uniqueness:', error);
+        }
+      }, 500);
+      
+      setSkuCheckTimeout(timeoutId);
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -646,15 +678,35 @@ function CreateProductPage() {
 
                   <div className="space-y-2">
                 <Label htmlFor="sku">SKU</Label>
-                <Input
-                  id="sku"
-                  name="sku"
-                  value={newProduct.sku}
-                      onChange={handleInputChange}
-                  placeholder="Product SKU"
-                  className="min-h-[44px] text-base"
-                  required
-                    />
+                <div className="flex gap-2">
+                  <Input
+                    id="sku"
+                    name="sku"
+                    value={newProduct.sku}
+                    onChange={handleInputChange}
+                    placeholder="Leave empty to auto-generate"
+                    className="min-h-[44px] text-base flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        const generatedSku = await productsApi.generateUniqueSku();
+                        setNewProduct(prev => ({ ...prev, sku: generatedSku }));
+                      } catch (error) {
+                        console.error('Failed to generate SKU:', error);
+                        toast.error('Failed to generate SKU');
+                      }
+                    }}
+                    className="min-h-[44px] px-4"
+                  >
+                    Generate
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Leave empty to auto-generate a unique SKU, or click Generate to create one manually
+                </p>
                   </div>
 
                     <div className="space-y-2">

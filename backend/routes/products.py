@@ -160,6 +160,20 @@ def get_product(id):
     
     return jsonify(product.to_dict())
 
+@products_bp.route('/api/products/check-sku', methods=['GET'])
+def check_sku():
+    """Check if a SKU is unique"""
+    sku = request.args.get('sku')
+    if not sku:
+        return jsonify({'error': 'SKU parameter is required'}), 400
+    
+    existing_product = Product.query.filter_by(sku=sku).first()
+    return jsonify({
+        'sku': sku,
+        'is_unique': existing_product is None,
+        'exists': existing_product is not None
+    })
+
 @products_bp.route('/api/products', methods=['POST'])
 def create_product():
     """Create a new product"""

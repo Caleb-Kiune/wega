@@ -275,16 +275,76 @@ export const productsApi = {
     return data;
   },
 
+  checkSkuUnique: async (sku: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/products/check-sku?sku=${sku}`);
+      if (response.ok) {
+        const data = await response.json();
+        return data.is_unique;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking SKU uniqueness:', error);
+      return false;
+    }
+  },
+
+  generateUniqueSku: async (): Promise<string> => {
+    try {
+      // Generate a random SKU with format: WG-XX-XXXX-XXX
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const numbers = '0123456789';
+      
+      const generateSku = () => {
+        const prefix = 'WG';
+        const middle = Array.from({length: 2}, () => letters[Math.floor(Math.random() * letters.length)]).join('');
+        const firstNum = Array.from({length: 4}, () => numbers[Math.floor(Math.random() * numbers.length)]).join('');
+        const suffix = Array.from({length: 3}, () => letters[Math.floor(Math.random() * letters.length)]).join('');
+        return `${prefix}-${middle}-${firstNum}-${suffix}`;
+      };
+
+      // Try up to 10 times to find a unique SKU
+      for (let i = 0; i < 10; i++) {
+        const sku = generateSku();
+        
+        // Check if SKU exists using the dedicated endpoint
+        const response = await fetch(`${API_BASE_URL}/products/check-sku?sku=${sku}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.is_unique) {
+            return sku; // SKU is unique
+          }
+        }
+      }
+      
+      // Fallback: use timestamp-based SKU
+      const timestamp = Date.now().toString().slice(-6);
+      return `WG-TS-${timestamp}-${Array.from({length: 3}, () => letters[Math.floor(Math.random() * letters.length)]).join('')}`;
+    } catch (error) {
+      console.error('Error generating SKU:', error);
+      // Final fallback
+      const timestamp = Date.now().toString().slice(-6);
+      return `WG-FB-${timestamp}`;
+    }
+  },
+
   create: async (product: Omit<Product, 'id'>): Promise<Product> => {
     try {
       console.log('Creating product with data:', product);
+      
+      // If no SKU is provided, generate a unique one
+      let productData = { ...product };
+      if (!productData.sku || productData.sku.trim() === '') {
+        productData.sku = await productsApi.generateUniqueSku();
+        console.log('Generated unique SKU:', productData.sku);
+      }
       
       const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(product),
+        body: JSON.stringify(productData),
       });
       
       console.log('Create response status:', response.status);
@@ -296,6 +356,12 @@ export const productsApi = {
           statusText: response.statusText,
           error: errorData
         });
+        
+        // Handle SKU conflict specifically
+        if (response.status === 400 && errorData.error && errorData.error.includes('UNIQUE constraint failed: products.sku')) {
+          throw new Error('SKU already exists. Please use a different SKU or leave it empty to auto-generate.');
+        }
+        
         throw new Error(errorData.error || `Failed to create product: ${response.status} ${response.statusText}`);
       }
       
