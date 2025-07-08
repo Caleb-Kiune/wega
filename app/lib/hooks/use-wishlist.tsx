@@ -1,9 +1,21 @@
 "use client"
 
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+
+type WishlistItem = {
+  id: string
+  name: string
+  price: number
+  image: string
+  category: string
+}
 
 interface WishlistContextType {
-  items: any[]
+  items: WishlistItem[]
+  addItem: (item: WishlistItem) => void
+  removeItem: (id: string) => void
+  isInWishlist: (id: string) => boolean
+  clearWishlist: () => void
 }
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined)
@@ -21,10 +33,48 @@ interface WishlistProviderProps {
 }
 
 export const WishlistProvider: React.FC<WishlistProviderProps> = ({ children }) => {
-  const [items] = useState<any[]>([])
+  const [items, setItems] = useState<WishlistItem[]>([])
+
+  // Load wishlist from localStorage on mount
+  useEffect(() => {
+    const savedWishlist = localStorage.getItem("wishlist")
+    if (savedWishlist) {
+      setItems(JSON.parse(savedWishlist))
+    }
+  }, [])
+
+  // Save wishlist to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("wishlist", JSON.stringify(items))
+  }, [items])
+
+  const addItem = (item: WishlistItem) => {
+    setItems((prev) => {
+      if (!prev.find((i) => i.id === item.id)) {
+        return [...prev, item]
+      }
+      return prev
+    })
+  }
+
+  const removeItem = (id: string) => {
+    setItems((prev) => prev.filter((item) => item.id !== id))
+  }
+
+  const isInWishlist = (id: string) => {
+    return items.some((item) => item.id === id)
+  }
+
+  const clearWishlist = () => {
+    setItems([])
+  }
 
   const value: WishlistContextType = {
-    items
+    items,
+    addItem,
+    removeItem,
+    isInWishlist,
+    clearWishlist
   }
 
   return (

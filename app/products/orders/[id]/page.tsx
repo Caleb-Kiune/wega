@@ -1,15 +1,14 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft, CheckCircle, Package, Truck, CreditCard, XCircle } from "lucide-react"
+import { useParams } from "next/navigation"
+import { ArrowLeft, Package, Truck, CheckCircle, XCircle, CreditCard } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/lib/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getImageUrl } from "@/lib/products"
+import { useToast } from "@/lib/hooks/use-toast"
+import { API_BASE_URL } from "@/lib/config"
 
 interface OrderItem {
   id: number
@@ -53,14 +52,15 @@ export default function OrderDetailsPage() {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://wega-backend.onrender.com/api'
-        const response = await fetch(`${apiUrl}/orders/${id}`)
+        console.log('Fetching order from:', `${API_BASE_URL}/orders/${id}`)
+        const response = await fetch(`${API_BASE_URL}/orders/${id}`)
         
         if (!response.ok) {
           throw new Error('Failed to fetch order details')
         }
 
         const data = await response.json()
+        console.log('Order data received:', data)
         setOrder(data)
       } catch (error) {
         console.error('Error fetching order:', error)
@@ -247,7 +247,7 @@ export default function OrderDetailsPage() {
                   <div key={item.id} className="flex items-center gap-4">
                     <div className="relative h-16 w-16 rounded-md overflow-hidden">
                       <Image
-                        src={getImageUrl(item.product.image_url)}
+                        src={item.product.image_url}
                         alt={item.product.name}
                         fill
                         className="object-cover"

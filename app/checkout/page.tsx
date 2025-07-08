@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { ArrowLeft, Truck, ShieldCheck, Copy, Check, AlertCircle, Lock, CreditCard, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,11 +15,18 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useCart } from "@/lib/hooks/use-cart"
 import { useToast } from "@/lib/hooks/use-toast"
-import { deliveryLocationsApi, DeliveryLocation } from "@/lib/cart"
+import { ordersApi, CreateOrderRequest } from "@/lib/orders"
+import { getSessionId } from "@/lib/session"
 
 export default function CheckoutPage() {
-  const { cart } = useCart()
+  const { items, clearCart } = useCart()
   const { toast } = useToast()
+  const router = useRouter()
+  
+  // Add debugging
+  console.log('Checkout page - Cart items:', items)
+  console.log('Checkout page - Items length:', items?.length)
+  
   const [paymentMethod, setPaymentMethod] = useState("mpesa")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [copiedField, setCopiedField] = useState<string | null>(null)
@@ -31,57 +39,24 @@ export default function CheckoutPage() {
   })
   const [showCvv, setShowCvv] = useState(false)
   const [cardType, setCardType] = useState<string | null>(null)
-  const [locations, setLocations] = useState<DeliveryLocation[]>([])
-  const [selectedLocation, setSelectedLocation] = useState<DeliveryLocation | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [selectedLocation, setSelectedLocation] = useState<string>("")
 
   // Load selected location from localStorage on mount
   useEffect(() => {
     const savedLocationSlug = localStorage.getItem('selectedDeliveryLocation')
     if (savedLocationSlug) {
-      // Find the location object from the locations array
-      const location = locations.find(loc => loc.slug === savedLocationSlug)
-      if (location) {
-        setSelectedLocation(location)
-      }
+      setSelectedLocation(savedLocationSlug)
     }
-  }, [locations]) // Add locations as a dependency
-
-  // Fetch locations
-  useEffect(() => {
-    const fetchLocations = async () => {
-      try {
-        setLoading(true)
-        const locationsData = await deliveryLocationsApi.getAll()
-        setLocations(locationsData)
-        
-        // After fetching locations, check if we have a saved location
-        const savedLocationSlug = localStorage.getItem('selectedDeliveryLocation')
-        if (savedLocationSlug) {
-          const location = locationsData.find(loc => loc.slug === savedLocationSlug)
-          if (location) {
-            setSelectedLocation(location)
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching locations:', error)
-        toast({
-          title: "Error",
-          description: "Failed to load delivery locations. Please try again.",
-          variant: "destructive",
-        })
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchLocations()
-  }, [toast])
+  }, [])
 
   // Calculate totals
-  const subtotal = cart?.items?.reduce((total, item) => total + (item.product.price * item.quantity), 0) || 0
-  const shipping = selectedLocation ? selectedLocation.shippingPrice : 0
+  const subtotal = items?.reduce((total, item) => total + (item.price * item.quantity), 0) || 0
+  const shipping = selectedLocation ? 500 : 0 // Fixed shipping cost for now
   const total = subtotal + shipping
+
+  console.log('Checkout page - Subtotal:', subtotal)
+  console.log('Checkout page - Shipping:', shipping)
+  console.log('Checkout page - Total:', total)
 
   const copyToClipboard = (text: string, field: string) => {
     navigator.clipboard.writeText(text)
@@ -184,105 +159,66 @@ export default function CheckoutPage() {
       return
     }
 
-    const orderData = {
-      session_id: cart?.session_id,
-      first_name: formData.get('firstName') as string,
-      last_name: formData.get('lastName') as string,
-      email: formData.get('email') as string,
-      phone: formData.get('phone') as string,
-      address: formData.get('address') as string,
-      city: formData.get('city') as string,
-      state: formData.get('county') as string,
-      postal_code: formData.get('postalCode') as string,
-      delivery_location_id: selectedLocation.id,
-      payment_method: paymentMethod,
-      notes: formData.get('notes') as string || undefined
-    }
-
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://wega-backend.onrender.com/api';
-      console.log('API URL:', `${apiUrl}/orders`)
-      console.log('Order data:', orderData)
-      console.log('Cart session ID:', cart?.session_id)
-      console.log('Cart items count:', cart?.items?.length)
-      console.log('Selected location:', selectedLocation)
+      // Get session ID for cart
+      const sessionId = getSessionId()
+      console.log('Using session ID:', sessionId)
 
-      if (!cart?.session_id) {
-        throw new Error('Cart session ID is missing')
+      // Map location string to ID (for now, use a simple mapping)
+      const locationIdMap: { [key: string]: number } = {
+        'nairobi': 1,
+        'mombasa': 2,
+        'kisumu': 3,
+        'nakuru': 4,
+        'eldoret': 5
+      }
+      const deliveryLocationId = locationIdMap[selectedLocation] || 1
+
+      const orderData: CreateOrderRequest = {
+        session_id: sessionId,
+        first_name: formData.get('firstName') as string,
+        last_name: formData.get('lastName') as string,
+        email: formData.get('email') as string,
+        phone: formData.get('phone') as string,
+        address: formData.get('address') as string,
+        city: formData.get('city') as string,
+        state: formData.get('county') as string,
+        postal_code: formData.get('postalCode') as string,
+        delivery_location_id: deliveryLocationId,
+        notes: formData.get('notes') as string || undefined,
+        cart_items: items.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity,
+          price: item.price
+        }))
       }
 
-      if (!cart?.items || cart.items.length === 0) {
-        throw new Error('Cart is empty')
-      }
+      console.log('Submitting order to backend:', orderData)
 
-      // Test backend connectivity first
-      try {
-        const baseUrl = apiUrl.replace('/api', '') // Remove /api to get the root URL
-        const healthCheck = await fetch(`${baseUrl}/`, { 
-          method: 'GET',
-          headers: { 'Accept': 'application/json' }
-        })
-        console.log('Backend health check status:', healthCheck.status)
-        if (!healthCheck.ok) {
-          throw new Error(`Backend is not responding properly: ${healthCheck.status}`)
-        }
-      } catch (healthError) {
-        console.error('Backend connectivity test failed:', healthError)
-        throw new Error('Cannot connect to backend server. Please ensure the backend is running.')
-      }
+      // Submit order to backend
+      const order = await ordersApi.create(orderData)
+      
+      console.log('Order created successfully:', order)
 
-      const response = await fetch(`${apiUrl}/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Origin': window.location.origin
-        },
-        credentials: 'include',
-        body: JSON.stringify(orderData),
+      toast({
+        title: "Order Submitted!",
+        description: `Order #${order.order_number} has been submitted successfully. We'll contact you shortly.`,
       })
 
-      console.log('Response status:', response.status)
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()))
-
-      if (!response.ok) {
-        let errorData: { error?: string; message?: string } = {}
-        try {
-          const responseText = await response.text()
-          console.log('Response text:', responseText)
-          errorData = responseText ? JSON.parse(responseText) : {}
-        } catch (parseError) {
-          console.error('Failed to parse error response:', parseError)
-          errorData = { error: 'Invalid response from server' }
-        }
-        
-        console.error('Error response:', errorData)
-        console.error('Response status:', response.status)
-        console.error('Response status text:', response.statusText)
-        
-        const errorMessage = errorData.error || 
-                           errorData.message || 
-                           `Server error: ${response.status} ${response.statusText}` ||
-                           'Failed to create order'
-        
-        throw new Error(errorMessage)
-      }
-
-      const order = await response.json()
-      console.log('Order created:', order)
+      // Clear cart after successful order
+      clearCart()
+      
+      // Redirect to order confirmation page
+      router.push(`/products/orders/${order.id}`)
+      
+    } catch (error) {
+      console.error('Error submitting order:', error)
+      
+      const errorMessage = error instanceof Error ? error.message : 'Failed to submit order'
       
       toast({
-        title: "Order placed successfully!",
-        description: "Thank you for your purchase. We'll process your order shortly.",
-      })
-
-      // Redirect to order confirmation page
-      window.location.href = `/products/orders/${order.id}`
-    } catch (error) {
-      console.error('Error creating order:', error)
-      toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to place order. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
@@ -290,7 +226,7 @@ export default function CheckoutPage() {
     }
   }
 
-  if (!cart?.items || cart.items.length === 0) {
+  if (!items || items.length === 0) {
     return (
       <div className="bg-gray-50 min-h-screen py-8 px-4">
         <div className="container mx-auto max-w-7xl">
@@ -613,16 +549,16 @@ export default function CheckoutPage() {
                   <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 sm:mb-6">Order Summary</h2>
 
                   <div className="space-y-4 mb-4 sm:mb-6">
-                    {cart.items.map((item) => (
+                    {items.map((item) => (
                       <div key={item.id} className="flex items-center">
                         <div className="relative h-12 w-12 sm:h-16 sm:w-16 rounded-md overflow-hidden mr-3 sm:mr-4">
-                          <Image src={item.product.image || "/placeholder.svg"} alt={item.product.name} fill className="object-cover" loading="lazy" />
+                          <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover" loading="lazy" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-medium text-gray-800 truncate">{item.product.name}</h3>
+                          <h3 className="text-sm font-medium text-gray-800 truncate">{item.name}</h3>
                           <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                         </div>
-                        <div className="text-sm font-medium text-gray-800">KES {(item.product.price * item.quantity).toLocaleString()}</div>
+                        <div className="text-sm font-medium text-gray-800">KES {(item.price * item.quantity).toLocaleString()}</div>
                       </div>
                     ))}
                   </div>
@@ -640,7 +576,7 @@ export default function CheckoutPage() {
                     </div>
                     {selectedLocation && (
                       <div className="text-sm text-gray-600">
-                        Delivery to: {selectedLocation.name}
+                        Delivery to: {selectedLocation}
                       </div>
                     )}
                     <div className="border-t pt-3 sm:pt-4 flex justify-between">

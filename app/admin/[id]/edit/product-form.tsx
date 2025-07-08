@@ -143,10 +143,10 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
     const fetchBrandsAndCategories = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://wega-backend.onrender.com/api';
+        const { API_BASE_URL } = await import('@/lib/config');
         const [brandsResponse, categoriesResponse] = await Promise.all([
-          fetch(`${apiUrl}/brands`),
-          fetch(`${apiUrl}/categories`)
+          fetch(`${API_BASE_URL}/brands`),
+          fetch(`${API_BASE_URL}/categories`)
         ]);
         
         if (brandsResponse.ok) {

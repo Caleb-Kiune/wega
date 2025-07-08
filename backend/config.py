@@ -52,7 +52,7 @@ class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
-    BASE_URL = os.environ.get('BASE_URL', 'https://your-domain.com')
+    BASE_URL = os.environ.get('BASE_URL', 'https://wega-backend.onrender.com')
     
     # Production CORS settings
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(',')

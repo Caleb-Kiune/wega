@@ -374,8 +374,8 @@ function CreateProductPage() {
       formData.append('file', file);
 
       // Use Flask backend for uploads
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://wega-backend.onrender.com/api';
-      const response = await fetch(`${apiUrl}/upload`, {
+      const { API_BASE_URL } = await import('@/lib/config');
+      const response = await fetch(`${API_BASE_URL}/upload`, {
         method: 'POST',
         body: formData,
       });

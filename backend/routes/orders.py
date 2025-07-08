@@ -24,15 +24,39 @@ def create_order():
     if not delivery_location:
         return jsonify({'error': 'Invalid delivery location'}), 400
     
-    # Get cart
-    cart = Cart.query.filter_by(session_id=data['session_id']).first()
-    if not cart or not cart.items:
-        return jsonify({'error': 'Cart is empty'}), 400
+    # Get cart items - either from database cart or from request body
+    cart_items = []
+    
+    if data.get('cart_items'):
+        # Use cart items from request body (for localStorage carts)
+        cart_items = data['cart_items']
+        if not cart_items:
+            return jsonify({'error': 'Cart is empty'}), 400
+    else:
+        # Try to get cart from database
+        cart = Cart.query.filter_by(session_id=data['session_id']).first()
+        if not cart or not cart.items:
+            return jsonify({'error': 'Cart is empty'}), 400
+        cart_items = cart.items
     
     try:
         # Calculate totals
-        subtotal = sum(item.product.price * item.quantity for item in cart.items)
-        shipping_cost = delivery_location.shipping_price
+        subtotal = 0
+        if data.get('cart_items'):
+            # Calculate from cart items in request
+            for item in cart_items:
+                product = Product.query.get(item['product_id'])
+                if not product:
+                    return jsonify({'error': f'Product with ID {item["product_id"]} not found'}), 400
+                # Convert to float for consistent arithmetic
+                product_price = float(product.price) if product.price else 0.0
+                item_quantity = int(item['quantity']) if item['quantity'] else 0
+                subtotal += product_price * item_quantity
+        else:
+            # Calculate from database cart
+            subtotal = sum(float(item.product.price) * item.quantity for item in cart_items)
+        
+        shipping_cost = float(delivery_location.shipping_price) if delivery_location.shipping_price else 0.0
         total_amount = subtotal + shipping_cost
         
         # Generate order number
@@ -60,17 +84,33 @@ def create_order():
         db.session.flush()  # Get the order ID
         
         # Create order items
-        for cart_item in cart.items:
-            order_item = OrderItem(
-                order_id=order.id,
-                product_id=cart_item.product_id,
-                quantity=cart_item.quantity,
-                price=cart_item.product.price
-            )
-            db.session.add(order_item)
+        if data.get('cart_items'):
+            # Create from cart items in request
+            for item in cart_items:
+                product = Product.query.get(item['product_id'])
+                if not product:
+                    return jsonify({'error': f'Product with ID {item["product_id"]} not found'}), 400
+                order_item = OrderItem(
+                    order_id=order.id,
+                    product_id=item['product_id'],
+                    quantity=int(item['quantity']),
+                    price=float(product.price) if product.price else 0.0
+                )
+                db.session.add(order_item)
+        else:
+            # Create from database cart
+            for cart_item in cart_items:
+                order_item = OrderItem(
+                    order_id=order.id,
+                    product_id=cart_item.product_id,
+                    quantity=cart_item.quantity,
+                    price=float(cart_item.product.price) if cart_item.product.price else 0.0
+                )
+                db.session.add(order_item)
         
-        # Clear the cart
-        db.session.delete(cart)
+        # Clear the cart if it exists in database
+        if not data.get('cart_items') and cart:
+            db.session.delete(cart)
         
         db.session.commit()
         
@@ -88,7 +128,10 @@ def get_orders():
     per_page = request.args.get('per_page', 10, type=int)
     email = request.args.get('email', '')
     status = request.args.get('status', '')
-    order_number = request.args.get('order_number', '')
+    payment_status = request.args.get('payment_status', '')
+    search = request.args.get('search', '')
+    sort_by = request.args.get('sort_by', 'created_at')
+    sort_order = request.args.get('sort_order', 'desc')
     
     # Build query
     query = Order.query
@@ -100,25 +143,50 @@ def get_orders():
     if status:
         query = query.filter(Order.status == status)
     
-    if order_number:
-        query = query.filter(Order.order_number.ilike(f"%{order_number}%"))
+    if payment_status:
+        query = query.filter(Order.payment_status == payment_status)
     
-    # Order by creation date (newest first)
-    query = query.order_by(Order.created_at.desc())
+    if search:
+        # Search in order number, customer name, and email
+        search_filter = f"%{search}%"
+        query = query.filter(
+            db.or_(
+                Order.order_number.ilike(search_filter),
+                Order.first_name.ilike(search_filter),
+                Order.last_name.ilike(search_filter),
+                Order.email.ilike(search_filter)
+            )
+        )
+    
+    # Apply sorting
+    if sort_by == 'created_at':
+        if sort_order == 'asc':
+            query = query.order_by(Order.created_at.asc())
+        else:
+            query = query.order_by(Order.created_at.desc())
+    elif sort_by == 'total_amount':
+        if sort_order == 'asc':
+            query = query.order_by(Order.total_amount.asc())
+        else:
+            query = query.order_by(Order.total_amount.desc())
+    elif sort_by == 'status':
+        if sort_order == 'asc':
+            query = query.order_by(Order.status.asc())
+        else:
+            query = query.order_by(Order.status.desc())
+    else:
+        # Default sorting by creation date (newest first)
+        query = query.order_by(Order.created_at.desc())
     
     # Paginate results
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     
     return jsonify({
         'orders': [order.to_dict() for order in pagination.items],
-        'pagination': {
-            'page': page,
-            'per_page': per_page,
-            'total': pagination.total,
-            'pages': pagination.pages,
-            'has_next': pagination.has_next,
-            'has_prev': pagination.has_prev
-        }
+        'total': pagination.total,
+        'pages': pagination.pages,
+        'current_page': page,
+        'per_page': per_page
     })
 
 @orders_bp.route('/api/orders/<int:id>', methods=['GET'])

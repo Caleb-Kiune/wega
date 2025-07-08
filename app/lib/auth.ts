@@ -1,6 +1,5 @@
 import { toast } from 'sonner';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://wega-backend.onrender.com/api';
+import { API_BASE_URL } from './config';
 
 export interface AdminUser {
   id: number;
@@ -41,6 +40,7 @@ export class AuthAPI {
 
   constructor() {
     this.baseURL = API_BASE_URL;
+    console.log('AuthAPI initialized with URL:', this.baseURL);
   }
 
   private async request<T>(
@@ -48,6 +48,7 @@ export class AuthAPI {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
+    console.log('Making request to:', url);
     
     const config: RequestInit = {
       headers: {

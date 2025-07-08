@@ -5,15 +5,24 @@ export const getImageUrl = (path: string) => {
   if (!path) return "/placeholder.svg";
   if (path.startsWith("http")) return path;
   
-  // Get the base URL from environment variable, fallback to production
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://wega-backend.onrender.com';
-  const apiBaseUrl = baseUrl.replace('/api', ''); // Remove /api to get the root URL
+  // Use the same base URL logic as config.ts
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+  
+  let baseUrl: string;
+  if (isDevelopment && isLocalhost) {
+    baseUrl = 'http://localhost:5000';
+  } else if (process.env.NEXT_PUBLIC_API_URL) {
+    baseUrl = process.env.NEXT_PUBLIC_API_URL.replace('/api', '');
+  } else {
+    baseUrl = 'https://wega-backend.onrender.com';
+  }
   
   // If the path is just a filename, assume it's in the uploads directory
   if (!path.includes("/")) {
-    return `${apiBaseUrl}/static/uploads/${path}`;
+    return `${baseUrl}/static/uploads/${path}`;
   }
-  return `${apiBaseUrl}${path}`;
+  return `${baseUrl}${path}`;
 };
 
 // Helper function to transform image URL back to relative path
