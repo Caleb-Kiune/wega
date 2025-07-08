@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
-import { Menu, ShoppingCart, Heart, Phone, Package, User, Facebook, Instagram, Twitter, Home, ShoppingBag, Search, X, LogOut, Settings, Info, Mail } from "lucide-react"
+import { Menu, ShoppingCart, Heart, Phone, Package, User, Facebook, Instagram, Twitter, Home, ShoppingBag, Search, X, LogOut, Settings, Info, Mail, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
@@ -16,11 +16,46 @@ import { cn } from "@/lib/utils"
 import { productsApi } from "@/lib/products"
 import { Product } from "@/lib/types"
 import { useDebounce } from "use-debounce"
+import { getImageUrl } from "@/lib/products"
+import { useSearchAnalytics } from "./search-analytics"
 
 interface Category {
   name: string;
   href: string;
 }
+
+// Enhanced search function with ranking
+const searchProducts = (products: Product[], query: string): Product[] => {
+  if (!query.trim()) return [];
+  
+  const searchTerm = query.toLowerCase();
+  
+  return products
+    .map(product => {
+      let score = 0;
+      const name = product.name.toLowerCase();
+      const description = product.description?.toLowerCase() || '';
+      const sku = product.sku?.toLowerCase() || '';
+      
+      // Exact name match (highest priority)
+      if (name === searchTerm) score += 100;
+      // Name starts with search term
+      else if (name.startsWith(searchTerm)) score += 50;
+      // Name contains search term
+      else if (name.includes(searchTerm)) score += 30;
+      // SKU exact match
+      else if (sku === searchTerm) score += 40;
+      // SKU contains search term
+      else if (sku.includes(searchTerm)) score += 20;
+      // Description contains search term
+      else if (description.includes(searchTerm)) score += 10;
+      
+      return { product, score };
+    })
+    .filter(item => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map(item => item.product);
+};
 
 export default function Header() {
   const pathname = usePathname()
@@ -28,10 +63,17 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [debouncedSearchQuery] = useDebounce(searchQuery, 300)
+  const [debouncedSearchQuery] = useDebounce(searchQuery, 150) // Reduced from 300ms
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { cartCount } = useCart()
   const { items: wishlistItems } = useWishlist()
+  const { trackSearch } = useSearchAnalytics()
+  
+  // Enhanced search state
+  const [searchResults, setSearchResults] = useState<Product[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [showResults, setShowResults] = useState(false)
+  const [allProducts, setAllProducts] = useState<Product[]>([])
 
   // Handle scroll effect - shrink header after 100px
   useEffect(() => {
@@ -41,6 +83,48 @@ export default function Header() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  // Load all products for client-side search
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const response = await productsApi.getAll({ limit: 200 }); // Load more products for better search
+        setAllProducts(response.products);
+      } catch (error) {
+        console.error('Error loading products for search:', error);
+      }
+    };
+    
+    loadProducts();
+  }, []);
+
+  // Real-time search with enhanced logic
+  useEffect(() => {
+    if (debouncedSearchQuery.trim().length < 2) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+    
+    const performSearch = async () => {
+      setIsSearching(true);
+      try {
+        // Use client-side search for better performance
+        const results = searchProducts(allProducts, debouncedSearchQuery);
+        setSearchResults(results.slice(0, 5)); // Show top 5 results
+        setShowResults(true);
+        
+        // Track search analytics
+        trackSearch(debouncedSearchQuery, results.length);
+      } catch (error) {
+        console.error('Search error:', error);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+    
+    performSearch();
+  }, [debouncedSearchQuery, allProducts]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -57,10 +141,12 @@ export default function Header() {
       }
       setIsSearchOpen(false);
       setSearchQuery('');
+      setShowResults(false);
       setIsMobileMenuOpen(false); // Close mobile menu after search
     } else {
       router.push('/products', { scroll: false });
       setIsSearchOpen(false);
+      setShowResults(false);
       setIsMobileMenuOpen(false); // Close mobile menu after search
     }
   }
@@ -68,6 +154,29 @@ export default function Header() {
   const handleNavigationClick = () => {
     setIsMobileMenuOpen(false); // Close mobile menu when navigation item is clicked
   }
+
+  const handleSearchResultClick = () => {
+    setShowResults(false);
+    setSearchQuery('');
+  };
+
+  // Close search results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.search-container')) {
+        setShowResults(false);
+      }
+    };
+
+    if (showResults) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showResults]);
 
   const categories: Category[] = [
     { name: "Cookware", href: "/products?category=cookware" },
@@ -189,27 +298,77 @@ export default function Header() {
               </Link>
             </div>
 
-            {/* Search Bar (Desktop) - Separate rounded input and button */}
+            {/* Enhanced Search Bar (Desktop) - with real-time results */}
             <div className="hidden md:flex flex-1 max-w-md mx-8 items-center">
-              <form onSubmit={handleSearch} className="relative w-full">
-                <div className="flex items-center gap-2 w-full">
-                  <Input
-                    type="text"
-                    placeholder="Search products..."
-                    className="rounded-full border border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus-visible:ring-2 focus-visible:ring-green-400 px-5 py-2 w-full"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    aria-label="Search for products"
-                  />
-                  <Button
-                    type="submit"
-                    className="bg-green-600 hover:bg-green-700 text-white rounded-full px-4 py-2 flex items-center justify-center border-0 focus-visible:ring-2 focus-visible:ring-green-400"
-                    aria-label="Search products"
-                  >
-                    <Search className="h-6 w-6" />
-                  </Button>
-                </div>
-              </form>
+              <div className="relative w-full search-container">
+                <form onSubmit={handleSearch} className="relative">
+                  <div className="flex items-center gap-2 w-full">
+                    <Input
+                      type="text"
+                      placeholder="Search products..."
+                      className="rounded-full border border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus-visible:ring-2 focus-visible:ring-green-400 px-5 py-2 w-full"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onFocus={() => searchQuery.trim().length >= 2 && setShowResults(true)}
+                      aria-label="Search for products"
+                    />
+                    <Button
+                      type="submit"
+                      className="bg-green-600 hover:bg-green-700 text-white rounded-full px-4 py-2 flex items-center justify-center border-0 focus-visible:ring-2 focus-visible:ring-green-400"
+                      aria-label="Search products"
+                    >
+                      <Search className="h-6 w-6" />
+                    </Button>
+                  </div>
+                </form>
+                
+                {/* Real-time search results dropdown */}
+                {showResults && (
+                  <div className="absolute top-full left-0 right-0 bg-white border rounded-lg shadow-lg z-50 mt-1 max-h-64 overflow-y-auto">
+                    {isSearching ? (
+                      <div className="p-4 text-center flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Searching...</span>
+                      </div>
+                    ) : searchResults.length > 0 ? (
+                      <div>
+                        {searchResults.map(product => (
+                          <Link
+                            key={product.id}
+                            href={`/products/${product.id}`}
+                            className="flex items-center p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                            onClick={handleSearchResultClick}
+                          >
+                            <img 
+                              src={getImageUrl(product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url) || "/placeholder.svg"} 
+                              alt={product.name}
+                              className="w-10 h-10 object-cover rounded mr-3"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm truncate">{product.name}</div>
+                              <div className="text-xs text-gray-500">KES {product.price.toLocaleString()}</div>
+                            </div>
+                          </Link>
+                        ))}
+                        <div className="p-2 text-center">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleSearch}
+                            className="w-full text-xs"
+                          >
+                            View all results
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 text-center text-gray-500">
+                        No products found
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Right side icons - Mobile Optimized */}
@@ -344,27 +503,77 @@ export default function Header() {
                       <span className="ml-2 text-lg font-semibold text-gray-800">WEGA</span>
                     </div>
                   </div>
-                  {/* Mobile Search in Drawer */}
+                  {/* Enhanced Mobile Search in Drawer */}
                   <div className="mb-6">
-                    <form onSubmit={handleSearch} className="relative">
-                      <div className="flex items-center gap-2 w-full">
-                        <Input
-                          type="text"
-                          placeholder="Search products..."
-                          className="rounded-full border border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus-visible:ring-2 focus-visible:ring-green-400 px-5 py-2 w-full"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          aria-label="Search for products"
-                        />
-                        <Button
-                          type="submit"
-                          className="bg-green-600 hover:bg-green-700 text-white rounded-full px-4 py-2 flex items-center justify-center border-0 focus-visible:ring-2 focus-visible:ring-green-400"
-                          aria-label="Search products"
-                        >
-                          <Search className="h-6 w-6" />
-                        </Button>
-                      </div>
-                    </form>
+                    <div className="relative search-container">
+                      <form onSubmit={handleSearch} className="relative">
+                        <div className="flex items-center gap-2 w-full">
+                          <Input
+                            type="text"
+                            placeholder="Search products..."
+                            className="rounded-full border border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus-visible:ring-2 focus-visible:ring-green-400 px-5 py-2 w-full"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onFocus={() => searchQuery.trim().length >= 2 && setShowResults(true)}
+                            aria-label="Search for products"
+                          />
+                          <Button
+                            type="submit"
+                            className="bg-green-600 hover:bg-green-700 text-white rounded-full px-4 py-2 flex items-center justify-center border-0 focus-visible:ring-2 focus-visible:ring-green-400"
+                            aria-label="Search products"
+                          >
+                            <Search className="h-6 w-6" />
+                          </Button>
+                        </div>
+                      </form>
+                      
+                      {/* Mobile search results dropdown */}
+                      {showResults && (
+                        <div className="absolute top-full left-0 right-0 bg-white border rounded-lg shadow-lg z-50 mt-1 max-h-48 overflow-y-auto">
+                          {isSearching ? (
+                            <div className="p-3 text-center flex items-center justify-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <span className="text-sm">Searching...</span>
+                            </div>
+                          ) : searchResults.length > 0 ? (
+                            <div>
+                              {searchResults.map(product => (
+                                <Link
+                                  key={product.id}
+                                  href={`/products/${product.id}`}
+                                  className="flex items-center p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                                  onClick={handleSearchResultClick}
+                                >
+                                  <img 
+                                    src={getImageUrl(product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url) || "/placeholder.svg"} 
+                                    alt={product.name}
+                                    className="w-8 h-8 object-cover rounded mr-3"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-sm truncate">{product.name}</div>
+                                    <div className="text-xs text-gray-500">KES {product.price.toLocaleString()}</div>
+                                  </div>
+                                </Link>
+                              ))}
+                              <div className="p-2 text-center">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={handleSearch}
+                                  className="w-full text-xs"
+                                >
+                                  View all results
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="p-3 text-center text-gray-500 text-sm">
+                              No products found
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   {/* Mobile Navigation */}
                   <div className="flex flex-col space-y-6">
@@ -432,29 +641,79 @@ export default function Header() {
               </Sheet>
             </div>
           </div>
-          {/* Mobile Search Bar (Conditional) */}
+          {/* Enhanced Mobile Search Bar (Conditional) */}
           {isSearchOpen && (
             <div className="md:hidden pb-4 mt-4">
-              <form onSubmit={handleSearch} className="relative w-full">
-                <div className="flex items-center gap-2 w-full">
-                  <Input
-                    type="text"
-                    placeholder="Search products..."
-                    className="rounded-full border border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus-visible:ring-2 focus-visible:ring-green-400 px-4 py-3 w-full text-base"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    autoFocus
-                    aria-label="Search for products"
-                  />
-                  <Button
-                    type="submit"
-                    className="bg-green-600 hover:bg-green-700 text-white rounded-full px-4 py-3 flex items-center justify-center border-0 focus-visible:ring-2 focus-visible:ring-green-400 min-h-[44px] min-w-[44px]"
-                    aria-label="Search products"
-                  >
-                    <Search className="h-5 w-5" />
-                  </Button>
-                </div>
-              </form>
+              <div className="relative w-full search-container">
+                <form onSubmit={handleSearch} className="relative">
+                  <div className="flex items-center gap-2 w-full">
+                    <Input
+                      type="text"
+                      placeholder="Search products..."
+                      className="rounded-full border border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus-visible:ring-2 focus-visible:ring-green-400 px-4 py-3 w-full text-base"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onFocus={() => searchQuery.trim().length >= 2 && setShowResults(true)}
+                      autoFocus
+                      aria-label="Search for products"
+                    />
+                    <Button
+                      type="submit"
+                      className="bg-green-600 hover:bg-green-700 text-white rounded-full px-4 py-3 flex items-center justify-center border-0 focus-visible:ring-2 focus-visible:ring-green-400 min-h-[44px] min-w-[44px]"
+                      aria-label="Search products"
+                    >
+                      <Search className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </form>
+                
+                {/* Mobile search results dropdown */}
+                {showResults && (
+                  <div className="absolute top-full left-0 right-0 bg-white border rounded-lg shadow-lg z-50 mt-1 max-h-48 overflow-y-auto">
+                    {isSearching ? (
+                      <div className="p-3 text-center flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-sm">Searching...</span>
+                      </div>
+                    ) : searchResults.length > 0 ? (
+                      <div>
+                        {searchResults.map(product => (
+                          <Link
+                            key={product.id}
+                            href={`/products/${product.id}`}
+                            className="flex items-center p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                            onClick={handleSearchResultClick}
+                          >
+                            <img 
+                              src={getImageUrl(product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url) || "/placeholder.svg"} 
+                              alt={product.name}
+                              className="w-8 h-8 object-cover rounded mr-3"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm truncate">{product.name}</div>
+                              <div className="text-xs text-gray-500">KES {product.price.toLocaleString()}</div>
+                            </div>
+                          </Link>
+                        ))}
+                        <div className="p-2 text-center">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleSearch}
+                            className="w-full text-xs"
+                          >
+                            View all results
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-3 text-center text-gray-500 text-sm">
+                        No products found
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

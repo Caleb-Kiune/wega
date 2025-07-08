@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app
-from sqlalchemy import or_, and_
+from sqlalchemy import or_, and_, case
 from decimal import Decimal
 from models import db, Product, Category, Brand, ProductImage, ProductSpecification, ProductFeature, Review
 from utils.helpers import validate_product_data, validate_review_data, validate_image_data, validate_specification_data, validate_feature_data, paginate, format_image_url
@@ -40,14 +40,36 @@ def get_products():
         joinedload(Product.reviews)
     )
     
-    # Apply filters
+    # Apply filters with enhanced search ranking
     if search:
         search_term = f"%{search}%"
+        exact_search = search.lower()
+        
+        # Use more sophisticated search with ranking
         query = query.filter(
             or_(
+                # Exact name matches (highest priority)
+                Product.name.ilike(exact_search),
+                # Name starts with search term
+                Product.name.ilike(f"{search}%"),
+                # Name contains search term
                 Product.name.ilike(search_term),
-                Product.description.ilike(search_term),
-                Product.sku.ilike(search_term)
+                # SKU exact match
+                Product.sku.ilike(exact_search),
+                # SKU contains search term
+                Product.sku.ilike(search_term),
+                # Description contains search term (lowest priority)
+                Product.description.ilike(search_term)
+            )
+        )
+        
+        # Order by relevance (exact matches first)
+        query = query.order_by(
+            case(
+                (Product.name.ilike(exact_search), 1),
+                (Product.name.ilike(f"{search}%"), 2),
+                (Product.sku.ilike(exact_search), 3),
+                else_=4
             )
         )
     
