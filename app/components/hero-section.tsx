@@ -191,14 +191,14 @@ export default function HeroSection() {
       {/* Play/Pause Button - Mobile Optimized */}
       <button
         onClick={togglePlayPause}
-        className="absolute top-4 right-4 sm:top-6 sm:right-6 bg-white/90 backdrop-blur-sm rounded-full p-2 sm:p-3 shadow-lg hover:bg-white transition-all duration-300 z-10 hover:scale-110 min-h-[44px] min-w-[44px] flex items-center justify-center"
+        className="absolute top-4 right-4 sm:top-6 sm:right-6 rounded-full p-1 sm:p-3 shadow-lg transition-all duration-300 z-10 hover:scale-110 min-h-[32px] min-w-[32px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center bg-transparent"
         aria-label={isPlaying ? "Pause slideshow" : "Play slideshow"}
         aria-live="polite"
       >
         {isPlaying ? (
-          <Pause className="h-4 w-4 sm:h-5 sm:w-5 text-gray-800" />
+          <Pause className="h-3 w-3 sm:h-5 sm:w-5 text-gray-800" />
         ) : (
-          <Play className="h-4 w-4 sm:h-5 sm:w-5 text-gray-800" />
+          <Play className="h-3 w-3 sm:h-5 sm:w-5 text-gray-800" />
         )}
       </button>
 
@@ -237,19 +237,18 @@ export default function HeroSection() {
           width: 48px;
           height: 48px;
           border-radius: 50%;
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(8px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          background: none !important;
+          backdrop-filter: none !important;
+          box-shadow: none !important;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           transition: all 0.3s ease;
         }
-        
         .swiper-button-prev:hover,
         .swiper-button-next:hover {
-          background: white;
+          background: none !important;
           transform: translateY(-50%) scale(1.1);
         }
         
