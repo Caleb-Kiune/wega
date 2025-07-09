@@ -27,7 +27,7 @@ export default function Home() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
-          <ProductGrid category="featured" />
+          <ProductCarousel category="featured" />
         </div>
       </section>
 
@@ -47,7 +47,7 @@ export default function Home() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
-          <ProductGrid category="new-arrivals" />
+          <ProductCarousel category="new-arrivals" />
         </div>
       </section>
 
@@ -67,7 +67,7 @@ export default function Home() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
-          <ProductGrid category="special-offers" />
+          <ProductCarousel category="special-offers" />
         </div>
       </section>
     </main>
