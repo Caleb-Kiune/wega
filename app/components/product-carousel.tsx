@@ -19,6 +19,7 @@ export default function ProductCarousel({ category, excludeProductId }: ProductC
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isHovered, setIsHovered] = useState(false);
 
   // Use shared carousel scroll handler
   const { isScrolling } = useCarouselScroll(carouselRef);
@@ -85,7 +86,7 @@ export default function ProductCarousel({ category, excludeProductId }: ProductC
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10) // 10px buffer
       
       // Calculate current slide based on scroll position
-      const slideWidth = 280 + 24 // card width + gap
+      const slideWidth = 300 + 16 // card width + gap
       const newCurrentSlide = Math.round(scrollLeft / slideWidth)
       setCurrentSlide(newCurrentSlide)
     }
@@ -111,7 +112,7 @@ export default function ProductCarousel({ category, excludeProductId }: ProductC
 
   const goToSlide = (slideIndex: number) => {
     if (carouselRef.current) {
-      const slideWidth = 280 + 24 // card width + gap
+      const slideWidth = 300 + 16 // card width + gap
       const scrollPosition = slideIndex * slideWidth
       carouselRef.current.scrollTo({ left: scrollPosition, behavior: "smooth" })
     }
@@ -127,7 +128,7 @@ export default function ProductCarousel({ category, excludeProductId }: ProductC
 
       if (carouselRef.current) {
         const { clientWidth } = carouselRef.current
-        const cardWidth = 280 + 24 // card width + gap
+        const cardWidth = 300 + 16 // card width + gap
         const cardsPerView = Math.max(1, Math.floor(clientWidth / cardWidth))
         const calculatedSlides = Math.ceil(products.length / cardsPerView)
         return Math.max(1, Math.min(calculatedSlides, 10)) // Ensure it's between 1 and 10
@@ -140,6 +141,26 @@ export default function ProductCarousel({ category, excludeProductId }: ProductC
       return 1 // Safe fallback
     }
   }
+
+  // Autoplay: scroll right-to-left every 3 seconds, pause on hover
+  useEffect(() => {
+    if (!carouselRef.current) return;
+    if (isHovered) return;
+
+    const interval = setInterval(() => {
+      const carousel = carouselRef.current;
+      if (!carousel) return;
+      const cardWidth = 300 + 16; // card width + gap
+      // If at end, scroll back to start
+      if (carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 1) {
+        carousel.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        carousel.scrollBy({ left: cardWidth, behavior: "smooth" });
+      }
+    }, 4000); // 4 seconds interval
+
+    return () => clearInterval(interval);
+  }, [isHovered, products]);
 
   if (loading) {
     return (
@@ -186,7 +207,7 @@ export default function ProductCarousel({ category, excludeProductId }: ProductC
       {canScrollLeft && (
         <button
           onClick={() => scroll("left")}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 focus:outline-none transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px]"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 rounded-full p-3 shadow-lg focus:outline-none transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px] bg-transparent"
           aria-label={`Scroll ${categoryLabel} left`}
         >
           <ChevronLeft className="h-6 w-6" />
@@ -195,30 +216,30 @@ export default function ProductCarousel({ category, excludeProductId }: ProductC
       {canScrollRight && (
         <button
           onClick={() => scroll("right")}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 focus:outline-none transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px]"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 rounded-full p-3 shadow-lg focus:outline-none transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px] bg-transparent"
           aria-label={`Scroll ${categoryLabel} right`}
         >
           <ChevronRight className="h-6 w-6" />
         </button>
       )}
 
-      {/* Desktop Carousel */}
+      {/* Responsive Carousel: visible on all screen sizes */}
       <div
         ref={carouselRef}
-        className="hidden md:flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4 will-change-transform"
+        className="flex gap-4 overflow-x-auto scroll-smooth pb-4 will-change-transform hide-scrollbar max-w-[1280px] mx-auto"
         style={{
           scrollSnapType: 'x mandatory',
           WebkitOverflowScrolling: 'touch',
           scrollBehavior: 'smooth',
-          overscrollBehavior: 'contain',
-          touchAction: 'pan-x',
           pointerEvents: 'auto'
         }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
         {products.map((product) => (
           <div 
             key={product.id} 
-            className="flex-none w-[280px]"
+            className="flex-none w-[180px] sm:w-[220px] md:w-[260px] lg:w-[300px] xl:w-[300px]"
             style={{ 
               scrollSnapAlign: 'start',
               scrollSnapStop: 'always',
@@ -230,51 +251,6 @@ export default function ProductCarousel({ category, excludeProductId }: ProductC
           </div>
         ))}
       </div>
-
-      {/* Mobile Stackable Grid */}
-      <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {products.slice(0, 4).map((product) => (
-          <div key={product.id}>
-            <ProductCard product={product} />
-          </div>
-        ))}
-      </div>
-
-      {/* Dot Indicators - Only show on desktop */}
-      {totalSlides > 1 && (
-        <div className="hidden md:flex justify-center mt-6 space-x-2">
-          {(() => {
-            try {
-              // Create array safely with additional validation
-              const safeLength = Math.max(1, Math.min(Math.floor(totalSlides), 10))
-              
-              // Final validation to ensure safeLength is a valid positive integer
-              if (!Number.isInteger(safeLength) || safeLength <= 0 || safeLength > 10) {
-                console.warn('Invalid safeLength for dot indicators:', safeLength)
-                return null
-              }
-              
-              return Array.from({ length: safeLength }, (_, index) => (
-                <button
-                  key={index}
-                  onClick={() => goToSlide(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center ${
-                    index === currentSlide 
-                      ? 'bg-green-600 scale-110' 
-                      : 'bg-gray-300 hover:bg-gray-400'
-                  }`}
-                  aria-label={`Go to slide ${index + 1} of ${totalSlides}`}
-                  aria-current={index === currentSlide ? "true" : "false"}
-                  style={{ willChange: 'transform, background-color' }}
-                />
-              ))
-            } catch (error) {
-              console.error('Error creating dot indicators:', error)
-              return null // Don't render dots if there's an error
-            }
-          })()}
-        </div>
-      )}
     </div>
   )
 }
