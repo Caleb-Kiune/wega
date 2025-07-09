@@ -13,7 +13,7 @@ export default function Home() {
 
       {/* Featured Products */}
       <section className="py-8 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="container mx-auto max-w-7xl">
+        <div className="container mx-auto max-w-7xl px-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 sm:mb-8">
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Featured Products</h2>
@@ -33,7 +33,7 @@ export default function Home() {
 
       {/* New Arrivals */}
       <section className="py-8 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="container mx-auto max-w-7xl">
+        <div className="container mx-auto max-w-7xl px-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 sm:mb-8">
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">New Arrivals</h2>
@@ -53,7 +53,7 @@ export default function Home() {
 
       {/* Special Offers */}
       <section className="py-8 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="container mx-auto max-w-7xl">
+        <div className="container mx-auto max-w-7xl px-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 sm:mb-8">
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Special Offers</h2>
