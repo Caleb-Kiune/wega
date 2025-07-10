@@ -86,7 +86,7 @@ export default function ProductCarousel({ category, excludeProductId }: ProductC
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10) // 10px buffer
       
       // Calculate current slide based on scroll position
-      const slideWidth = 300 + 16 // card width + gap
+      const slideWidth = 320 + 16 // card width + gap
       const newCurrentSlide = Math.round(scrollLeft / slideWidth)
       setCurrentSlide(newCurrentSlide)
     }
@@ -112,7 +112,7 @@ export default function ProductCarousel({ category, excludeProductId }: ProductC
 
   const goToSlide = (slideIndex: number) => {
     if (carouselRef.current) {
-      const slideWidth = 300 + 16 // card width + gap
+      const slideWidth = 320 + 16 // card width + gap
       const scrollPosition = slideIndex * slideWidth
       carouselRef.current.scrollTo({ left: scrollPosition, behavior: "smooth" })
     }
@@ -128,7 +128,7 @@ export default function ProductCarousel({ category, excludeProductId }: ProductC
 
       if (carouselRef.current) {
         const { clientWidth } = carouselRef.current
-        const cardWidth = 300 + 16 // card width + gap
+        const cardWidth = 320 + 16 // card width + gap
         const cardsPerView = Math.max(1, Math.floor(clientWidth / cardWidth))
         const calculatedSlides = Math.ceil(products.length / cardsPerView)
         return Math.max(1, Math.min(calculatedSlides, 10)) // Ensure it's between 1 and 10
@@ -150,7 +150,7 @@ export default function ProductCarousel({ category, excludeProductId }: ProductC
     const interval = setInterval(() => {
       const carousel = carouselRef.current;
       if (!carousel) return;
-      const cardWidth = 300 + 16; // card width + gap
+      const cardWidth = 320 + 16; // card width + gap
       // If at end, scroll back to start
       if (carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 1) {
         carousel.scrollTo({ left: 0, behavior: "smooth" });
@@ -239,7 +239,7 @@ export default function ProductCarousel({ category, excludeProductId }: ProductC
         {products.map((product) => (
           <div 
             key={product.id} 
-            className="flex-none w-[180px] sm:w-[220px] md:w-[260px] lg:w-[300px] xl:w-[300px]"
+            className="flex-none w-[200px] sm:w-[240px] md:w-[280px] lg:w-[320px] xl:w-[360px]"
             style={{ 
               scrollSnapAlign: 'start',
               scrollSnapStop: 'always',

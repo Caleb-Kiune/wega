@@ -97,7 +97,7 @@ export default function FeaturedProducts() {
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10) // 10px buffer
       
       // Calculate current slide based on scroll position
-      const slideWidth = 280 + 24 // card width + gap
+      const slideWidth = 320 + 24 // card width + gap
       const newCurrentSlide = Math.round(scrollLeft / slideWidth)
       setCurrentSlide(newCurrentSlide)
     }
@@ -123,7 +123,7 @@ export default function FeaturedProducts() {
 
   const goToSlide = (slideIndex: number) => {
     if (carouselRef.current) {
-      const slideWidth = 280 + 24 // card width + gap
+      const slideWidth = 320 + 24 // card width + gap
       const scrollPosition = slideIndex * slideWidth
       carouselRef.current.scrollTo({ left: scrollPosition, behavior: "smooth" })
     }
@@ -133,7 +133,7 @@ export default function FeaturedProducts() {
   const getTotalSlides = () => {
     if (carouselRef.current) {
       const { clientWidth } = carouselRef.current
-      const cardWidth = 280 + 24 // card width + gap
+      const cardWidth = 320 + 24 // card width + gap
       return Math.ceil(products.length / Math.floor(clientWidth / cardWidth))
     }
     return Math.ceil(products.length / 3) // fallback
@@ -217,7 +217,7 @@ export default function FeaturedProducts() {
         {products.map((product) => (
           <div 
             key={product.id} 
-            className="flex-none w-[280px]"
+            className="flex-none w-[200px] sm:w-[240px] md:w-[280px] lg:w-[320px] xl:w-[360px]"
             style={{ 
               scrollSnapAlign: 'start',
               scrollSnapStop: 'always',
@@ -231,7 +231,7 @@ export default function FeaturedProducts() {
       </div>
 
       {/* Mobile Stackable Grid */}
-      <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {products.slice(0, 4).map((product) => (
           <div key={product.id}>
             <ProductCard product={product} />

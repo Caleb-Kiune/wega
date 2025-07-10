@@ -1,7 +1,5 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import FeaturedProducts from "@/components/featured-products"
-import ProductCarousel from "@/components/product-carousel"
 import HeroSection from "@/components/hero-section"
 import ProductGrid from "@/components/product-grid"
 
@@ -27,7 +25,7 @@ export default function Home() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
-          <ProductCarousel category="featured" />
+          <ProductGrid category="featured" limit={4} />
         </div>
       </section>
 
@@ -47,7 +45,7 @@ export default function Home() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
-          <ProductCarousel category="new-arrivals" />
+          <ProductGrid category="new-arrivals" limit={4} />
         </div>
       </section>
 
@@ -67,7 +65,7 @@ export default function Home() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
-          <ProductCarousel category="special-offers" />
+          <ProductGrid category="special-offers" limit={4} />
         </div>
       </section>
     </main>

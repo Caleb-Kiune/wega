@@ -34,7 +34,7 @@ export default function ProductsPage() {
 
   const [filters, setFilters] = useState<ProductsFilters>({
     page: Number(searchParams.get('page')) || 1,
-    limit: Number(searchParams.get('limit')) || 36,
+    limit: Number(searchParams.get('limit')) || 30,
     categories: searchParams.getAll('categories[]'),
     brands: searchParams.getAll('brands[]'),
     min_price: Number(searchParams.get('min_price')) || undefined,
@@ -82,7 +82,7 @@ export default function ProductsPage() {
     // Update URL with new filters
     const params = new URLSearchParams();
     if (updatedFilters.page > 1) params.set('page', updatedFilters.page.toString());
-    if (updatedFilters.limit !== 36) params.set('limit', updatedFilters.limit.toString());
+    if (updatedFilters.limit !== 30) params.set('limit', updatedFilters.limit.toString());
     if (updatedFilters.categories?.length) {
       updatedFilters.categories.forEach(category => params.append('categories[]', category));
     }
@@ -107,7 +107,7 @@ export default function ProductsPage() {
     // Update URL with new page
     const params = new URLSearchParams();
     if (page > 1) params.set('page', page.toString());
-    if (filters.limit !== 36) params.set('limit', filters.limit.toString());
+    if (filters.limit !== 30) params.set('limit', filters.limit.toString());
     if (filters.categories?.length) {
       filters.categories.forEach(category => params.append('categories[]', category));
     }
@@ -131,7 +131,7 @@ export default function ProductsPage() {
     
     // Update URL without search parameter
     const params = new URLSearchParams();
-    if (updatedFilters.limit !== 36) params.set('limit', updatedFilters.limit.toString());
+    if (updatedFilters.limit !== 30) params.set('limit', updatedFilters.limit.toString());
     if (updatedFilters.categories?.length) {
       updatedFilters.categories.forEach(category => params.append('categories[]', category));
     }
@@ -221,7 +221,7 @@ export default function ProductsPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

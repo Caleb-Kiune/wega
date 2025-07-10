@@ -5,12 +5,14 @@ import ProductCard from "@/components/product-card"
 import { productsApi } from "@/lib/products"
 import { Product, ProductsParams } from "@/lib/types"
 
+
 interface ProductGridProps {
   category: "featured" | "new-arrivals" | "special-offers"
   limit?: number
+  mobileLimit?: number
 }
 
-export default function ProductGrid({ category, limit = 4 }: ProductGridProps) {
+export default function ProductGrid({ category, limit = 4, mobileLimit = 2 }: ProductGridProps) {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -89,8 +91,10 @@ export default function ProductGrid({ category, limit = 4 }: ProductGridProps) {
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+      {products.slice(0, limit).map((product, index) => (
+        <div key={product.id} className={`${index >= mobileLimit ? 'hidden sm:block' : ''}`}>
+          <ProductCard product={product} />
+        </div>
       ))}
     </div>
   )
