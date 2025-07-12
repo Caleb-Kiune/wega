@@ -1,190 +1,155 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { usePathname, useRouter } from "next/navigation"
-import { Menu, ShoppingCart, Heart, Phone, Package, User, Facebook, Instagram, Twitter, Home, ShoppingBag, Search, X, LogOut, Settings, Info, Mail, Loader2, Tiktok } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { 
+  Search, 
+  ShoppingCart, 
+  Heart, 
+  User, 
+  Menu, 
+  X, 
+  Home, 
+  ShoppingBag, 
+  Package, 
+  Phone, 
+  Facebook, 
+  Instagram, 
+  Twitter,
+  Loader2
+} from "lucide-react"
+import { cn } from "@/lib/utils"
 import { useCart } from "@/lib/hooks/use-cart"
 import { useWishlist } from "@/lib/hooks/use-wishlist"
-import { cn } from "@/lib/utils"
-import { productsApi } from "@/lib/products"
-import { Product } from "@/lib/types"
-import { useDebounce } from "use-debounce"
-import { getImageUrl } from "@/lib/products"
-import { useSearchAnalytics } from "./search-analytics"
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  images?: Array<{
+    image_url: string;
+    is_primary?: boolean;
+  }>;
+}
 
 interface Category {
   name: string;
   href: string;
 }
 
-// Enhanced search function with ranking
 const searchProducts = (products: Product[], query: string): Product[] => {
-  if (!query.trim()) return [];
+  if (!query.trim()) return []
   
-  const searchTerm = query.toLowerCase();
-  
-  return products
-    .map(product => {
-      let score = 0;
-      const name = product.name.toLowerCase();
-      const description = product.description?.toLowerCase() || '';
-      const sku = product.sku?.toLowerCase() || '';
-      
-      // Exact name match (highest priority)
-      if (name === searchTerm) score += 100;
-      // Name starts with search term
-      else if (name.startsWith(searchTerm)) score += 50;
-      // Name contains search term
-      else if (name.includes(searchTerm)) score += 30;
-      // SKU exact match
-      else if (sku === searchTerm) score += 40;
-      // SKU contains search term
-      else if (sku.includes(searchTerm)) score += 20;
-      // Description contains search term
-      else if (description.includes(searchTerm)) score += 10;
-      
-      return { product, score };
-    })
-    .filter(item => item.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .map(item => item.product);
-};
+  const searchTerm = query.toLowerCase()
+  return products.filter(product => 
+    product.name.toLowerCase().includes(searchTerm) ||
+    product.name.toLowerCase().split(' ').some(word => word.startsWith(searchTerm))
+  ).slice(0, 5) // Limit to 5 results for dropdown
+}
+
+const categories: Category[] = [
+  { name: "Cookware", href: "/products?category=cookware" },
+  { name: "Utensils", href: "/products?category=utensils" },
+  { name: "Appliances", href: "/products?category=appliances" },
+  { name: "Storage", href: "/products?category=storage" },
+  { name: "Bakeware", href: "/products?category=bakeware" },
+  { name: "Accessories", href: "/products?category=accessories" },
+]
 
 export default function Header() {
-  const pathname = usePathname()
-  const router = useRouter()
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [debouncedSearchQuery] = useDebounce(searchQuery, 150) // Reduced from 300ms
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<Product[]>([])
+  const [showResults, setShowResults] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
+  const [products, setProducts] = useState<Product[]>([])
+  const searchRef = useRef<HTMLDivElement>(null)
+  
   const { cartCount } = useCart()
   const { items: wishlistItems } = useWishlist()
-  const { trackSearch } = useSearchAnalytics()
-  
-  // Enhanced search state
-  const [searchResults, setSearchResults] = useState<Product[]>([])
-  const [isSearching, setIsSearching] = useState(false)
-  const [showResults, setShowResults] = useState(false)
-  const [allProducts, setAllProducts] = useState<Product[]>([])
 
-  // Handle scroll effect - shrink header after 100px
+  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 100)
+      setIsScrolled(window.scrollY > 10)
     }
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Load all products for client-side search
+  // Load products for search
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const response = await productsApi.getAll({ limit: 200 }); // Load more products for better search
-        setAllProducts(response.products);
+        const response = await fetch('/api/products?limit=100')
+        if (response.ok) {
+          const data = await response.json()
+          setProducts(data.products || [])
+        }
       } catch (error) {
-        console.error('Error loading products for search:', error);
+        console.error('Failed to load products for search:', error)
       }
-    };
-    
-    loadProducts();
-  }, []);
-
-  // Real-time search with enhanced logic
-  useEffect(() => {
-    if (debouncedSearchQuery.trim().length < 2) {
-      setSearchResults([]);
-      setShowResults(false);
-      return;
     }
-    
+    loadProducts()
+  }, [])
+
+  // Perform search
+  useEffect(() => {
     const performSearch = async () => {
-      setIsSearching(true);
-      try {
-        // Use client-side search for better performance
-        const results = searchProducts(allProducts, debouncedSearchQuery);
-        setSearchResults(results.slice(0, 5)); // Show top 5 results
-        setShowResults(true);
-        
-        // Track search analytics
-        trackSearch(debouncedSearchQuery, results.length);
-      } catch (error) {
-        console.error('Search error:', error);
-      } finally {
-        setIsSearching(false);
+      if (searchQuery.trim().length < 2) {
+        setSearchResults([])
+        return
       }
-    };
-    
-    performSearch();
-  }, [debouncedSearchQuery, allProducts]);
+
+      setIsSearching(true)
+      const results = searchProducts(products, searchQuery)
+      setSearchResults(results)
+      setIsSearching(false)
+    }
+
+    const timeoutId = setTimeout(performSearch, 300)
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery, products])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    if (debouncedSearchQuery.trim()) {
-      const currentPath = window.location.pathname;
-      const currentSearch = window.location.search;
-      if (currentPath === '/products') {
-        const params = new URLSearchParams(currentSearch);
-        params.set('search', debouncedSearchQuery.trim());
-        params.delete('page');
-        router.push(`/products?${params.toString()}`, { scroll: false });
-      } else {
-        router.push(`/products?search=${encodeURIComponent(debouncedSearchQuery.trim())}`, { scroll: false });
-      }
-      setIsSearchOpen(false);
-      setSearchQuery('');
-      setShowResults(false);
-      setIsMobileMenuOpen(false); // Close mobile menu after search
-    } else {
-      router.push('/products', { scroll: false });
-      setIsSearchOpen(false);
-      setShowResults(false);
-      setIsMobileMenuOpen(false); // Close mobile menu after search
+    if (searchQuery.trim()) {
+      window.location.href = `/products?search=${encodeURIComponent(searchQuery.trim())}`
     }
   }
 
   const handleNavigationClick = () => {
-    setIsMobileMenuOpen(false); // Close mobile menu when navigation item is clicked
+    setIsMobileMenuOpen(false)
   }
 
   const handleSearchResultClick = () => {
-    setShowResults(false);
-    setSearchQuery('');
-  };
+    setShowResults(false)
+    setSearchQuery("")
+  }
 
   // Close search results when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      if (!target.closest('.search-container')) {
-        setShowResults(false);
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false)
       }
-    };
-
-    if (showResults) {
-      document.addEventListener('mousedown', handleClickOutside);
     }
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showResults]);
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
-  const categories: Category[] = [
-    { name: "Cookware", href: "/products?category=cookware" },
-    { name: "Appliances", href: "/products?category=appliances" },
-    { name: "Utensils", href: "/products?category=utensils" },
-    { name: "Storage", href: "/products?category=storage" },
-    { name: "Home Essentials", href: "/products?category=home-essentials" }
-  ]
+  const getImageUrl = (url?: string) => {
+    if (!url) return null
+    if (url.startsWith('http')) return url
+    return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${url}`
+  }
 
   const navigation = [
     { name: "Home", href: "/", icon: Home },
@@ -195,12 +160,12 @@ export default function Header() {
     <>
       {/* Top Bar - Mobile Optimized */}
       <div className="bg-green-600 text-white py-3 px-4 text-center text-sm">
-        <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center">
+        <div className="container-responsive flex flex-col sm:flex-row justify-between items-center">
           <div className="flex items-center justify-center mb-2 sm:mb-0">
             <Phone className="h-4 w-4 mr-2" />
             <a 
               href="tel:0769899432" 
-              className="underline hover:text-green-200 focus-visible:ring-2 focus-visible:ring-white transition-colors p-2 -m-2 rounded-lg" 
+              className="underline hover:text-green-200 focus-visible:ring-2 focus-visible:ring-white transition-colors p-2 -m-2 rounded-2xl" 
               aria-label="Call us: 0769899432"
             >
               0769899432
@@ -215,7 +180,7 @@ export default function Header() {
                     target="_blank" 
                     rel="noopener noreferrer" 
                     aria-label="Facebook" 
-                    className="text-white hover:text-blue-500 transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center bg-green-700 hover:bg-green-600"
+                    className="text-white hover:text-blue-500 transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-2xl min-h-[44px] min-w-[44px] flex items-center justify-center bg-green-700 hover:bg-green-600"
                   >
                     <Facebook className="h-5 w-5" />
                   </Link>
@@ -231,7 +196,7 @@ export default function Header() {
                     target="_blank" 
                     rel="noopener noreferrer" 
                     aria-label="Instagram" 
-                    className="text-white hover:text-pink-500 transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center bg-green-700 hover:bg-green-600"
+                    className="text-white hover:text-pink-500 transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-2xl min-h-[44px] min-w-[44px] flex items-center justify-center bg-green-700 hover:bg-green-600"
                   >
                     <Instagram className="h-5 w-5" />
                   </Link>
@@ -247,7 +212,7 @@ export default function Header() {
                     target="_blank" 
                     rel="noopener noreferrer" 
                     aria-label="Twitter" 
-                    className="text-white hover:text-blue-400 transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center bg-green-700 hover:bg-green-600"
+                    className="text-white hover:text-blue-400 transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-2xl min-h-[44px] min-w-[44px] flex items-center justify-center bg-green-700 hover:bg-green-600"
                   >
                     <Twitter className="h-5 w-5" />
                   </Link>
@@ -267,11 +232,11 @@ export default function Header() {
         )}
         style={{ boxShadow: isScrolled ? '0 2px 12px 0 rgba(0,0,0,0.08)' : undefined }}
       >
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container-responsive">
           <div className="flex items-center justify-between">
             {/* Logo - Mobile Optimized */}
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="flex items-center group focus-visible:ring-2 focus-visible:ring-green-600 rounded-full p-2 -m-2">
+              <Link href="/" className="flex items-center group focus-visible:ring-2 focus-visible:ring-green-600 rounded-2xl p-2 -m-2">
                 <Image
                   src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/wega%20kitchenware%20website..jpg-WrrItNFb2yW5TLOQ4Ax5GY0Sv0YPew.jpeg"
                   alt="WEGA Kitchenware Logo"
@@ -300,13 +265,13 @@ export default function Header() {
 
             {/* Enhanced Search Bar (Desktop) - with real-time results */}
             <div className="hidden md:flex flex-1 max-w-md mx-8 items-center">
-              <div className="relative w-full search-container">
+              <div className="relative w-full search-container" ref={searchRef}>
                 <form onSubmit={handleSearch} className="relative">
                   <div className="flex items-center gap-2 w-full">
                     <Input
                       type="text"
                       placeholder="Search products..."
-                      className="rounded-full border border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus-visible:ring-2 focus-visible:ring-green-400 px-5 py-2 w-full"
+                      className="rounded-2xl border border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus-visible:ring-2 focus-visible:ring-green-400 px-5 py-3 w-full"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onFocus={() => searchQuery.trim().length >= 2 && setShowResults(true)}
@@ -314,7 +279,7 @@ export default function Header() {
                     />
                     <Button
                       type="submit"
-                      className="bg-green-600 hover:bg-green-700 text-white rounded-full px-4 py-2 flex items-center justify-center border-0 focus-visible:ring-2 focus-visible:ring-green-400"
+                      className="bg-green-600 hover:bg-green-700 text-white rounded-2xl px-4 py-3 flex items-center justify-center border-0 focus-visible:ring-2 focus-visible:ring-green-400"
                       aria-label="Search products"
                     >
                       <Search className="h-6 w-6" />
@@ -324,7 +289,7 @@ export default function Header() {
                 
                 {/* Real-time search results dropdown */}
                 {showResults && (
-                  <div className="absolute top-full left-0 right-0 bg-white border rounded-lg shadow-lg z-50 mt-1 max-h-64 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 bg-white border rounded-2xl shadow-lg z-50 mt-1 max-h-64 overflow-y-auto">
                     {isSearching ? (
                       <div className="p-4 text-center flex items-center justify-center gap-2">
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -342,7 +307,7 @@ export default function Header() {
                             <img 
                               src={getImageUrl(product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url) || "/placeholder.svg"} 
                               alt={product.name}
-                              className="w-10 h-10 object-cover rounded mr-3"
+                              className="w-10 h-10 object-cover rounded-2xl mr-3"
                             />
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-sm truncate">{product.name}</div>
@@ -355,7 +320,7 @@ export default function Header() {
                             variant="outline"
                             size="sm"
                             onClick={handleSearch}
-                            className="w-full text-xs"
+                            className="w-full text-xs rounded-2xl"
                           >
                             View all results
                           </Button>
@@ -381,7 +346,7 @@ export default function Header() {
                       <Link
                         href="/"
                         aria-label="Home"
-                        className="text-gray-600 hover:text-green-600 p-3 rounded-full hover:bg-gray-100 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-green-400 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        className="text-gray-600 hover:text-green-600 p-3 rounded-2xl hover:bg-gray-100 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-green-400 min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         <Home className="h-5 w-5 sm:h-6 sm:w-6" />
                       </Link>
@@ -395,7 +360,7 @@ export default function Header() {
                       <Link
                         href="/products?limit=100"
                         aria-label="Products"
-                        className="text-gray-600 hover:text-green-600 p-3 rounded-full hover:bg-gray-100 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-green-400 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        className="text-gray-600 hover:text-green-600 p-3 rounded-2xl hover:bg-gray-100 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-green-400 min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6" />
                       </Link>
@@ -409,11 +374,11 @@ export default function Header() {
                       <Link
                         href="/wishlist"
                         aria-label="Wishlist"
-                        className="text-gray-600 hover:text-green-600 p-3 rounded-full hover:bg-gray-100 relative transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-green-400 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        className="text-gray-600 hover:text-green-600 p-3 rounded-2xl hover:bg-gray-100 relative transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-green-400 min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         <Heart className="h-5 w-5 sm:h-6 sm:w-6" />
                         {wishlistItems.length > 0 && (
-                          <Badge className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
+                          <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
                             {wishlistItems.length}
                           </Badge>
                         )}
@@ -428,7 +393,7 @@ export default function Header() {
                       <Link
                         href="/cart"
                         aria-label="Cart"
-                        className="text-gray-600 hover:text-green-600 p-3 rounded-full hover:bg-gray-100 relative transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-green-400 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        className="text-gray-600 hover:text-green-600 p-3 rounded-2xl hover:bg-gray-100 relative transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-green-400 min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
                         {cartCount > 0 && (
@@ -447,7 +412,7 @@ export default function Header() {
                       <Link
                         href="/track-order"
                         aria-label="Track My Order"
-                        className="text-gray-600 hover:text-green-600 p-3 rounded-full hover:bg-gray-100 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-green-400 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        className="text-gray-600 hover:text-green-600 p-3 rounded-2xl hover:bg-gray-100 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-green-400 min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         <Package className="h-5 w-5 sm:h-6 sm:w-6" />
                       </Link>
@@ -458,265 +423,159 @@ export default function Header() {
               </div>
 
               {/* Mobile Search Button */}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="md:hidden focus-visible:ring-2 focus-visible:ring-green-400 min-h-[44px] min-w-[44px] p-3"
-                      aria-label={isSearchOpen ? 'Close Search' : 'Search'}
-                      onClick={() => setIsSearchOpen(!isSearchOpen)}
-                    >
-                      {isSearchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>{isSearchOpen ? 'Close Search' : 'Search'}</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <div className="md:hidden">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="rounded-2xl"
+                  aria-label="Toggle mobile menu"
+                >
+                  <Search className="h-5 w-5" />
+                </Button>
+              </div>
 
-              {/* Mobile Menu Button - Hamburger */}
-              <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-                <SheetTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="md:hidden focus-visible:ring-2 focus-visible:ring-green-400 min-h-[44px] min-w-[44px] p-3" 
-                    aria-label="Open menu"
-                  >
+              {/* Mobile Menu Button */}
+              <div className="md:hidden">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="rounded-2xl"
+                  aria-label="Toggle mobile menu"
+                >
+                  {isMobileMenuOpen ? (
+                    <X className="h-5 w-5" />
+                  ) : (
                     <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-full max-w-sm focus:outline-none" aria-modal="true" role="dialog">
-                  <SheetTitle className="sr-only">Mobile Menu</SheetTitle>
-                  {/* Mobile Menu Header */}
-                  <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center">
-                      <Image
-                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/wega%20kitchenware%20website..jpg-WrrItNFb2yW5TLOQ4Ax5GY0Sv0YPew.jpeg"
-                        alt="WEGA Kitchenware Logo"
-                        width={80}
-                        height={40}
-                        className="h-8 w-auto"
-                        priority
-                      />
-                      <span className="ml-2 text-lg font-semibold text-gray-800">WEGA</span>
-                    </div>
-                  </div>
-                  {/* Enhanced Mobile Search in Drawer */}
-                  <div className="mb-6">
-                    <div className="relative search-container">
-                      <form onSubmit={handleSearch} className="relative">
-                        <div className="flex items-center gap-2 w-full">
-                          <Input
-                            type="text"
-                            placeholder="Search products..."
-                            className="rounded-full border border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus-visible:ring-2 focus-visible:ring-green-400 px-5 py-2 w-full"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onFocus={() => searchQuery.trim().length >= 2 && setShowResults(true)}
-                            aria-label="Search for products"
-                          />
-                          <Button
-                            type="submit"
-                            className="bg-green-600 hover:bg-green-700 text-white rounded-full px-4 py-2 flex items-center justify-center border-0 focus-visible:ring-2 focus-visible:ring-green-400"
-                            aria-label="Search products"
-                          >
-                            <Search className="h-6 w-6" />
-                          </Button>
-                        </div>
-                      </form>
-                      
-                      {/* Mobile search results dropdown */}
-                      {showResults && (
-                        <div className="absolute top-full left-0 right-0 bg-white border rounded-lg shadow-lg z-50 mt-1 max-h-48 overflow-y-auto">
-                          {isSearching ? (
-                            <div className="p-3 text-center flex items-center justify-center gap-2">
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              <span className="text-sm">Searching...</span>
-                            </div>
-                          ) : searchResults.length > 0 ? (
-                            <div>
-                              {searchResults.map(product => (
-                                <Link
-                                  key={product.id}
-                                  href={`/products/${product.id}`}
-                                  className="flex items-center p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-                                  onClick={handleSearchResultClick}
-                                >
-                                  <img 
-                                    src={getImageUrl(product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url) || "/placeholder.svg"} 
-                                    alt={product.name}
-                                    className="w-8 h-8 object-cover rounded mr-3"
-                                  />
-                                  <div className="flex-1 min-w-0">
-                                    <div className="font-medium text-sm truncate">{product.name}</div>
-                                    <div className="text-xs text-gray-500">KES {product.price.toLocaleString()}</div>
-                                  </div>
-                                </Link>
-                              ))}
-                              <div className="p-2 text-center">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={handleSearch}
-                                  className="w-full text-xs"
-                                >
-                                  View all results
-                                </Button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="p-3 text-center text-gray-500 text-sm">
-                              No products found
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {/* Mobile Navigation */}
-                  <div className="flex flex-col space-y-6">
-                    {/* Main Navigation */}
-                    <div className="space-y-1">
-                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Navigation</h3>
-                      {navigation.map((item) => (
-                        <Link
-                          key={item.name}
-                          href={item.href}
-                          onClick={handleNavigationClick}
-                          className="flex items-center px-3 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-green-600 rounded-lg transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-green-400"
-                          aria-label={item.name}
-                        >
-                          <item.icon className="h-5 w-5 mr-3" />
-                          {item.name}
-                        </Link>
-                      ))}
-                    </div>
+                  )}
+                </Button>
+              </div>
 
-                    {/* Account Actions */}
-                    <div className="space-y-1">
-                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Account</h3>
-                      <Link 
-                        href="/wishlist" 
-                        onClick={handleNavigationClick}
-                        className="flex items-center px-3 py-3 text-base text-gray-600 hover:bg-gray-50 hover:text-green-600 rounded-lg transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-green-400 relative"
-                        aria-label="Wishlist"
+              {/* Desktop User Menu */}
+              <div className="hidden md:block">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link
+                        href="/account"
+                        aria-label="Account"
+                        className="text-gray-600 hover:text-green-600 p-3 rounded-2xl hover:bg-gray-100 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-green-400 min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
-                        <Heart className="h-5 w-5 mr-3" />
-                        Wishlist
-                        {wishlistItems.length > 0 && (
-                          <Badge className="ml-auto bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
-                            {wishlistItems.length}
-                          </Badge>
-                        )}
+                        <User className="h-5 w-5 sm:h-6 sm:w-6" />
                       </Link>
-                      <Link 
-                        href="/cart" 
-                        onClick={handleNavigationClick}
-                        className="flex items-center px-3 py-3 text-base text-gray-600 hover:bg-gray-50 hover:text-green-600 rounded-lg transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-green-400 relative"
-                        aria-label="Cart"
-                      >
-                        <ShoppingCart className="h-5 w-5 mr-3" />
-                        Cart
-                        {cartCount > 0 && (
-                          <Badge className="ml-auto bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
-                            {cartCount}
-                          </Badge>
-                        )}
-                      </Link>
-                      <Link 
-                        href="/track-order" 
-                        onClick={handleNavigationClick}
-                        className="flex items-center px-3 py-3 text-base text-gray-600 hover:bg-gray-50 hover:text-green-600 rounded-lg transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-green-400"
-                        aria-label="Track Order"
-                      >
-                        <Package className="h-5 w-5 mr-3" />
-                        Track Order
-                      </Link>
-                    </div>
-
-                  </div>
-                </SheetContent>
-              </Sheet>
+                    </TooltipTrigger>
+                    <TooltipContent>Account</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
           </div>
-          {/* Enhanced Mobile Search Bar (Conditional) */}
-          {isSearchOpen && (
-            <div className="md:hidden pb-4 mt-4">
-              <div className="relative w-full search-container">
+        </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
+            <div className="container-responsive py-4">
+              {/* Mobile Search */}
+              <div className="mb-4">
                 <form onSubmit={handleSearch} className="relative">
                   <div className="flex items-center gap-2 w-full">
                     <Input
                       type="text"
                       placeholder="Search products..."
-                      className="rounded-full border border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus-visible:ring-2 focus-visible:ring-green-400 px-4 py-3 w-full text-base"
+                      className="rounded-2xl border border-gray-200 bg-gray-50 focus:border-green-500 focus:ring-2 focus:ring-green-200 focus-visible:ring-2 focus-visible:ring-green-400 px-4 py-3 w-full"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      onFocus={() => searchQuery.trim().length >= 2 && setShowResults(true)}
-                      autoFocus
                       aria-label="Search for products"
                     />
                     <Button
                       type="submit"
-                      className="bg-green-600 hover:bg-green-700 text-white rounded-full px-4 py-3 flex items-center justify-center border-0 focus-visible:ring-2 focus-visible:ring-green-400 min-h-[44px] min-w-[44px]"
+                      className="bg-green-600 hover:bg-green-700 text-white rounded-2xl px-4 py-3 flex items-center justify-center border-0 focus-visible:ring-2 focus-visible:ring-green-400"
                       aria-label="Search products"
                     >
                       <Search className="h-5 w-5" />
                     </Button>
                   </div>
                 </form>
-                
-                {/* Mobile search results dropdown */}
-                {showResults && (
-                  <div className="absolute top-full left-0 right-0 bg-white border rounded-lg shadow-lg z-50 mt-1 max-h-48 overflow-y-auto">
-                    {isSearching ? (
-                      <div className="p-3 text-center flex items-center justify-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span className="text-sm">Searching...</span>
-                      </div>
-                    ) : searchResults.length > 0 ? (
-                      <div>
-                        {searchResults.map(product => (
-                          <Link
-                            key={product.id}
-                            href={`/products/${product.id}`}
-                            className="flex items-center p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-                            onClick={handleSearchResultClick}
-                          >
-                            <img 
-                              src={getImageUrl(product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url) || "/placeholder.svg"} 
-                              alt={product.name}
-                              className="w-8 h-8 object-cover rounded mr-3"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-sm truncate">{product.name}</div>
-                              <div className="text-xs text-gray-500">KES {product.price.toLocaleString()}</div>
-                            </div>
-                          </Link>
-                        ))}
-                        <div className="p-2 text-center">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleSearch}
-                            className="w-full text-xs"
-                          >
-                            View all results
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-3 text-center text-gray-500 text-sm">
-                        No products found
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
+
+              {/* Mobile Navigation */}
+              <nav className="space-y-2">
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={handleNavigationClick}
+                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:text-green-600 hover:bg-gray-50 rounded-2xl transition-colors duration-200"
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {item.name}
+                  </Link>
+                ))}
+                
+                {/* Mobile Action Buttons */}
+                <div className="flex items-center justify-between px-4 py-3">
+                  <Link
+                    href="/wishlist"
+                    onClick={handleNavigationClick}
+                    className="flex items-center gap-3 text-gray-700 hover:text-green-600 transition-colors duration-200"
+                  >
+                    <Heart className="h-5 w-5" />
+                    <span>Wishlist</span>
+                    {wishlistItems.length > 0 && (
+                      <Badge className="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                        {wishlistItems.length}
+                      </Badge>
+                    )}
+                  </Link>
+                  <Link
+                    href="/cart"
+                    onClick={handleNavigationClick}
+                    className="flex items-center gap-3 text-gray-700 hover:text-green-600 transition-colors duration-200"
+                  >
+                    <ShoppingCart className="h-5 w-5" />
+                    <span>Cart</span>
+                    {cartCount > 0 && (
+                      <Badge className="bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                        {cartCount}
+                      </Badge>
+                    )}
+                  </Link>
+                </div>
+
+                {/* Mobile Categories */}
+                <div className="border-t border-gray-200 pt-4">
+                  <h3 className="px-4 py-2 text-sm font-semibold text-gray-900">Categories</h3>
+                  <div className="space-y-1">
+                    {categories.map((category) => (
+                      <Link
+                        key={category.name}
+                        href={category.href}
+                        onClick={handleNavigationClick}
+                        className="block px-4 py-3 text-sm text-gray-700 hover:text-green-600 hover:bg-gray-50 rounded-2xl transition-colors duration-200"
+                      >
+                        {category.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Mobile Account Link */}
+                <div className="border-t border-gray-200 pt-4">
+                  <Link
+                    href="/account"
+                    onClick={handleNavigationClick}
+                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:text-green-600 hover:bg-gray-50 rounded-2xl transition-colors duration-200"
+                  >
+                    <User className="h-5 w-5" />
+                    <span>Account</span>
+                  </Link>
+                </div>
+              </nav>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </header>
     </>
   )

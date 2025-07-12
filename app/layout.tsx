@@ -10,7 +10,11 @@ import WhatsAppChat from "@/components/whatsapp-chat"
 import { Providers } from "./providers"
 import { AuthProvider } from '@/contexts/auth-context'
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ 
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   title: "WEGA Kitchenware | Premium Kitchen Essentials",
@@ -42,8 +46,8 @@ export default function RootLayout({
 }>) {
   return (
     <AuthProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body className={inter.className} suppressHydrationWarning>
+      <html lang="en" suppressHydrationWarning className={inter.variable}>
+        <body className="font-sans antialiased" suppressHydrationWarning>
           <ThemeProvider attribute="class" defaultTheme="light">
             <Providers>
               <div className="flex min-h-screen flex-col">
