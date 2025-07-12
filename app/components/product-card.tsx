@@ -18,17 +18,20 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const { toast } = useToast()
-  const { addToCart } = useCart()
+  const { addToCart, removeFromCart, cart } = useCart()
   const { addItem, removeItem, isInWishlist } = useWishlist()
   const isWishlisted = isInWishlist(String(product.id))
   const [imageLoaded, setImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
 
+  // Check if item is in cart
+  const isInCart = cart?.items?.some(item => item.product_id === product.id) || false
+
   // Get primary and secondary images for hover effect
   const primaryImage = product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url
   const secondaryImage = product.images?.find(img => !img.is_primary)?.image_url || product.images?.[1]?.image_url || primaryImage
 
-  const handleAddToCart = useCallback(() => {
+  const handleToggleCart = useCallback(async () => {
     const cartItem = {
       id: product.id,
       name: product.name,
@@ -38,19 +41,33 @@ export default function ProductCard({ product }: ProductCardProps) {
     }
     
     try {
-      addToCart(cartItem)
-      toast({
-        title: "Added to cart",
-        description: `${product.name} has been added to your cart.`,
-      })
+      if (isInCart) {
+        // Remove from cart if already in cart
+        await removeFromCart(product.id)
+        toast({
+          title: "Removed from cart",
+          description: `${product.name} has been removed from your cart.`,
+        })
+      } else {
+        // Add to cart
+        await addToCart(cartItem)
+        
+        toast({
+          title: "Added to cart",
+          description: `${product.name} has been added to your cart.`,
+        })
+      }
     } catch (error) {
+      console.error('Cart operation failed:', error)
       toast({
         title: "Error",
-        description: "Failed to add item to cart. Please try again.",
+        description: isInCart 
+          ? "Failed to remove item from cart. Please try again."
+          : "Failed to add item to cart. Please try again.",
         variant: "destructive",
       })
     }
-  }, [product, primaryImage, addToCart, toast])
+  }, [product, primaryImage, addToCart, removeFromCart, toast, isInCart, cart])
 
   const toggleWishlist = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -83,7 +100,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <article 
-      className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full border border-gray-100 hover:border-gray-200 relative min-h-[200px]" 
+      className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full border border-gray-100 hover:border-gray-200 relative min-h-[200px] cursor-pointer hover:scale-[1.02]" 
       role="article" 
       aria-labelledby={`product-${product.id}`}
     >
@@ -161,40 +178,60 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        {/* Quick View Button - desktop only */}
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:block">
-          <Button
-            size="sm"
-            variant="secondary"
-            className="rounded-full bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm min-h-[32px] min-w-[32px]"
-            asChild
-          >
-            <Link href={`/products/${product.id}`} aria-label={`Quick view ${product.name}`}>
-              <Eye className="h-3.5 w-3.5" />
-            </Link>
-          </Button>
-        </div>
-
-        {/* Quick actions overlay - desktop only */}
-        <div className="absolute inset-0 bg-black/10 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm hidden md:flex">
-          <div className="flex space-x-2">
+        {/* Wishlist Button - Top Right Corner */}
+        <div className="absolute top-2 right-2 z-20">
+          {/* Desktop - Hover Only */}
+          <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 hidden md:block">
             <Button
-              size="icon"
+              size="sm"
               variant="secondary"
-              className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-sm min-h-[40px] min-w-[40px]"
-              onClick={handleAddToCart}
-              aria-label={`Add ${product.name} to cart`}
-            >
-              <ShoppingCart className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="secondary"
-              className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-sm min-h-[40px] min-w-[40px]"
+              className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl min-h-[36px] min-w-[36px] transition-all duration-200 hover:scale-110"
               onClick={toggleWishlist}
               aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
             >
-              <Heart className={`h-4 w-4 ${isWishlisted ? "text-red-500 fill-current" : ""}`} />
+              <Heart className={`h-5 w-5 ${isWishlisted ? "text-red-500 fill-current" : "text-gray-600"}`} />
+            </Button>
+          </div>
+          
+          {/* Mobile - Always Visible */}
+          <div className="md:hidden">
+            <Button
+              size="sm"
+              variant="secondary"
+              className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg min-h-[32px] min-w-[32px]"
+              onClick={toggleWishlist}
+              aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+            >
+              <Heart className={`h-4 w-4 ${isWishlisted ? "text-red-500 fill-current" : "text-gray-600"}`} />
+            </Button>
+          </div>
+        </div>
+
+        {/* Persistent Cart Indicator - Always Visible */}
+        {isInCart && (
+          <div className="absolute bottom-2 right-2 z-20">
+            <div className="bg-green-500 text-white rounded-full p-2 shadow-lg">
+              <ShoppingCart className="h-4 w-4 fill-current" />
+            </div>
+          </div>
+        )}
+
+        
+
+        {/* Add to Cart Overlay - Lower Center Positioned (Desktop Only) */}
+        <div className="absolute inset-0 bg-black/15 opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm hidden md:flex">
+          <div className="absolute top-[60%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <Button
+              size="lg"
+              className={`${
+                isInCart
+                  ? '!bg-green-500 hover:!bg-green-600 text-white shadow-xl hover:shadow-2xl group-hover:!bg-green-500' 
+                  : 'bg-white/95 hover:bg-white text-gray-700 hover:text-gray-900 shadow-xl hover:shadow-2xl'
+              } min-h-[52px] min-w-[52px] rounded-full transition-all duration-300 hover:scale-110 border border-gray-200/50`}
+              onClick={handleToggleCart}
+              aria-label={isInCart ? `Remove ${product.name} from cart` : `Add ${product.name} to cart`}
+            >
+              <ShoppingCart className={`h-5 w-5 ${isInCart ? 'text-white fill-current' : 'text-gray-600'}`} />
             </Button>
           </div>
         </div>
@@ -252,38 +289,23 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         )}
 
-        {/* Desktop Add to Cart Button */}
-        <div className="mt-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:block">
-          <Button 
-            className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2 min-h-[44px] text-sm font-semibold rounded-lg shadow-sm hover:shadow-md"
-            onClick={handleAddToCart}
-            aria-label={`Add ${product.name} to cart`}
-          >
-            <Plus className="h-4 w-4" />
-            Add to Cart
-          </Button>
-        </div>
+        {/* Desktop Add to Cart Button - Removed in favor of center overlay */}
       </div>
 
       {/* Mobile Action Buttons */}
       <div className="md:hidden flex gap-2 p-3 pt-0">
         <Button
           size="sm"
-          className="flex-1 bg-green-600 hover:bg-green-700 text-white min-h-[44px] text-sm font-semibold rounded-lg shadow-sm hover:shadow-md"
-          onClick={handleAddToCart}
-          aria-label={`Add ${product.name} to cart`}
+          className={`flex-1 min-h-[44px] text-sm font-semibold rounded-lg shadow-sm hover:shadow-md transition-all duration-300 ${
+            isInCart
+              ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg' 
+              : 'bg-green-600 hover:bg-green-700 text-white'
+          }`}
+          onClick={handleToggleCart}
+          aria-label={isInCart ? `Remove ${product.name} from cart` : `Add ${product.name} to cart`}
         >
-          <ShoppingCart className="h-4 w-4 mr-1" />
-          Add to Cart
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="min-h-[44px] min-w-[44px] p-2 rounded-lg border-gray-300 hover:bg-gray-50"
-          onClick={toggleWishlist}
-          aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
-        >
-          <Heart className={`h-4 w-4 ${isWishlisted ? "text-red-500 fill-current" : "text-gray-600"}`} />
+          <ShoppingCart className={`h-4 w-4 mr-1 ${isInCart ? 'fill-current' : ''}`} />
+          {isInCart ? 'Remove from Cart' : 'Add to Cart'}
         </Button>
       </div>
     </article>
