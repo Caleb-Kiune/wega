@@ -265,30 +265,35 @@
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
     @apply disabled:pointer-events-none disabled:opacity-50;
     @apply hover:scale-105 active:scale-95;
-    @apply min-h-[44px] min-w-[44px]; /* Mobile touch target */
+    @apply min-h-[52px] min-w-[52px]; /* Enhanced mobile touch target */
+    @apply px-6 py-3; /* Generous horizontal and vertical padding */
   }
   
   .btn-primary {
     @apply btn-base bg-primary text-primary-foreground;
     @apply hover:bg-primary/90 hover:shadow-lg;
     @apply shadow-md;
+    @apply px-8 py-4; /* Premium padding for primary buttons */
   }
   
   .btn-secondary {
     @apply btn-base bg-secondary text-secondary-foreground;
     @apply hover:bg-secondary/80 hover:shadow-md;
     @apply border border-border;
+    @apply px-6 py-3;
   }
   
   .btn-outline {
     @apply btn-base bg-transparent border border-border;
     @apply hover:bg-accent hover:text-accent-foreground;
     @apply hover:shadow-md;
+    @apply px-8 py-4; /* Premium padding for outline buttons */
   }
   
   .btn-ghost {
     @apply btn-base bg-transparent;
     @apply hover:bg-accent hover:text-accent-foreground;
+    @apply px-6 py-3;
   }
 
   /* Enhanced Product Card Styles */
@@ -583,24 +588,94 @@
   
   .btn-base {
     @apply min-h-[48px] min-w-[48px]; /* Larger touch targets on mobile */
+    @apply px-4 py-2.5; /* Reduced padding for mobile */
+  }
+  
+  .btn-primary, .btn-outline {
+    @apply px-6 py-3; /* Adjusted padding for mobile */
+  }
+  
+  /* Premium View All Buttons */
+  .view-all-button {
+    @apply px-4 py-2.5 min-h-[48px];
+    @apply text-sm;
+  }
+  
+  /* Section Header Icon - Tablet */
+  .section-header-icon {
+    @apply p-5;
+  }
+  
+  .section-header-icon svg {
+    @apply h-10 w-10;
+  }
+  
+  /* Benefit Card Icons - Tablet */
+  .benefit-card-icon {
+    @apply p-5;
+  }
+  
+  .benefit-card-icon svg {
+    @apply h-10 w-10;
+  }
+  
+  .benefit-card {
+    @apply p-6;
   }
 }
 
 @media (max-width: 640px) {
   .carousel-button {
-    @apply w-7 h-7;
+    @apply w-6 h-6;
   }
   
   .section-padding {
-    @apply py-6;
+    @apply py-8 px-4;
   }
   
   .section-padding-sm {
-    @apply py-4;
+    @apply py-6 px-4;
   }
   
   .section-padding-lg {
-    @apply py-8;
+    @apply py-12 px-4;
+  }
+  
+  .btn-base {
+    @apply min-h-[44px] min-w-[44px];
+    @apply px-3 py-2; /* Minimal padding for small mobile */
+  }
+  
+  .btn-primary, .btn-outline {
+    @apply px-4 py-2.5; /* Compact padding for small mobile */
+  }
+  
+  /* Premium View All Buttons - Mobile */
+  .view-all-button {
+    @apply px-3 py-2 min-h-[44px];
+    @apply text-xs;
+  }
+  
+  /* Section Header Icon - Mobile */
+  .section-header-icon {
+    @apply p-4;
+  }
+  
+  .section-header-icon svg {
+    @apply h-8 w-8;
+  }
+  
+  /* Benefit Card Icons - Mobile */
+  .benefit-card-icon {
+    @apply p-4;
+  }
+  
+  .benefit-card-icon svg {
+    @apply h-8 w-8;
+  }
+  
+  .benefit-card {
+    @apply p-5;
   }
 }
 

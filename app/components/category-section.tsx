@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowRight, ChefHat, Utensils, Zap, Package } from "lucide-react"
+import { ArrowRight, ChefHat, Utensils, Zap, Package, CookingPot, Container } from "lucide-react"
 
 interface CategoryCard {
   name: string
@@ -12,6 +12,8 @@ interface CategoryCard {
   icon: React.ComponentType<{ className?: string }>
   bgColor: string
   iconColor: string
+  gradientFrom: string
+  gradientTo: string
 }
 
 const categories: CategoryCard[] = [
@@ -20,9 +22,11 @@ const categories: CategoryCard[] = [
     description: "Pots, pans, and cooking essentials",
     image: "/images/kitchenware1.jpeg",
     href: "/products?categories[]=cookware",
-    icon: ChefHat,
-    bgColor: "bg-orange-50",
-    iconColor: "text-orange-600"
+    icon: CookingPot,
+    bgColor: "bg-amber-100",
+    iconColor: "text-amber-700",
+    gradientFrom: "from-amber-100",
+    gradientTo: "to-orange-100"
   },
   {
     name: "Utensils",
@@ -30,8 +34,10 @@ const categories: CategoryCard[] = [
     image: "/images/homeessentials1.jpeg",
     href: "/products?categories[]=utensils",
     icon: Utensils,
-    bgColor: "bg-blue-50",
-    iconColor: "text-blue-600"
+    bgColor: "bg-indigo-100",
+    iconColor: "text-indigo-700",
+    gradientFrom: "from-indigo-100",
+    gradientTo: "to-purple-100"
   },
   {
     name: "Appliances",
@@ -39,30 +45,39 @@ const categories: CategoryCard[] = [
     image: "/images/appliances1.jpeg",
     href: "/products?categories[]=appliances",
     icon: Zap,
-    bgColor: "bg-green-50",
-    iconColor: "text-green-600"
+    bgColor: "bg-emerald-100",
+    iconColor: "text-emerald-700",
+    gradientFrom: "from-emerald-100",
+    gradientTo: "to-green-100"
   },
   {
     name: "Storage",
     description: "Food storage containers and organizers",
     image: "/images/homeessentials2.jpeg",
     href: "/products?categories[]=storage",
-    icon: Package,
-    bgColor: "bg-purple-50",
-    iconColor: "text-purple-600"
+    icon: Container,
+    bgColor: "bg-purple-100",
+    iconColor: "text-purple-700",
+    gradientFrom: "from-purple-100",
+    gradientTo: "to-pink-100"
   }
 ]
 
 export default function CategorySection() {
   return (
-    <section className="section-padding bg-gray-50">
+    <section className="section-padding" style={{background: 'linear-gradient(135deg, #94a3b8, #64748b, #475569)'}}>
       <div className="container-responsive">
         {/* Section Header */}
         <div className="text-center mb-12 sm:mb-16 lg:mb-20">
-          <h2 className="text-responsive-3xl font-bold text-gray-800 mb-4">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="p-4 bg-gradient-to-br from-slate-100 to-gray-100 rounded-2xl shadow-lg border border-slate-200/50">
+              <Package className="h-8 w-8 text-slate-600 drop-shadow-sm" />
+            </div>
+          </div>
+          <h2 className="text-responsive-3xl font-bold text-white mb-4">
             Shop by Category
           </h2>
-          <p className="text-responsive-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-responsive-lg text-slate-200 max-w-2xl mx-auto">
             Discover our comprehensive collection of kitchenware organized by category. 
             Find exactly what you need for your kitchen.
           </p>
@@ -79,7 +94,7 @@ export default function CategorySection() {
                 className="group block"
                 aria-label={`Browse ${category.name} category`}
               >
-                <div className="card-interactive h-full overflow-hidden">
+                <div className="card-interactive h-full overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl">
                   {/* Image Container */}
                   <div className="relative h-48 sm:h-52 lg:h-56 overflow-hidden">
                     <Image
@@ -97,8 +112,8 @@ export default function CategorySection() {
                     
                     {/* Icon Badge */}
                     <div className="absolute top-4 left-4">
-                      <div className={`p-3 rounded-2xl ${category.bgColor} group-hover:scale-110 transition-transform duration-300`}>
-                        <Icon className={`h-6 w-6 ${category.iconColor}`} />
+                      <div className={`p-3 rounded-2xl bg-gradient-to-br ${category.gradientFrom} ${category.gradientTo} group-hover:scale-110 transition-all duration-300 shadow-lg backdrop-blur-sm border border-white/20`}>
+                        <Icon className={`h-6 w-6 ${category.iconColor} drop-shadow-sm`} />
                       </div>
                     </div>
                   </div>
@@ -128,10 +143,10 @@ export default function CategorySection() {
         <div className="text-center mt-12">
           <Link
             href="/products"
-            className="btn-outline inline-flex items-center text-responsive-base"
+            className="btn-outline inline-flex items-center text-responsive-base px-10 py-5 shadow-lg hover:shadow-xl"
           >
             View All Categories
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform duration-300" />
           </Link>
         </div>
       </div>
