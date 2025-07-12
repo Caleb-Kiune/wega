@@ -22,7 +22,10 @@ export const getImageUrl = (path: string) => {
   if (!path.includes("/")) {
     return `${baseUrl}/static/uploads/${path}`;
   }
-  return `${baseUrl}${path}`;
+  
+  // Ensure the path starts with a slash if it doesn't already
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${baseUrl}${normalizedPath}`;
 };
 
 // Helper function to transform image URL back to relative path

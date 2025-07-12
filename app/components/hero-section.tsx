@@ -15,14 +15,14 @@ export default function HeroSection() {
         <img
           src="/images/homeessentials1.jpeg"
           alt="Modern kitchen with premium cookware and lifestyle scene"
-          className="object-cover w-full h-full"
-          onError={(e) => {
-            // Fallback to placeholder if image fails to load
-            const target = e.target as HTMLImageElement
-            target.src = "/placeholder.jpg"
-          }}
-        />
-        
+                className="object-cover w-full h-full"
+                onError={(e) => {
+                  // Fallback to placeholder if image fails to load
+                  const target = e.target as HTMLImageElement
+                  target.src = "/placeholder.jpg"
+                }}
+              />
+              
         {/* Dark overlay for better text contrast */}
         <div className="absolute inset-0 bg-black/60" />
         
@@ -38,7 +38,7 @@ export default function HeroSection() {
             <h1 className="text-responsive-4xl font-bold text-white mb-3 sm:mb-4 md:mb-6 leading-tight">
               Premium Kitchenware for
               <span className="block text-green-400 mt-1 sm:mt-2">Your Dream Kitchen</span>
-            </h1>
+                  </h1>
             
             {/* Description */}
             <p className="text-responsive-lg text-gray-100 mb-6 sm:mb-8 md:mb-10 leading-relaxed max-w-xl">
@@ -46,15 +46,15 @@ export default function HeroSection() {
             </p>
             
             {/* CTA Button */}
-            <Button 
-              asChild 
+                  <Button 
+                    asChild 
               className="group bg-green-600 hover:bg-green-700 text-white py-3 sm:py-4 px-6 sm:px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 min-h-[48px] sm:min-h-[56px] text-responsive-base font-semibold border-0 focus:ring-4 focus:ring-green-500/30"
-            >
+                  >
               <Link href="/products" className="flex items-center">
                 Shop Now
                 <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform duration-300" />
               </Link>
-            </Button>
+                  </Button>
             
             {/* Secondary CTA */}
             <div className="mt-6 sm:mt-8">
@@ -67,8 +67,8 @@ export default function HeroSection() {
               </Link>
             </div>
           </div>
-        </div>
-      </div>
+                </div>
+              </div>
 
       {/* Trust Indicators */}
       <div className="absolute bottom-6 sm:bottom-8 left-0 right-0">

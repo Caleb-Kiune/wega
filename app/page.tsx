@@ -2,12 +2,16 @@ import Link from "next/link"
 import { ArrowRight, Sparkles, Star, TrendingUp, Truck, Shield, DollarSign, Heart, Award, Clock, Users } from "lucide-react"
 import HeroSection from "@/components/hero-section"
 import ProductGrid from "@/components/product-grid"
+import CategorySection from "@/components/category-section"
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col">
       {/* Hero Section */}
       <HeroSection />
+
+      {/* Shop by Category */}
+      <CategorySection />
 
       {/* Featured Products */}
       <section className="section-padding bg-white">
@@ -17,7 +21,7 @@ export default function Home() {
               <div className="p-3 bg-purple-100 rounded-2xl">
                 <Sparkles className="h-6 w-6 text-purple-600" />
               </div>
-              <div>
+            <div>
                 <h2 className="text-responsive-2xl font-bold text-gray-800 mb-2">Featured Products</h2>
                 <p className="text-responsive-sm text-gray-600">Discover our most popular kitchenware items</p>
               </div>
@@ -42,7 +46,7 @@ export default function Home() {
               <div className="p-3 bg-blue-100 rounded-2xl">
                 <Star className="h-6 w-6 text-blue-600" />
               </div>
-              <div>
+            <div>
                 <h2 className="text-responsive-2xl font-bold text-gray-800 mb-2">New Arrivals</h2>
                 <p className="text-responsive-sm text-gray-600">Fresh additions to our collection</p>
               </div>
@@ -67,7 +71,7 @@ export default function Home() {
               <div className="p-3 bg-orange-100 rounded-2xl">
                 <TrendingUp className="h-6 w-6 text-orange-600" />
               </div>
-              <div>
+            <div>
                 <h2 className="text-responsive-2xl font-bold text-gray-800 mb-2">Special Offers</h2>
                 <p className="text-responsive-sm text-gray-600">Limited time deals and discounts</p>
               </div>

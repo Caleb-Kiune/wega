@@ -203,7 +203,7 @@
   p {
     @apply font-body text-base leading-relaxed;
   }
-  
+
   /* Ensure main content allows scrolling */
   main {
     overflow-x: hidden;
@@ -538,7 +538,7 @@
   .text-responsive-4xl {
     @apply text-4xl sm:text-5xl lg:text-6xl;
   }
-  
+
   /* Responsive spacing */
   .space-responsive {
     @apply space-y-4 sm:space-y-6 lg:space-y-8;
@@ -551,21 +551,21 @@
   .space-responsive-lg {
     @apply space-y-6 sm:space-y-8 lg:space-y-12;
   }
-  
+
   /* Responsive grid */
   .grid-responsive {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
-    @apply gap-4 sm:gap-6 lg:gap-8;
+    @apply grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+    @apply gap-4;
   }
   
   .grid-responsive-sm {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
-    @apply gap-3 sm:gap-4 lg:gap-6;
+    @apply grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3;
+    @apply gap-4;
   }
   
   .grid-responsive-lg {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5;
-    @apply gap-6 sm:gap-8 lg:gap-10;
+    @apply grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5;
+    @apply gap-4;
   }
 }
 
@@ -639,4 +639,51 @@ div.hide-scrollbar::-webkit-scrollbar {
 
 div.hide-scrollbar::-webkit-scrollbar-thumb {
   display: none;  /* Safari and Chrome */
+}
+
+/* Mobile Image Optimization */
+@media (max-width: 768px) {
+  /* Ensure images load properly on mobile */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Product card image container */
+  .product-image-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  /* Mobile-specific image loading states */
+  .mobile-image-fallback {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+  
+  /* Hide fallback when image loads */
+  .mobile-image-fallback.image-loaded {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  
+  /* Ensure Next.js Image component works properly on mobile */
+  .next-image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .next-image-wrapper img {
+    object-fit: cover;
+    object-position: center;
+  }
 }

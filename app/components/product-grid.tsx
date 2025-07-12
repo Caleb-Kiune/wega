@@ -50,29 +50,29 @@ export default function ProductGrid({
   })
 
   const fetchProducts = useCallback(async (page: number = 1, append: boolean = false) => {
-    try {
+      try {
       if (page === 1) {
         setLoading(true)
       } else {
         setLoadingMore(true)
       }
-      setError(null)
+        setError(null)
       
       console.log('Fetching products for category:', category, 'page:', page)
-      
-      // Set filter parameters based on category
-      const filterParams: ProductsParams = {
-        is_featured: category === 'featured',
-        is_new: category === 'new-arrivals',
-        is_sale: category === 'special-offers',
+        
+        // Set filter parameters based on category
+        const filterParams: ProductsParams = {
+          is_featured: category === 'featured',
+          is_new: category === 'new-arrivals',
+          is_sale: category === 'special-offers',
         limit: limit,
         page: page
-      }
-      
-      const response = await productsApi.getAll(filterParams)
-      
-      console.log('API Response:', {
-        total: response.total,
+        }
+        
+        const response = await productsApi.getAll(filterParams)
+        
+        console.log('API Response:', {
+          total: response.total,
         currentPage: response.current_page,
         totalPages: response.pages,
         products: response.products.length
@@ -88,11 +88,11 @@ export default function ProductGrid({
       setTotalPages(response.pages)
       setHasMore(response.current_page < response.pages)
       
-    } catch (err) {
-      console.error('Error fetching products:', err)
-      setError(err instanceof Error ? err.message : 'An error occurred while fetching products')
-    } finally {
-      setLoading(false)
+      } catch (err) {
+        console.error('Error fetching products:', err)
+        setError(err instanceof Error ? err.message : 'An error occurred while fetching products')
+      } finally {
+        setLoading(false)
       setLoadingMore(false)
     }
   }, [category, limit])
@@ -116,7 +116,7 @@ export default function ProductGrid({
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {[...Array(limit)].map((_, index) => (
           <div key={index} className={`${index >= mobileLimit ? 'hidden sm:block' : ''}`}>
             <ProductSkeleton />
@@ -134,9 +134,9 @@ export default function ProductGrid({
           <Button 
             onClick={() => fetchProducts(1, false)} 
             className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 min-h-[44px] font-medium shadow-lg hover:shadow-xl"
-            aria-label="Retry loading products"
-          >
-            Retry
+          aria-label="Retry loading products"
+        >
+          Retry
           </Button>
         </div>
       </div>
@@ -156,15 +156,15 @@ export default function ProductGrid({
   return (
     <div className="space-y-6">
       {/* Products Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
-        {products.slice(0, limit).map((product, index) => (
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {products.slice(0, limit).map((product, index) => (
           <div 
             key={product.id} 
             className={`${index >= mobileLimit ? 'hidden sm:block' : ''} transition-all duration-300 hover:transform hover:scale-105`}
           >
-            <ProductCard product={product} />
-          </div>
-        ))}
+          <ProductCard product={product} />
+        </div>
+      ))}
       </div>
 
       {/* Loading more indicator for infinite scroll */}

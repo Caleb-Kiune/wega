@@ -231,7 +231,7 @@ export default function FeaturedProducts() {
       </div>
 
       {/* Mobile Stackable Grid */}
-      <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="md:hidden grid grid-cols-2 gap-4">
         {products.slice(0, 4).map((product) => (
           <div key={product.id}>
             <ProductCard product={product} />

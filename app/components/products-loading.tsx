@@ -1,6 +1,6 @@
 export function ProductsLoading() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {[...Array(6)].map((_, i) => (
         <div key={i} className="bg-white rounded-lg shadow-sm overflow-hidden animate-pulse">
           {/* Image Skeleton */}

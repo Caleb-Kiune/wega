@@ -98,7 +98,7 @@ export default function Header() {
     }
     loadProducts()
   }, [])
-
+    
   // Perform search
   useEffect(() => {
     const performSearch = async () => {
@@ -424,40 +424,40 @@ export default function Header() {
 
               {/* Mobile Search Button */}
               <div className="md:hidden">
-                <Button
-                  variant="ghost"
-                  size="icon"
+                    <Button
+                      variant="ghost"
+                      size="icon"
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                   className="rounded-2xl"
                   aria-label="Toggle mobile menu"
                 >
                   <Search className="h-5 w-5" />
-                </Button>
+                    </Button>
               </div>
 
               {/* Mobile Menu Button */}
               <div className="md:hidden">
-                <Button
-                  variant="ghost"
-                  size="icon"
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                   className="rounded-2xl"
                   aria-label="Toggle mobile menu"
-                >
+                  >
                   {isMobileMenuOpen ? (
                     <X className="h-5 w-5" />
                   ) : (
                     <Menu className="h-5 w-5" />
                   )}
-                </Button>
-              </div>
+                          </Button>
+                        </div>
 
               {/* Desktop User Menu */}
               <div className="hidden md:block">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Link
+                                <Link
                         href="/account"
                         aria-label="Account"
                         className="text-gray-600 hover:text-green-600 p-3 rounded-2xl hover:bg-gray-100 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-green-400 min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -468,7 +468,7 @@ export default function Header() {
                     <TooltipContent>Account</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-              </div>
+                  </div>
             </div>
           </div>
         </div>
@@ -516,7 +516,7 @@ export default function Header() {
                 
                 {/* Mobile Action Buttons */}
                 <div className="flex items-center justify-between px-4 py-3">
-                  <Link
+                          <Link
                     href="/wishlist"
                     onClick={handleNavigationClick}
                     className="flex items-center gap-3 text-gray-700 hover:text-green-600 transition-colors duration-200"
@@ -528,7 +528,7 @@ export default function Header() {
                         {wishlistItems.length}
                       </Badge>
                     )}
-                  </Link>
+                          </Link>
                   <Link
                     href="/cart"
                     onClick={handleNavigationClick}
@@ -573,9 +573,9 @@ export default function Header() {
                   </Link>
                 </div>
               </nav>
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </header>
     </>
   )
