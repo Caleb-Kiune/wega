@@ -7,7 +7,7 @@ import { format, isValid, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Package, Truck, CheckCircle, XCircle, Search, Filter, Download, Trash2, LogOut } from 'lucide-react';
+import { Eye, Package, Truck, CheckCircle, XCircle, Search, Filter, Download, Trash2, LogOut, MoreVertical } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import {
@@ -30,6 +30,7 @@ import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useAuth } from '@/contexts/auth-context';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function OrdersPage() {
   const router = useRouter();
@@ -235,325 +236,194 @@ function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-4 sm:py-8">
-        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 mb-6 sm:mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-4xl font-bold text-gray-900">Order Management</h1>
-            <p className="mt-2 text-gray-600 text-sm sm:text-base">Manage and track customer orders</p>
-            {user && (
-              <p className="text-xs text-gray-500 mt-1">
-                Logged in as: {user.username} ({user.role})
-              </p>
-            )}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+      <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Package className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                    Orders Management
+                  </h1>
+                  <p className="text-slate-600 text-sm lg:text-base">
+                    Track, manage, and fulfill customer orders efficiently
+                  </p>
+                </div>
+              </div>
+              {user && (
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                  <span>Logged in as {user.username} ({user.role})</span>
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <Button onClick={exportOrders} variant="outline" className="flex items-center gap-2 px-4 py-2.5 h-11 bg-white/80 backdrop-blur-sm border-slate-200 hover:bg-white hover:border-slate-300 shadow-sm">
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Export</span>
+              </Button>
+              <Button onClick={handleLogout} variant="outline" className="flex items-center gap-2 px-4 py-2.5 h-11 border-red-200 text-red-700 hover:bg-red-50 hover:border-red-300">
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </Button>
+            </div>
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
-            <Button
-              onClick={exportOrders}
-              variant="outline"
-              className="w-full sm:w-auto min-h-[44px] text-base"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export Orders
-            </Button>
-            <Button
-              onClick={() => router.push('/admin')}
-              className="w-full sm:w-auto min-h-[44px] text-base"
-            >
-              <Package className="w-4 h-4 mr-2" />
-              Manage Products
-            </Button>
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="w-full sm:w-auto min-h-[44px] text-base border-red-200 text-red-700 hover:bg-red-50"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
-          </div>
-        </div>
+        </motion.div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-4 sm:mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="flex flex-col sm:flex-row flex-1 items-start sm:items-center gap-2">
-              <Input
-                placeholder="Search orders..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-sm min-h-[44px] text-base"
-              />
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[180px] min-h-[44px] text-base">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="processing">Processing</SelectItem>
-                  <SelectItem value="shipped">Shipped</SelectItem>
-                  <SelectItem value="delivered">Delivered</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[180px] min-h-[44px] text-base">
-                  <SelectValue placeholder="Payment Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Payment Statuses</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="min-h-[44px] text-base">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="created_at">Date</SelectItem>
-                <SelectItem value="total_amount">Amount</SelectItem>
-                <SelectItem value="status">Status</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                className="min-h-[44px] min-w-[44px]"
-              >
-                {sortOrder === 'asc' ? '↑' : '↓'}
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Bulk Actions */}
-        {selectedOrders.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-4 sm:mb-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <p className="text-sm text-gray-600">
-                {selectedOrders.length} order{selectedOrders.length !== 1 ? 's' : ''} selected
-              </p>
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="min-h-[44px] text-base">
-                      <Filter className="w-4 h-4 mr-2" />
-                      Update Status
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => handleBulkStatusChange('pending')}>
-                      Pending
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleBulkStatusChange('processing')}>
-                      Processing
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleBulkStatusChange('shipped')}>
-                      Shipped
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleBulkStatusChange('delivered')}>
-                      Delivered
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleBulkStatusChange('cancelled')}>
-                      Cancelled
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => setIsDeleteModalOpen(true)}
-                  className="min-h-[44px] text-base"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete Selected
-                </Button>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-6">
+          <Card className="border-slate-200 bg-white/80 backdrop-blur-sm shadow-sm">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-2">
+                <Filter className="h-5 w-5 text-slate-600" />
+                <CardTitle className="text-lg">Filters & Search</CardTitle>
               </div>
-            </div>
-          </div>
-        )}
-
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <input
-                      type="checkbox"
-                      checked={selectedOrders.length === orders.length}
-                      onChange={() => {
-                        if (selectedOrders.length === orders.length) {
-                          setSelectedOrders([]);
-                        } else {
-                          setSelectedOrders(orders.map(o => o.id));
-                        }
-                      }}
-                      className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              <CardDescription>Find and filter orders by status, payment, or customer</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700">Search Orders</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      placeholder="Search by customer, order ID, or product..."
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      className="h-11 pl-10 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20"
                     />
-                  </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Order Details
-                  </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Customer
-                  </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total
-                  </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Payment
-                  </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {orders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-                      <input
-                        type="checkbox"
-                        checked={selectedOrders.includes(order.id)}
-                        onChange={() => toggleOrderSelection(order.id)}
-                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                      />
-                    </td>
-                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        #{order.order_number}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {format(new Date(order.created_at), 'MMM d, yyyy h:mm a')}
-                      </div>
-                    </td>
-                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {order.first_name} {order.last_name}
-                      </div>
-                      <div className="text-sm text-gray-500">{order.email}</div>
-                      <div className="text-sm text-gray-500">{order.phone}</div>
-                    </td>
-                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        KES {order.total_amount.toLocaleString()}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {order.items.length} items
-                      </div>
-                    </td>
-                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-                      <Select
-                        value={order.status}
-                        onValueChange={(value: Order['status']) => handleStatusChange(order.id, value)}
-                      >
-                        <SelectTrigger className="w-[120px] sm:w-[140px] min-h-[44px] text-base">
-                          <SelectValue>
-                            <Badge className={getStatusColor(order.status)}>
-                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                            </Badge>
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="processing">Processing</SelectItem>
-                          <SelectItem value="shipped">Shipped</SelectItem>
-                          <SelectItem value="delivered">Delivered</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </td>
-                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-                      <Select
-                        value={order.payment_status}
-                        onValueChange={(value: Order['payment_status']) => handlePaymentStatusChange(order.id, value)}
-                      >
-                        <SelectTrigger className="w-[100px] sm:w-[120px] min-h-[44px] text-base">
-                          <SelectValue>
-                            <Badge className={getPaymentStatusColor(order.payment_status)}>
-                              {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
-                            </Badge>
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="paid">Paid</SelectItem>
-                          <SelectItem value="failed">Failed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </td>
-                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => router.push(`/admin/orders/${order.id}`)}
-                        className="min-h-[44px] text-base"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Details
-                      </Button>
-                    </td>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700">Order Status</Label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="h-11 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20">
+                      <SelectValue placeholder="All Statuses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="processing">Processing</SelectItem>
+                      <SelectItem value="shipped">Shipped</SelectItem>
+                      <SelectItem value="delivered">Delivered</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700">Payment Status</Label>
+                  <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
+                    <SelectTrigger className="h-11 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20">
+                      <SelectValue placeholder="All Payments" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Payments</SelectItem>
+                      <SelectItem value="paid">Paid</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="failed">Failed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700">Sort By</Label>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="h-11 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20">
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="created_at">Date</SelectItem>
+                      <SelectItem value="status">Status</SelectItem>
+                      <SelectItem value="payment_status">Payment</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Orders List */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <Card className="border-slate-200 bg-white/90 shadow-md">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-bold">Orders</CardTitle>
+              <CardDescription>Manage all customer orders</CardDescription>
+            </CardHeader>
+            <CardContent className="overflow-x-auto p-0">
+              <table className="min-w-full divide-y divide-slate-200 text-sm">
+                <thead className="bg-slate-50 sticky top-0 z-10">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">Order #</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">Customer</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">Date</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">Payment</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">Total</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Pagination */}
-        <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="text-sm text-gray-500">
-            Showing page {currentPage} of {totalPages}
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="min-h-[44px] text-base"
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="min-h-[44px] text-base"
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-
-        {/* Delete Confirmation Modal */}
-        <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete Orders</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete {selectedOrders.length} selected order{selectedOrders.length !== 1 ? 's' : ''}? This action cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)} className="min-h-[44px] text-base">
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={handleBulkDelete} className="min-h-[44px] text-base">
-                Delete
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                </thead>
+                <tbody className="bg-white divide-y divide-slate-100">
+                  <AnimatePresence>
+                    {orders.map((order, idx) => (
+                      <motion.tr
+                        key={order.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ delay: idx * 0.03 }}
+                        className="hover:bg-slate-50 transition-colors duration-200"
+                      >
+                        <td className="px-4 py-3 font-mono font-bold text-emerald-700">#{order.id}</td>
+                        <td className="px-4 py-3">{order.customer_name}</td>
+                        <td className="px-4 py-3">{format(parseISO(order.created_at), 'MMM d, yyyy')}</td>
+                        <td className="px-4 py-3">
+                          <Badge className={getStatusColor(order.status) + ' px-2 py-1 rounded-full text-xs font-semibold'}>
+                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge className={getPaymentStatusColor(order.payment_status) + ' px-2 py-1 rounded-full text-xs font-semibold'}>
+                            {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 font-semibold text-slate-900">KES {(order.total_amount || 0).toLocaleString()}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex gap-2">
+                            <Link href={`/admin/orders/${order.id}`}>
+                              <Button size="icon" variant="secondary" className="hover:bg-emerald-100">
+                                <Eye className="h-4 w-4 text-emerald-700" />
+                              </Button>
+                            </Link>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button size="icon" variant="ghost">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'cancelled')} className="text-red-600">
+                                  <XCircle className="h-4 w-4 mr-2" /> Cancel Order
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleBulkDelete()} className="text-red-600">
+                                  <Trash2 className="h-4 w-4 mr-2" /> Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </div>
   );

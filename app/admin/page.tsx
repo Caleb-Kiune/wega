@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Grid, List, Search, Filter, Trash2, Edit, Eye, MoreVertical, Package, Plus, Check, X, AlertTriangle, MapPin, Settings, LogOut } from 'lucide-react';
+import { Grid, List, Search, Filter, Trash2, Edit, Eye, MoreVertical, Package, Plus, Check, X, AlertTriangle, MapPin, Settings, LogOut, BarChart3, TrendingUp, Users, ShoppingCart, ArrowUpRight, ArrowDownRight, Star, Clock, Tag, Zap, Sparkles } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +30,8 @@ import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useAuth } from '@/contexts/auth-context';
+import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 
 interface Review {
   id: number;
@@ -264,13 +266,29 @@ function AdminPage() {
       }
     });
 
+  // Calculate dashboard stats
+  const totalProducts = products.length;
+  const inStockProducts = products.filter(p => p.stock > 0).length;
+  const outOfStockProducts = products.filter(p => p.stock === 0).length;
+  const featuredProducts = products.filter(p => p.is_featured).length;
+  const newProducts = products.filter(p => p.is_new).length;
+  const saleProducts = products.filter(p => p.is_sale).length;
+
   if (loading) {
     return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="text-lg font-medium text-muted-foreground">Loading products...</p>
+          <div className="flex items-center justify-center min-h-[600px]">
+            <div className="text-center space-y-6">
+              <div className="relative">
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-200 border-t-emerald-500 mx-auto"></div>
+                <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-emerald-400 animate-ping opacity-20"></div>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-semibold text-slate-700">Loading your dashboard</h3>
+                <p className="text-slate-500">Preparing your product catalog...</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -279,101 +297,215 @@ function AdminPage() {
 
   if (error) {
     return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       <div className="container mx-auto p-6">
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle className="text-destructive">Error</CardTitle>
-            <CardDescription>Failed to load products</CardDescription>
+          <Card className="max-w-md mx-auto border-red-200 bg-red-50/50">
+            <CardHeader className="text-center">
+              <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              </div>
+              <CardTitle className="text-red-700">Connection Error</CardTitle>
+              <CardDescription className="text-red-600">Failed to load products</CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()} variant="outline" className="w-full">
+            <CardContent className="space-y-4">
+              <p className="text-sm text-red-600 text-center">{error}</p>
+              <Button onClick={() => window.location.reload()} variant="outline" className="w-full border-red-200 text-red-700 hover:bg-red-50">
               Try Again
             </Button>
           </CardContent>
         </Card>
+        </div>
       </div>
     );
   }
 
   return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
     <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
-      {/* Header */}
-      <div className="mb-6 sm:mb-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        {/* Modern Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Package className="w-5 h-5 text-white" />
+                </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Product Management</h1>
-            <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-              Manage your product catalog with ease. View, edit, and organize your products.
-            </p>
+                  <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                    Product Dashboard
+                  </h1>
+                  <p className="text-slate-600 text-sm lg:text-base">
+                    Manage your kitchenware catalog with precision and ease
+                  </p>
+                </div>
+              </div>
             {user && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Logged in as: {user.username} ({user.role})
-              </p>
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                  <span>Logged in as {user.username} ({user.role})</span>
+                </div>
             )}
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <Button
               onClick={() => router.push('/admin/orders')}
               variant="outline"
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 min-h-[44px] text-sm sm:text-base"
+                className="flex items-center gap-2 px-4 py-2.5 h-11 bg-white/80 backdrop-blur-sm border-slate-200 hover:bg-white hover:border-slate-300 shadow-sm"
             >
-              <Package className="h-4 w-4" />
-              Orders
+                <ShoppingCart className="h-4 w-4" />
+                <span className="hidden sm:inline">Orders</span>
             </Button>
             <Button
               onClick={() => router.push('/admin/delivery-locations')}
               variant="outline"
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 min-h-[44px] text-sm sm:text-base"
+                className="flex items-center gap-2 px-4 py-2.5 h-11 bg-white/80 backdrop-blur-sm border-slate-200 hover:bg-white hover:border-slate-300 shadow-sm"
             >
               <MapPin className="h-4 w-4" />
-              Delivery
+                <span className="hidden sm:inline">Delivery</span>
             </Button>
             <Button
               onClick={() => router.push('/admin/create')}
-              className="flex items-center gap-2 px-4 sm:px-6 py-2 min-h-[44px] text-sm sm:text-base"
+                className="flex items-center gap-2 px-6 py-2.5 h-11 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
             >
-              <Plus className="w-4 h-4 mr-1" />
+                <Plus className="w-4 h-4" />
               Create Product
             </Button>
             <Button
               onClick={handleLogout}
               variant="outline"
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 min-h-[44px] text-sm sm:text-base border-red-200 text-red-700 hover:bg-red-50"
+                className="flex items-center gap-2 px-4 py-2.5 h-11 border-red-200 text-red-700 hover:bg-red-50 hover:border-red-300"
             >
               <LogOut className="h-4 w-4" />
-              Logout
+                <span className="hidden sm:inline">Logout</span>
             </Button>
           </div>
         </div>
-      </div>
+        </motion.div>
 
-      <div className="space-y-4 sm:space-y-6">
-        {/* Filters and Search */}
-        <Card>
+        {/* Dashboard Stats */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8"
+        >
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-blue-700">Total Products</p>
+                  <p className="text-2xl font-bold text-blue-900">{totalProducts}</p>
+      </div>
+                <Package className="h-8 w-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-green-700">In Stock</p>
+                  <p className="text-2xl font-bold text-green-900">{inStockProducts}</p>
+                </div>
+                <div className="h-8 w-8 bg-green-500 rounded-full flex items-center justify-center">
+                  <Check className="h-4 w-4 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-red-700">Out of Stock</p>
+                  <p className="text-2xl font-bold text-red-900">{outOfStockProducts}</p>
+                </div>
+                <AlertTriangle className="h-8 w-8 text-red-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-purple-700">Featured</p>
+                  <p className="text-2xl font-bold text-purple-900">{featuredProducts}</p>
+                </div>
+                <Star className="h-8 w-8 text-purple-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-orange-700">New</p>
+                  <p className="text-2xl font-bold text-orange-900">{newProducts}</p>
+                </div>
+                <Zap className="h-8 w-8 text-orange-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-pink-700">On Sale</p>
+                  <p className="text-2xl font-bold text-pink-900">{saleProducts}</p>
+                </div>
+                <Tag className="h-8 w-8 text-pink-600" />
+      </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <div className="space-y-6">
+          {/* Enhanced Filters and Search */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card className="border-slate-200 bg-white/80 backdrop-blur-sm shadow-sm">
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg sm:text-xl">Filters & Search</CardTitle>
-            <CardDescription className="text-sm sm:text-base">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-5 w-5 text-slate-600" />
+                  <CardTitle className="text-lg">Filters & Search</CardTitle>
+                </div>
+                <CardDescription>
               Find and filter products by name, category, brand, and more
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Search Products</Label>
+                    <Label className="text-sm font-medium text-slate-700">Search Products</Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                   placeholder="Search by product name..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={handleSearchKeyDown}
-                  className="h-10 min-h-[44px] text-base"
+                        className="h-11 pl-10 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20"
                 />
+                    </div>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Category</Label>
+                    <Label className="text-sm font-medium text-slate-700">Category</Label>
                 <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger className="h-10 min-h-[44px] text-base">
+                      <SelectTrigger className="h-11 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20">
                     <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
                   <SelectContent>
@@ -388,9 +520,9 @@ function AdminPage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Brand</Label>
+                    <Label className="text-sm font-medium text-slate-700">Brand</Label>
                 <Select value={brand} onValueChange={setBrand}>
-                  <SelectTrigger className="h-10 min-h-[44px] text-base">
+                      <SelectTrigger className="h-11 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20">
                     <SelectValue placeholder="All Brands" />
                   </SelectTrigger>
                   <SelectContent>
@@ -405,10 +537,10 @@ function AdminPage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Sort By</Label>
+                    <Label className="text-sm font-medium text-slate-700">Sort By</Label>
                 <div className="flex gap-2">
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="h-10 min-h-[44px] text-base flex-1">
+                        <SelectTrigger className="h-11 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 flex-1">
                       <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
                     <SelectContent>
@@ -421,27 +553,38 @@ function AdminPage() {
                     variant="outline"
                     size="icon"
                     onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                    className="h-10 w-10 min-h-[44px] min-w-[44px]"
+                        className="h-11 w-11 border-slate-200 hover:border-slate-300"
                   >
-                    {sortOrder === 'asc' ? '↑' : '↓'}
+                        {sortOrder === 'asc' ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
+          </motion.div>
 
-        {/* Bulk Actions */}
+          {/* Enhanced Bulk Actions */}
+          <AnimatePresence>
         {selectedProducts.length > 0 && (
-          <Card className="border-orange-200 bg-orange-50">
-            <CardContent className="pt-4 sm:pt-6">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Card className="border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50 shadow-lg">
+                  <CardContent className="pt-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
                     <Check className="h-5 w-5 text-orange-600" />
-                    <p className="text-sm font-medium text-orange-800">
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-orange-800">
                       {selectedProducts.length} product{selectedProducts.length !== 1 ? 's' : ''} selected
                     </p>
+                          <p className="text-xs text-orange-600">Ready for bulk operations</p>
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -449,7 +592,7 @@ function AdminPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setSelectedProducts([])}
-                    className="h-9 min-h-[44px] text-sm sm:text-base"
+                          className="h-10 border-orange-200 text-orange-700 hover:bg-orange-50"
                   >
                     <X className="w-4 h-4 mr-2" />
                     Clear Selection
@@ -458,7 +601,7 @@ function AdminPage() {
                     variant="destructive"
                     size="sm"
                     onClick={handleBulkDelete}
-                    className="h-9 min-h-[44px] text-sm sm:text-base"
+                          className="h-10 bg-red-500 hover:bg-red-600"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
                     Delete Selected
@@ -467,32 +610,39 @@ function AdminPage() {
               </div>
             </CardContent>
           </Card>
-        )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-        {/* View Controls */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          {/* Enhanced View Controls */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+          >
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
               <input
                 type="checkbox"
                 checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
                 onChange={(e) => handleSelectAll(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300"
+                  className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
               />
-              <Label className="text-sm text-muted-foreground">
+                <Label className="text-sm text-slate-600 font-medium">
                 Select All ({filteredProducts.length})
               </Label>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Label className="text-sm text-muted-foreground">View:</Label>
-            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+            <div className="flex items-center gap-3">
+              <Label className="text-sm text-slate-600 font-medium">View:</Label>
+              <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
               <Button
                 variant={viewMode === 'grid' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('grid')}
-                className="h-8 w-8 p-0 min-h-[44px] min-w-[44px]"
+                  className={`h-9 w-9 p-0 ${viewMode === 'grid' ? 'bg-white shadow-sm' : 'hover:bg-white/50'}`}
               >
                 <Grid className="w-4 h-4" />
               </Button>
@@ -500,180 +650,401 @@ function AdminPage() {
                 variant={viewMode === 'list' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('list')}
-                className="h-8 w-8 p-0 min-h-[44px] min-w-[44px]"
+                  className={`h-9 w-9 p-0 ${viewMode === 'list' ? 'bg-white shadow-sm' : 'hover:bg-white/50'}`}
               >
                 <List className="w-4 h-4" />
               </Button>
             </div>
           </div>
-        </div>
+          </motion.div>
 
-        {/* Products Display */}
+          {/* Enhanced Products Display */}
+          <AnimatePresence mode="wait">
         {filteredProducts.length === 0 ? (
-          <Card>
-            <CardContent className="pt-8 sm:pt-12 pb-8 sm:pb-12">
-              <div className="text-center space-y-4">
-                <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-muted rounded-full flex items-center justify-center">
-                  <Package className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <Card className="border-slate-200 bg-white/80 backdrop-blur-sm">
+                  <CardContent className="pt-12 pb-12">
+                    <div className="text-center space-y-6">
+                      <div className="mx-auto w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center">
+                        <Package className="w-10 h-10 text-slate-400" />
                 </div>
-                <div>
-                  <h3 className="text-base sm:text-lg font-semibold">No products found</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-semibold text-slate-700">No products found</h3>
+                        <p className="text-slate-500 max-w-md mx-auto">
                     {search || category !== 'all' || brand !== 'all' 
-                      ? 'Try adjusting your filters or search terms'
-                      : 'Get started by creating your first product'
+                            ? 'Try adjusting your filters or search terms to find what you\'re looking for'
+                            : 'Get started by creating your first product to build your catalog'
                     }
                   </p>
                 </div>
                 {!search && category === 'all' && brand === 'all' && (
-                  <Button onClick={() => router.push('/admin/create')} className="mt-4 min-h-[44px] text-sm sm:text-base">
+                        <Button 
+                          onClick={() => router.push('/admin/create')} 
+                          className="mt-6 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                        >
                     <Plus className="w-4 h-4 mr-2" />
-                    Create Product
+                          Create Your First Product
                   </Button>
                 )}
               </div>
             </CardContent>
           </Card>
-        ) : (
-          <div className={viewMode === 'grid' ? 'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4' : 'space-y-4'}>
-            {filteredProducts.map((product) => (
-              <Card
-                key={product.id}
-                className={`group transition-all duration-200 hover:shadow-lg ${
-                  viewMode === 'list' ? 'flex' : ''
-                } ${selectedProducts.includes(product.id) ? 'ring-2 ring-primary' : ''}`}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="products"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' : 'space-y-3'}
               >
-                <div className={`relative ${viewMode === 'list' ? 'w-32 sm:w-48' : 'w-full'}`}>
-                  <input
-                    type="checkbox"
-                    checked={selectedProducts.includes(product.id)}
-                    onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
-                    className="absolute top-2 right-2 z-10 h-4 w-4 rounded border-gray-300 bg-white shadow-sm"
-                  />
+                {filteredProducts.map((product, index) => (
+                  <motion.div
+                key={product.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    whileHover={{ y: -2, scale: 1.01 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {viewMode === 'grid' ? (
+                      // Grid View (existing card design)
+                      <Card
+                        className={`group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full border border-gray-100 hover:border-gray-200 relative min-h-[200px] cursor-pointer ${
+                          selectedProducts.includes(product.id) ? 'ring-2 ring-emerald-500 shadow-lg' : ''
+                        }`}
+                      >
+                        <div className="relative overflow-hidden">
+                          <Link 
+                            href={`/products/${product.id}`} 
+                            className="block focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-t-xl"
+                            aria-labelledby={`product-${product.id}`}
+                          >
+                            <div className="relative aspect-[4/3] w-full bg-gray-50 overflow-hidden">
                   <img
                     src={getImageUrl(product.images?.[0]?.image_url) || '/placeholder.png'}
                     alt={product.name}
-                    className={`w-full ${viewMode === 'list' ? 'h-32 sm:h-48' : 'h-40 sm:h-48'} object-cover rounded-t-lg`}
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     onError={(e) => {
                       e.currentTarget.src = '/placeholder.png';
                     }}
                     loading="lazy"
                   />
-                  <div className="absolute top-2 left-2 flex flex-col gap-1.5">
+                            </div>
+                          </Link>
+
+                          {/* Product badges - Top Left Corner */}
+                          <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+                            {product.is_featured && (
+                              <Badge className="bg-purple-600 text-white border-0 shadow-sm text-xs px-2 py-1">
+                                <Sparkles className="w-2.5 h-2.5 mr-1" />
+                                Featured
+                              </Badge>
+                            )}
                     {product.is_new && (
-                      <Badge className="text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 shadow-md transform hover:scale-105 transition-transform duration-200 font-medium">
-                        ✨ New
+                              <Badge className="bg-green-600 text-white border-0 shadow-sm text-xs px-2 py-1">
+                                <Star className="w-2.5 h-2.5 mr-1" />
+                                New
                       </Badge>
                     )}
                     {product.is_sale && (
-                      <Badge className="text-xs bg-gradient-to-r from-red-500 to-red-600 text-white border-0 shadow-md transform hover:scale-105 transition-transform duration-200 font-medium">
-                        🔥 Sale
+                              <Badge className="bg-red-500 text-white border-0 shadow-sm text-xs px-2 py-1">
+                                <TrendingUp className="w-2.5 h-2.5 mr-1" />
+                                Sale
                       </Badge>
                     )}
-                    {product.is_featured && (
-                      <Badge className="text-xs bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-md transform hover:scale-105 transition-transform duration-200 font-medium">
-                        ⭐ Featured
+                            {/* Out of Stock Badge - Top Left Corner (always for stock === 0) */}
+                            {Number(product.stock) === 0 && (
+                              <Badge className="bg-red-500 text-white border-0 shadow-sm text-xs px-2 py-1">
+                                <AlertTriangle className="w-2.5 h-2.5 mr-1" />
+                                Out of Stock
+                              </Badge>
+                            )}
+                            {/* Low Stock Badge - Top Left Corner (for low but not zero stock) */}
+                            {Number(product.stock) > 0 && Number(product.stock) <= 10 && (
+                              <Badge className="bg-orange-500 text-white border-0 shadow-sm text-xs px-2 py-1">
+                                <Package className="w-2.5 h-2.5 mr-1" />
+                                Low Stock
+                              </Badge>
+                            )}
+                            {/* In Stock Badge - Top Left Corner (for healthy stock) */}
+                            {Number(product.stock) > 10 && (
+                              <Badge className="bg-green-100 text-green-800 border-green-200 shadow-sm text-xs px-2 py-1">
+                                {`${product.stock} in stock`}
                       </Badge>
                     )}
                   </div>
+
+                          {/* Selection Checkbox - Top Right Corner */}
+                          <div className="absolute top-2 right-2 z-20">
+                            <input
+                              type="checkbox"
+                              checked={selectedProducts.includes(product.id)}
+                              onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
+                              className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 bg-white shadow-sm"
+                            />
+                          </div>
                 </div>
                 
-                <div className={`p-3 sm:p-4 ${viewMode === 'list' ? 'flex-1' : ''}`}>
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 truncate text-sm sm:text-base">{product.name}</h3>
-                      <p className="text-sm text-muted-foreground">{product.brand}</p>
-                      {product.category && (
-                        <Badge variant="secondary" className="text-xs mt-1 bg-blue-100 text-blue-800 border-blue-200">
-                          {product.category}
-                        </Badge>
+                        <div className="p-4 flex flex-col flex-grow">
+                          {/* Category and Brand - hidden on mobile */}
+                          <div className="items-center justify-between mb-2 hidden sm:flex">
+                            <div className="text-xs text-gray-500 font-medium">{product.category}</div>
+                            <div className="text-xs font-semibold text-green-600">{product.brand}</div>
+                          </div>
+                          
+                          <Link 
+                            href={`/products/${product.id}`} 
+                            className="block focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded"
+                          >
+                            <h3 
+                              id={`product-${product.id}`} 
+                              className="text-sm sm:text-base font-semibold text-gray-800 mb-2 hover:text-green-600 transition-colors line-clamp-2 leading-tight"
+                            >
+                              {product.name}
+                            </h3>
+                          </Link>
+
+                          {/* Price and Admin Actions */}
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-base sm:text-lg font-bold text-gray-800">
+                                KES {product.price.toLocaleString()}
+                              </span>
+                              {product.original_price && product.original_price > product.price && (
+                                <span className="text-xs sm:text-sm text-gray-500 line-through">
+                                  KES {product.original_price.toLocaleString()}
+                                </span>
                       )}
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity min-h-[44px] min-w-[44px]">
-                          <MoreVertical className="w-4 h-4" />
+                            
+                            {/* Admin Action Buttons - Always Visible */}
+                            <div className="flex gap-1">
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => handleEdit(product)}
+                                className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl min-h-[32px] min-w-[32px] transition-all duration-200 hover:scale-110"
+                                aria-label={`Edit ${product.name}`}
+                              >
+                                <Edit className="h-4 w-4 text-slate-600" />
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(product)}>
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push(`/products/${product.id}`)}>
-                          <Eye className="w-4 h-4 mr-2" />
-                          View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-600"
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => handleDelete(product)}
+                                className="rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-xl min-h-[32px] min-w-[32px] transition-all duration-200 hover:scale-110"
+                                aria-label={`Delete ${product.name}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Mobile Action Buttons */}
+                        <div className="md:hidden flex gap-2 p-4 pt-0">
+                          <Button
+                            size="sm"
+                            onClick={() => handleEdit(product)}
+                            className="flex-1 min-h-[44px] text-sm font-semibold rounded-lg shadow-sm hover:shadow-md transition-all duration-300 bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
                           onClick={() => handleDelete(product)}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  
-                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{product.description}</p>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900 text-sm sm:text-base">
-                          KES {product.price.toLocaleString()}
-                        </span>
-                        {product.original_price && product.original_price > product.price && (
-                          <span className="text-sm text-muted-foreground line-through">
-                            KES {product.original_price.toLocaleString()}
-                          </span>
-                        )}
-                      </div>
-                      <Badge 
-                        variant={product.stock > 0 ? 'default' : 'destructive'}
-                        className={`text-xs shadow-md ${
-                          product.stock > 0 
-                            ? 'bg-gradient-to-r from-green-500 to-green-600 text-white border-0' 
-                            : 'bg-gradient-to-r from-red-500 to-red-600 text-white border-0'
+                            className="min-h-[44px] text-sm font-semibold rounded-lg shadow-sm hover:shadow-md transition-all duration-300 bg-red-500 hover:bg-red-600 text-white"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </Card>
+                    ) : (
+                      // List View (new enhanced row design)
+                      <Card
+                        className={`group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-gray-200 relative ${
+                          selectedProducts.includes(product.id) ? 'ring-2 ring-emerald-500 shadow-lg' : ''
                         }`}
                       >
-                        {product.stock > 0 ? `📦 ${product.stock} in stock` : '❌ Out of stock'}
-                      </Badge>
+                        <div className="flex items-center p-4 gap-4">
+                          {/* Selection Checkbox */}
+                          <div className="flex-shrink-0">
+                            <input
+                              type="checkbox"
+                              checked={selectedProducts.includes(product.id)}
+                              onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
+                              className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 bg-white shadow-sm"
+                            />
+                  </div>
+                  
+                          {/* Product Image */}
+                          <div className="flex-shrink-0">
+                            <Link 
+                              href={`/products/${product.id}`} 
+                              className="block focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-lg"
+                            >
+                              <div className="relative w-20 h-20 bg-gray-50 rounded-lg overflow-hidden">
+                                <img
+                                  src={getImageUrl(product.images?.[0]?.image_url) || '/placeholder.png'}
+                                  alt={product.name}
+                                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                  onError={(e) => {
+                                    e.currentTarget.src = '/placeholder.png';
+                                  }}
+                                  loading="lazy"
+                                />
+                              </div>
+                            </Link>
+                          </div>
+
+                          {/* Product Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1 min-w-0">
+                                <Link 
+                                  href={`/products/${product.id}`} 
+                                  className="block focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded"
+                                >
+                                  <h3 
+                                    id={`product-${product.id}`} 
+                                    className="text-lg font-semibold text-gray-800 hover:text-green-600 transition-colors line-clamp-1 leading-tight mb-1"
+                                  >
+                                    {product.name}
+                                  </h3>
+                                </Link>
+                                
+                                <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                                  <span className="font-medium">{product.category}</span>
+                                  <span className="text-green-600 font-semibold">{product.brand}</span>
+                                </div>
+
+                                {/* Badges Row */}
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {product.is_featured && (
+                                    <Badge className="bg-purple-100 text-purple-700 border-purple-200 text-xs px-2 py-1">
+                                      <Sparkles className="w-3 h-3 mr-1" />
+                                      Featured
+                                    </Badge>
+                                  )}
+                                  {product.is_new && (
+                                    <Badge className="bg-green-100 text-green-700 border-green-200 text-xs px-2 py-1">
+                                      <Star className="w-3 h-3 mr-1" />
+                                      New
+                                    </Badge>
+                                  )}
+                                  {product.is_sale && (
+                                    <Badge className="bg-red-100 text-red-700 border-red-200 text-xs px-2 py-1">
+                                      <TrendingUp className="w-3 h-3 mr-1" />
+                                      Sale
+                                    </Badge>
+                                  )}
+                                  {Number(product.stock) === 0 && (
+                                    <Badge className="bg-red-100 text-red-700 border-red-200 text-xs px-2 py-1">
+                                      <AlertTriangle className="w-3 h-3 mr-1" />
+                                      Out of Stock
+                                    </Badge>
+                                  )}
+                                  {Number(product.stock) > 0 && Number(product.stock) <= 10 && (
+                                    <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-xs px-2 py-1">
+                                      <Package className="w-3 h-3 mr-1" />
+                                      Low Stock
+                                    </Badge>
+                                  )}
+                                  {Number(product.stock) > 10 && (
+                                    <Badge className="bg-green-100 text-green-700 border-green-200 text-xs px-2 py-1">
+                                      {`${product.stock} in stock`}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Price and Actions */}
+                              <div className="flex items-center gap-4">
+                                <div className="text-right">
+                                  <div className="text-xl font-bold text-gray-800">
+                          KES {product.price.toLocaleString()}
+                                  </div>
+                        {product.original_price && product.original_price > product.price && (
+                                    <div className="text-sm text-gray-500 line-through">
+                            KES {product.original_price.toLocaleString()}
+                                    </div>
+                        )}
+                      </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => handleEdit(product)}
+                                    className="rounded-lg bg-white/95 backdrop-blur-sm hover:bg-white shadow-sm hover:shadow-md min-h-[36px] min-w-[36px] transition-all duration-200 hover:scale-105"
+                                    aria-label={`Edit ${product.name}`}
+                                  >
+                                    <Edit className="h-4 w-4 text-slate-600" />
+                                  </Button>
+                                  <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => handleDelete(product)}
+                                    className="rounded-lg bg-red-500 hover:bg-red-600 text-white shadow-sm hover:shadow-md min-h-[36px] min-w-[36px] transition-all duration-200 hover:scale-105"
+                                    aria-label={`Delete ${product.name}`}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
                     </div>
                   </div>
                 </div>
               </Card>
+                    )}
+                  </motion.div>
             ))}
-          </div>
+              </motion.div>
         )}
+          </AnimatePresence>
 
-        {/* Pagination */}
+          {/* Enhanced Pagination */}
         {totalPages > 1 && (
-          <Card>
-            <CardContent className="pt-4 sm:pt-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Card className="border-slate-200 bg-white/80 backdrop-blur-sm">
+                <CardContent className="pt-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-slate-600 font-medium">
                   Showing {((currentPage - 1) * 100) + 1} to {Math.min(currentPage * 100, filteredProducts.length)} of {filteredProducts.length} products
                 </p>
-                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="h-8 min-h-[44px] text-sm sm:text-base"
+                        className="h-10 px-4 border-slate-200 hover:border-slate-300 disabled:opacity-50"
                   >
                     Previous
                   </Button>
-                  <span className="text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-lg">
+                        <span className="text-sm font-medium text-slate-700">
                     Page {currentPage} of {totalPages}
                   </span>
+                      </div>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="h-8 min-h-[44px] text-sm sm:text-base"
+                        className="h-10 px-4 border-slate-200 hover:border-slate-300 disabled:opacity-50"
                   >
                     Next
                   </Button>
@@ -681,28 +1052,50 @@ function AdminPage() {
               </div>
             </CardContent>
           </Card>
+            </motion.div>
         )}
       </div>
 
-      {/* Delete Confirmation Modal */}
+        {/* Enhanced Delete Confirmation Modal */}
       <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-        <DialogContent>
+          <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete Product</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete <strong>{productToDelete?.name}</strong>? This action cannot be undone.
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                </div>
+                <div>
+                  <DialogTitle className="text-lg">Delete Product</DialogTitle>
+                  <DialogDescription className="text-slate-600">
+                    This action cannot be undone. This will permanently delete the product.
             </DialogDescription>
+                </div>
+              </div>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
+            <div className="py-4">
+              <p className="text-sm text-slate-700">
+                Are you sure you want to delete <strong className="text-slate-900">{productToDelete?.name}</strong>?
+              </p>
+            </div>
+            <DialogFooter className="gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="border-slate-200 hover:border-slate-300"
+              >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleConfirmDelete}>
+              <Button 
+                variant="destructive" 
+                onClick={handleConfirmDelete}
+                className="bg-red-500 hover:bg-red-600"
+              >
               Delete Product
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }
