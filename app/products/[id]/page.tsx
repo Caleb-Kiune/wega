@@ -123,8 +123,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 p-4 sm:p-6">
             {/* Product Images */}
-            <div className="flex flex-col h-full">
-              <div className="relative h-[300px] sm:h-[400px] mb-4 rounded-lg overflow-hidden">
+            <div className="flex flex-col items-center h-full w-full">
+              {/* Main Large Image */}
+              <div className="relative w-full aspect-square bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center mb-4 border border-gray-200">
                 <Image
                   src={getImageUrl(product.images?.[selectedImageIndex]?.image_url)}
                   alt={product.name}
@@ -133,49 +134,30 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   priority
                 />
               </div>
-              
-              {/* Primary Image - Takes remaining space */}
-              {product.images?.filter((image: any) => image.is_primary).map((image: any, index: number) => (
-                <div
-                  key={`primary-${index}`}
-                  className="relative flex-1 min-h-[200px] mb-4 rounded-lg overflow-hidden cursor-pointer transition-all duration-200"
-                  onClick={() => setSelectedImageIndex(product.images.findIndex((img: any) => img.id === image.id))}
-                >
-                  <Image
-                    src={getImageUrl(image.image_url)}
-                    alt={`${product.name} - Primary Image`}
-                    fill
-                    className="object-cover"
-                    loading="lazy"
-                  />
-                </div>
-              ))}
-              
-              {/* Secondary Images - Fixed at bottom */}
-              {product.images?.filter((image: any) => !image.is_primary).length > 0 && (
-                <div className="grid grid-cols-4 gap-2 mt-auto">
-                  {product.images?.filter((image: any) => !image.is_primary).map((image: any, index: number) => {
-                    const originalIndex = product.images.findIndex((img: any) => img.id === image.id);
-                    return (
-                      <div
-                        key={`secondary-${index}`}
-                        className={`relative h-16 sm:h-24 rounded-md overflow-hidden border cursor-pointer transition-all duration-200 ${
-                          selectedImageIndex === originalIndex
-                            ? 'border-green-600 ring-2 ring-green-600/20' 
-                            : 'border-gray-200 hover:border-green-600'
-                        }`}
-                        onClick={() => setSelectedImageIndex(originalIndex)}
-                      >
-                        <Image
-                          src={getImageUrl(image.image_url)}
-                          alt={`${product.name} - Image ${originalIndex + 1}`}
-                          fill
-                          className="object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                    );
-                  })}
+              {/* Thumbnails Row */}
+              {product.images && product.images.length > 1 && (
+                <div className="flex flex-row gap-2 w-full max-w-lg justify-center">
+                  {product.images.map((image: any, index: number) => (
+                    <button
+                      key={`thumbnail-${index}`}
+                      type="button"
+                      className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-md overflow-hidden border-2 flex-shrink-0 transition-all duration-200 focus:outline-none ${
+                        selectedImageIndex === index
+                          ? 'border-green-600 ring-2 ring-green-600/20' 
+                          : 'border-gray-200 hover:border-green-600'
+                      }`}
+                      onClick={() => setSelectedImageIndex(index)}
+                      aria-label={`Show image ${index + 1}`}
+                    >
+                      <Image
+                        src={getImageUrl(image.image_url)}
+                        alt={`${product.name} - Image ${index + 1}`}
+                        fill
+                        className="object-cover"
+                        loading="lazy"
+                      />
+                    </button>
+                  ))}
                 </div>
               )}
             </div>

@@ -3,10 +3,21 @@ import { useBrands } from '@/lib/hooks/use-brands';
 import { useCategories } from '@/lib/hooks/use-categories';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Filter, Loader2, Sparkles, Star, TrendingUp, ChevronDown, Tag, Building2, DollarSign, Zap, RotateCcw } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { 
+  Filter, 
+  Loader2, 
+  Sparkles, 
+  Star, 
+  TrendingUp, 
+  Tag, 
+  Building2, 
+  DollarSign, 
+  RotateCcw,
+  Check,
+  X
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
 
 export interface ProductsFilters {
   page: number;
@@ -31,23 +42,36 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
   const { brands, loading: brandsLoading } = useBrands();
   const { categories, loading: categoriesLoading } = useCategories();
   const [priceRange, setPriceRange] = useState([0, 50000]);
-  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
-    categories: false,
-    brands: false,
-    price: false,
-    status: false,
-  });
+  const [priceInputs, setPriceInputs] = useState({ min: '', max: '' });
 
   // Initialize price range from filters
   useEffect(() => {
-    setPriceRange([
-      filters.min_price || 0,
-      filters.max_price || 50000
-    ]);
+    const min = filters.min_price || 0;
+    const max = filters.max_price || 50000;
+    setPriceRange([min, max]);
+    setPriceInputs({ 
+      min: min > 0 ? min.toString() : '', 
+      max: max < 50000 ? max.toString() : '' 
+    });
   }, [filters.min_price, filters.max_price]);
 
   const handlePriceRangeChange = (value: number[]) => {
     setPriceRange(value);
+    setPriceInputs({
+      min: value[0] > 0 ? value[0].toString() : '',
+      max: value[1] < 50000 ? value[1].toString() : ''
+    });
+  };
+
+  const handlePriceInputChange = (type: 'min' | 'max', value: string) => {
+    const numValue = parseInt(value) || 0;
+    setPriceInputs(prev => ({ ...prev, [type]: value }));
+    
+    if (type === 'min') {
+      setPriceRange([numValue, priceRange[1]]);
+    } else {
+      setPriceRange([priceRange[0], numValue]);
+    }
   };
 
   const handleApplyPriceFilters = () => {
@@ -73,6 +97,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
       search: undefined,
     });
     setPriceRange([0, 50000]);
+    setPriceInputs({ min: '', max: '' });
   };
 
   const handleCategoryChange = (categoryName: string, checked: boolean) => {
@@ -101,13 +126,6 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
     });
   };
 
-  const toggleSection = (section: string) => {
-    setCollapsedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
-
   const getActiveFiltersCount = () => {
     let count = 0;
     if (filters.categories?.length) count += filters.categories.length;
@@ -121,238 +139,224 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
 
   const activeFiltersCount = getActiveFiltersCount();
 
+  // Minimalist Filter Section
   const FilterSection = ({ 
     title, 
-    children, 
-    sectionKey, 
-    icon: Icon 
+    children 
   }: { 
     title: string; 
     children: React.ReactNode; 
-    sectionKey: string;
-    icon?: React.ComponentType<{ className?: string }>;
   }) => (
-    <motion.div 
-      className="border-b border-gray-100 last:border-b-0"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <button
-        onClick={() => toggleSection(sectionKey)}
-        className="flex items-center justify-between w-full py-4 text-left hover:bg-gray-50 transition-colors duration-200 rounded-lg px-3 -mx-3 group min-h-[56px]"
-      >
-        <div className="flex items-center gap-3">
-          {Icon && <Icon className="h-5 w-5 text-gray-500 group-hover:text-green-600 transition-colors" />}
-          <h3 className="text-base font-semibold text-gray-800 group-hover:text-gray-900 transition-colors">{title}</h3>
-        </div>
-        <motion.div
-          animate={{ rotate: collapsedSections[sectionKey] ? 0 : 180 }}
-          transition={{ duration: 0.2 }}
-        >
-          <ChevronDown className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-        </motion.div>
-      </button>
-      <AnimatePresence>
-        {!collapsedSections[sectionKey] && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="overflow-hidden"
-          >
-            <div className="pb-4">
-              {children}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+    <div className="border-b border-gray-100 last:border-b-0">
+      <div className="py-6">
+        <h3 className="text-sm font-medium text-gray-900 mb-4">{title}</h3>
+        {children}
+      </div>
+    </div>
   );
 
-  const FilterPill = ({ 
+  // New Custom Checkbox Component
+  const CustomCheckbox = ({ 
     label, 
     checked, 
-    onChange, 
-    icon: Icon 
+    onChange 
   }: { 
     label: string; 
     checked: boolean; 
     onChange: (checked: boolean) => void;
-    icon?: React.ComponentType<{ className?: string }>;
   }) => (
-    <motion.div 
+    <button
       className={cn(
-        "flex items-center justify-between p-4 rounded-xl border transition-all duration-200 cursor-pointer group min-h-[56px]",
+        "flex items-center justify-between w-full py-3 px-0 text-left transition-colors duration-200",
         checked 
-          ? "border-green-200 bg-green-50 shadow-sm" 
-          : "border-gray-200 hover:border-green-300 hover:bg-green-50/50"
+          ? "text-gray-900" 
+          : "text-gray-600 hover:text-gray-900"
       )}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
       onClick={() => onChange(!checked)}
     >
-      <div className="flex items-center gap-3">
-        {Icon && <Icon className="h-5 w-5 text-gray-500 group-hover:text-green-600 transition-colors" />}
-        <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">{label}</span>
+      <span className="text-sm">{label}</span>
+      
+      {/* Custom Checkbox */}
+      <div className="relative">
+        <div className={cn(
+          "w-5 h-5 border-2 rounded transition-all duration-200 flex items-center justify-center",
+          checked 
+            ? "bg-black border-black" 
+            : "border-gray-300 bg-white"
+        )}>
+          {/* Checkmark using CSS */}
+          {checked && (
+            <div className="w-2 h-2 bg-white rounded-sm"></div>
+          )}
+        </div>
       </div>
-      <div className={cn(
-        "w-5 h-5 rounded-full border-2 transition-all duration-200",
-        checked 
-          ? "bg-green-600 border-green-600" 
-          : "border-gray-300 group-hover:border-green-400"
-      )}>
-        {checked && (
-          <svg className="w-full h-full text-white" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-          </svg>
-        )}
-      </div>
-    </motion.div>
+    </button>
+  );
+
+  // Native Checkbox Option
+  const NativeCheckbox = ({
+    label,
+    checked,
+    onChange
+  }: {
+    label: string;
+    checked: boolean;
+    onChange: (checked: boolean) => void;
+  }) => (
+    <label className="flex items-center gap-3 w-full py-3 px-0 cursor-pointer select-none">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={() => onChange(!checked)}
+        className="form-checkbox h-5 w-5 accent-green-600 rounded border-gray-300 focus:ring-green-500 transition"
+      />
+      <span className="text-sm text-gray-900">{label}</span>
+    </label>
   );
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+    <div className="bg-white border border-gray-200 rounded-lg">
+      {/* Minimalist Header */}
+      <div className="px-6 py-4 border-b border-gray-100">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Filter className="h-5 w-5 text-green-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
-            {activeFiltersCount > 0 && (
-              <Badge className="bg-green-600 text-white text-xs">
-                {activeFiltersCount}
-              </Badge>
-            )}
+            <Filter className="h-5 w-5 text-gray-600" />
+            <div>
+              <h2 className="text-base font-medium text-gray-900">Filters</h2>
+              {activeFiltersCount > 0 && (
+                <p className="text-xs text-gray-500 mt-0.5">{activeFiltersCount} active</p>
+              )}
+            </div>
           </div>
           {activeFiltersCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
+            <button
               onClick={clearFilters}
-              className="text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
             >
-              <RotateCcw className="h-4 w-4 mr-1" />
-              Clear All
-            </Button>
+              Clear all
+            </button>
           )}
         </div>
       </div>
 
-      {/* Filter Sections */}
-      <div className="p-6 space-y-6">
-        {/* Categories */}
-        <FilterSection title="Categories" sectionKey="categories" icon={Tag}>
-          {categoriesLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {categories?.map((category) => (
-                <FilterPill
-                  key={category.name}
-                  label={category.name}
-                  checked={filters.categories?.includes(category.name) || false}
-                  onChange={(checked) => handleCategoryChange(category.name, checked)}
-                />
-              ))}
-            </div>
-          )}
-        </FilterSection>
-
-        {/* Brands */}
-        <FilterSection title="Brands" sectionKey="brands" icon={Building2}>
-          {brandsLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {brands?.map((brand) => (
-                <FilterPill
-                  key={brand.name}
-                  label={brand.name}
-                  checked={filters.brands?.includes(brand.name) || false}
-                  onChange={(checked) => handleBrandChange(brand.name, checked)}
-                />
-              ))}
-            </div>
-          )}
-        </FilterSection>
-
-        {/* Price Range */}
-        <FilterSection title="Price Range" sectionKey="price" icon={DollarSign}>
-          <div className="space-y-6">
-            <div className="px-2">
-              <Slider
-                value={priceRange}
-                onValueChange={handlePriceRangeChange}
-                max={50000}
-                min={0}
-                step={1000}
-                className="w-full"
+      {/* Main Scrollable Filter Content */}
+      <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+        <div className="px-6">
+          {/* Product Status */}
+          <FilterSection title="Product Status">
+            <div className="space-y-1 max-h-48 overflow-y-auto">
+              <NativeCheckbox
+                label="Featured Products"
+                checked={filters.is_featured || false}
+                onChange={(checked) => onFiltersChange({ ...filters, is_featured: checked, page: 1 })}
+              />
+              <NativeCheckbox
+                label="New Arrivals"
+                checked={filters.is_new || false}
+                onChange={(checked) => onFiltersChange({ ...filters, is_new: checked, page: 1 })}
+              />
+              <NativeCheckbox
+                label="On Sale"
+                checked={filters.is_sale || false}
+                onChange={(checked) => onFiltersChange({ ...filters, is_sale: checked, page: 1 })}
               />
             </div>
-            <div className="flex items-center justify-between text-sm text-gray-600">
-              <span>KES {priceRange[0].toLocaleString()}</span>
-              <span>KES {priceRange[1].toLocaleString()}</span>
+          </FilterSection>
+
+          {/* Categories */}
+          <FilterSection title="Categories">
+            {categoriesLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+              </div>
+            ) : (
+              <div className="space-y-1 max-h-48 overflow-y-auto">
+                {categories?.map((category) => (
+                  <NativeCheckbox
+                    key={category.name}
+                    label={category.name}
+                    checked={filters.categories?.includes(category.name) || false}
+                    onChange={(checked) => handleCategoryChange(category.name, checked)}
+                  />
+                ))}
+              </div>
+            )}
+          </FilterSection>
+
+          {/* Brands */}
+          <FilterSection title="Brands">
+            {brandsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+              </div>
+            ) : (
+              <div className="space-y-1 max-h-48 overflow-y-auto">
+                {brands?.map((brand) => (
+                  <NativeCheckbox
+                    key={brand.name}
+                    label={brand.name}
+                    checked={filters.brands?.includes(brand.name) || false}
+                    onChange={(checked) => handleBrandChange(brand.name, checked)}
+                  />
+                ))}
+              </div>
+            )}
+          </FilterSection>
+
+          {/* Price Range */}
+          <FilterSection title="Price Range">
+            <div className="space-y-4">
+              {/* Price Inputs */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-gray-700">Min Price</label>
+                  <Input
+                    type="number"
+                    value={priceInputs.min}
+                    onChange={(e) => handlePriceInputChange('min', e.target.value)}
+                    placeholder="0"
+                    className="h-9 text-sm border-gray-200 focus:border-gray-900 focus:ring-gray-900/20"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-gray-700">Max Price</label>
+                  <Input
+                    type="number"
+                    value={priceInputs.max}
+                    onChange={(e) => handlePriceInputChange('max', e.target.value)}
+                    placeholder="50,000"
+                    className="h-9 text-sm border-gray-200 focus:border-gray-900 focus:ring-gray-900/20"
+                  />
+                </div>
+              </div>
+
+              {/* Slider */}
+              <div className="space-y-3">
+                <Slider
+                  value={priceRange}
+                  onValueChange={handlePriceRangeChange}
+                  max={50000}
+                  min={0}
+                  step={1000}
+                  className="w-full"
+                />
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span>KES {priceRange[0].toLocaleString()}</span>
+                  <span>KES {priceRange[1].toLocaleString()}</span>
+                </div>
+              </div>
+
+              {/* Sticky Apply Button */}
+              <div className="sticky bottom-0 bg-white pt-2 pb-2 z-10">
+                <Button
+                  onClick={handleApplyPriceFilters}
+                  className="w-full h-9 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors shadow"
+                >
+                  Apply Price Filter
+                </Button>
+              </div>
             </div>
-            <Button
-              onClick={handleApplyPriceFilters}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg"
-            >
-              Apply Price Filter
-            </Button>
-          </div>
-        </FilterSection>
-
-        {/* Product Status */}
-        <FilterSection title="Product Status" sectionKey="status" icon={Zap}>
-          <div className="space-y-3">
-            <FilterPill
-              label="Featured Products"
-              checked={filters.is_featured || false}
-              onChange={(checked) => onFiltersChange({ ...filters, is_featured: checked, page: 1 })}
-              icon={Sparkles}
-            />
-            <FilterPill
-              label="New Arrivals"
-              checked={filters.is_new || false}
-              onChange={(checked) => onFiltersChange({ ...filters, is_new: checked, page: 1 })}
-              icon={Star}
-            />
-            <FilterPill
-              label="On Sale"
-              checked={filters.is_sale || false}
-              onChange={(checked) => onFiltersChange({ ...filters, is_sale: checked, page: 1 })}
-              icon={TrendingUp}
-            />
-          </div>
-        </FilterSection>
-      </div>
-
-      {/* Mobile Action Buttons - Only show in mobile context */}
-      <div className="lg:hidden p-6 border-t border-gray-100 bg-gray-50">
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            onClick={clearFilters}
-            className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-100"
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Clear All
-          </Button>
-          <Button
-            onClick={() => {
-              // This will be handled by the parent component's Sheet close
-              // The filters are already applied when changed
-            }}
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold"
-          >
-            Apply Filters
-          </Button>
+          </FilterSection>
         </div>
       </div>
     </div>
