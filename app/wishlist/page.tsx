@@ -3,11 +3,57 @@
 import { useWishlist } from "@/lib/hooks/use-wishlist"
 import { Button } from "@/components/ui/button"
 import { Heart, Trash2 } from "lucide-react"
-import Image from "next/image"
+import ProductCard from "@/components/product-card"
+import { Product } from "@/lib/types"
 import Link from "next/link"
+import { useState, useEffect } from "react"
+import { productsApi } from "@/lib/products"
 
 export default function WishlistPage() {
   const { items, removeItem, clearWishlist } = useWishlist()
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch full product data for wishlist items
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (items.length === 0) {
+        setProducts([])
+        return
+      }
+
+      setLoading(true)
+      setError(null)
+
+      try {
+        // Get product IDs from wishlist items
+        const productIds = items.map(item => parseInt(item.id))
+        
+        // Fetch full product data for each wishlist item
+        const productPromises = productIds.map(async (id) => {
+          try {
+            return await productsApi.getById(id)
+          } catch (err) {
+            console.error(`Failed to fetch product ${id}:`, err)
+            return null
+          }
+        })
+
+        const fetchedProducts = await Promise.all(productPromises)
+        const validProducts = fetchedProducts.filter((product): product is Product => product !== null)
+        
+        setProducts(validProducts)
+      } catch (err) {
+        console.error('Error fetching wishlist products:', err)
+        setError('Failed to load product details')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [items])
 
   return (
     <div className="container mx-auto px-4 py-4 sm:py-8">
@@ -35,43 +81,36 @@ export default function WishlistPage() {
             </Button>
           </Link>
         </div>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+      ) : loading ? (
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
+          {[...Array(items.length)].map((_, index) => (
+            <div key={index} className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 flex flex-col h-full animate-pulse">
+              <div className="relative aspect-[4/3] bg-gray-200" />
+              <div className="p-4 space-y-3">
+                <div className="h-4 bg-gray-200 rounded w-3/4" />
+                <div className="h-5 bg-gray-200 rounded w-1/3" />
+                <div className="h-3 bg-gray-200 rounded w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : error ? (
+        <div className="text-center py-8 sm:py-12">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md mx-auto">
+            <p className="text-red-600 mb-4 font-medium">{error}</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 min-h-[44px] font-medium shadow-lg hover:shadow-xl"
             >
-              <div className="relative h-40 sm:h-48">
-                <Image
-                  src={item.image}
-                  alt={item.name}
-                  fill
-                  className="object-cover"
-                  loading="lazy"
-                />
-              </div>
-              <div className="p-3 sm:p-4">
-                <h3 className="font-medium text-gray-800 mb-2 text-sm sm:text-base line-clamp-2">{item.name}</h3>
-                <p className="text-green-600 font-semibold mb-3 sm:mb-4 text-sm sm:text-base">
-                  KES {item.price.toLocaleString()}
-                </p>
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                  <Link href={`/products/${item.id}`} className="w-full sm:w-auto">
-                    <Button className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto min-h-[44px] text-sm sm:text-base">
-                      View Details
-                    </Button>
-                  </Link>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeItem(item.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 min-h-[44px] min-w-[44px] p-2"
-                  >
-                    <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </Button>
-                </div>
-              </div>
+              Retry
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
+          {products.map((product) => (
+            <div key={product.id} className="relative group">
+              <ProductCard product={product} onDelete={() => removeItem(String(product.id))} />
             </div>
           ))}
         </div>
