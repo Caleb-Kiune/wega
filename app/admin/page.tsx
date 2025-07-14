@@ -708,9 +708,8 @@ function AdminPage() {
                 key={product.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
+                    transition={{ delay: index * 0.05, duration: 0.2 }}
                     whileHover={{ y: -2, scale: 1.01 }}
-                    transition={{ duration: 0.2 }}
                   >
                     {viewMode === 'grid' ? (
                       // Grid View (existing card design)

@@ -273,13 +273,13 @@ export default function OrderDetailsClient({ initialOrder }: OrderDetailsClientP
                         <div className="flex-shrink-0">
                           <img
                             className="h-16 w-16 rounded-lg object-cover border border-slate-200"
-                            src={getImageUrl(item.product?.image_url || item.image_url)}
-                            alt={item.product?.name || item.name}
+                            src={getImageUrl(item.product?.image_url)}
+                            alt={item.product?.name}
                           />
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-slate-900 truncate">
-                            {item.product?.name || item.name}
+                            {item.product?.name}
                           </h3>
                           <p className="text-sm text-slate-500">Quantity: {item.quantity}</p>
                         </div>

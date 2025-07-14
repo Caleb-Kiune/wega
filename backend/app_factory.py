@@ -19,13 +19,17 @@ def create_app(config_name='default'):
     migrate = Migrate(app, db)
     
     # Configure CORS
-    CORS(app, 
-         resources={r"/*": {
-             "origins": app.config['CORS_ORIGINS'],
-             "methods": app.config['CORS_METHODS'],
-             "allow_headers": app.config['CORS_ALLOW_HEADERS'],
-             "supports_credentials": app.config['CORS_SUPPORTS_CREDENTIALS']
-         }})
+    if app.config['DEBUG']:
+        # In development, allow all origins for easy local testing
+        CORS(app, resources={r"/*": {"origins": "*"}})
+    else:
+        # In production, use the strict list
+        CORS(app, resources={r"/*": {
+            "origins": app.config['CORS_ORIGINS'],
+            "methods": app.config['CORS_METHODS'],
+            "allow_headers": app.config['CORS_ALLOW_HEADERS'],
+            "supports_credentials": app.config['CORS_SUPPORTS_CREDENTIALS']
+        }})
     
     # Ensure upload directory exists
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)

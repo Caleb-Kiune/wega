@@ -110,7 +110,7 @@ export default function WishlistPage() {
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
           {products.map((product) => (
             <div key={product.id} className="relative group">
-              <ProductCard product={product} onDelete={() => removeItem(String(product.id))} />
+              <ProductCard product={product} />
             </div>
           ))}
         </div>

@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ShoppingCart, Heart, Eye, Star, Sparkles, TrendingUp, Plus, ExternalLink, Trash2 } from "lucide-react"
+import { ShoppingCart, Heart, Eye, Star, Sparkles, TrendingUp, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/lib/hooks/use-toast"
@@ -16,10 +16,9 @@ import { motion } from "framer-motion"
 interface ProductCardProps {
   product: Product
   viewMode?: 'grid' | 'list'
-  onDelete?: (() => void) | undefined
 }
 
-export default function ProductCard({ product, viewMode = 'grid', onDelete }: ProductCardProps) {
+export default function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
   const { toast } = useToast()
   const { addToCart, removeFromCart, cart } = useCart()
   const { addItem, removeItem, isInWishlist } = useWishlist()
@@ -31,9 +30,8 @@ export default function ProductCard({ product, viewMode = 'grid', onDelete }: Pr
   // Check if item is in cart
   const isInCart = cart?.items?.some(item => item.product_id === product.id) || false
 
-  // Get primary and secondary images for hover effect
+  // Get primary image
   const primaryImage = product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url
-  const secondaryImage = product.images?.find(img => !img.is_primary)?.image_url || product.images?.[1]?.image_url || primaryImage
 
   const handleToggleCart = useCallback(async () => {
     const cartItem = {
@@ -102,13 +100,13 @@ export default function ProductCard({ product, viewMode = 'grid', onDelete }: Pr
   if (viewMode === 'list') {
     return (
       <motion.article 
-        className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-gray-200 relative cursor-pointer"
+        className="group card-interactive overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl relative cursor-pointer"
         role="article" 
         aria-labelledby={`product-${product.id}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         whileHover={{ y: -2 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: 0.3 }}
       >
         <div className="flex flex-col md:flex-row">
           {/* Image Section */}
@@ -124,7 +122,7 @@ export default function ProductCard({ product, viewMode = 'grid', onDelete }: Pr
                   src={getImageUrl(primaryImage) || "/placeholder.svg"} 
                   alt={`${product.name} product image`}
                   fill 
-                  className={`object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  className={`object-cover transition-all duration-500 group-hover:scale-110 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                   loading="lazy"
                   sizes="(max-width: 768px) 100vw, 224px"
                   placeholder="blur"
@@ -132,21 +130,6 @@ export default function ProductCard({ product, viewMode = 'grid', onDelete }: Pr
                   onLoad={() => setImageLoaded(true)}
                   onError={() => handleImageError(primaryImage || '')}
                 />
-                
-                {/* Secondary Image (shown on hover) */}
-                {secondaryImage && secondaryImage !== primaryImage && (
-                  <Image 
-                    src={getImageUrl(secondaryImage) || "/placeholder.svg"} 
-                    alt={`${product.name} alternate view`}
-                    fill 
-                    className="object-cover transition-opacity duration-300 opacity-0 group-hover:opacity-100" 
-                    loading="lazy"
-                    sizes="(max-width: 768px) 100vw, 224px"
-                    placeholder="blur"
-                    blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-                    onError={() => handleImageError(secondaryImage || '')}
-                  />
-                )}
                 
                 {/* Loading state */}
                 {!imageLoaded && !imageError && (
@@ -161,6 +144,9 @@ export default function ProductCard({ product, viewMode = 'grid', onDelete }: Pr
                     </div>
                   </div>
                 )}
+                
+                {/* Overlay - Enhanced like category cards */}
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300" />
               </div>
             </Link>
 
@@ -186,16 +172,56 @@ export default function ProductCard({ product, viewMode = 'grid', onDelete }: Pr
               )}
             </div>
 
-            {/* Wishlist Button */}
-            <div className="absolute top-2 right-2 z-20">
+            {/* Hover Action Icons - List View */}
+            <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-all duration-300 hidden md:flex items-center justify-center gap-2 z-20">
+              {/* Quick View Button */}
+              <Link href={`/products/${product.id}`}>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl min-h-[40px] min-w-[40px] transition-all duration-200 hover:scale-110 border-0"
+                  aria-label={`Quick view ${product.name}`}
+                >
+                  <Eye className="h-4 w-4 text-gray-700" />
+                </Button>
+              </Link>
+
+              {/* Add to Cart Button */}
+              <Button
+                size="sm"
+                className={`rounded-full shadow-lg min-h-[40px] min-w-[40px] transition-all duration-200 hover:scale-110 border-0 ${
+                  isInCart
+                    ? '!bg-green-500 !text-white'
+                    : 'bg-white/95 hover:bg-white text-gray-700'
+                }`}
+                onClick={handleToggleCart}
+                aria-label={isInCart ? `Remove ${product.name} from cart` : `Add ${product.name} to cart`}
+              >
+                <ShoppingCart className={`h-4 w-4 ${isInCart ? 'fill-current' : ''}`} />
+              </Button>
+
+              {/* Wishlist Button */}
               <Button
                 size="sm"
                 variant="secondary"
-                className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl min-h-[36px] min-w-[36px] transition-all duration-200 hover:scale-110"
+                className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl min-h-[40px] min-w-[40px] transition-all duration-200 hover:scale-110 border-0"
                 onClick={toggleWishlist}
                 aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
               >
-                <Heart className={`h-5 w-5 ${isWishlisted ? "text-red-500 fill-current" : "text-gray-600"}`} />
+                <Heart className={`h-4 w-4 ${isWishlisted ? "text-red-500 fill-current" : "text-gray-700"}`} />
+              </Button>
+            </div>
+
+            {/* Mobile Wishlist Button - Always Visible */}
+            <div className="absolute top-2 right-2 z-20 md:hidden">
+              <Button
+                size="sm"
+                variant="secondary"
+                className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg min-h-[32px] min-w-[32px]"
+                onClick={toggleWishlist}
+                aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+              >
+                <Heart className={`h-4 w-4 ${isWishlisted ? "text-red-500 fill-current" : "text-gray-600"}`} />
               </Button>
             </div>
 
@@ -231,8 +257,8 @@ export default function ProductCard({ product, viewMode = 'grid', onDelete }: Pr
                 </h3>
               </Link>
 
-              {/* Price and Delete Button */}
-              <div className="flex items-center mb-4 justify-between">
+              {/* Price */}
+              <div className="flex items-center mb-4">
                 <span className="text-2xl font-bold text-gray-800">
                   KES {product.price.toLocaleString()}
                 </span>
@@ -240,17 +266,6 @@ export default function ProductCard({ product, viewMode = 'grid', onDelete }: Pr
                   <span className="ml-3 text-lg text-gray-500 line-through">
                     KES {product.original_price.toLocaleString()}
                   </span>
-                )}
-                {onDelete && (
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    onClick={onDelete}
-                    className="ml-2 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-xl min-h-[36px] min-w-[36px] transition-all duration-200 hover:scale-110"
-                    aria-label={`Remove ${product.name} from wishlist`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 )}
               </div>
 
@@ -282,7 +297,7 @@ export default function ProductCard({ product, viewMode = 'grid', onDelete }: Pr
                 size="lg"
                 className={`flex-1 min-h-[48px] text-base font-semibold rounded-lg shadow-sm hover:shadow-md transition-all duration-300 ${
                   isInCart
-                    ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg' 
+                    ? '!bg-green-500 !text-white shadow-lg'
                     : 'bg-green-600 hover:bg-green-700 text-white'
                 }`}
                 onClick={handleToggleCart}
@@ -309,16 +324,16 @@ export default function ProductCard({ product, viewMode = 'grid', onDelete }: Pr
     )
   }
 
-  // Grid View (Original Design Enhanced)
+  // Grid View (Enhanced with Category Card Hover Styles)
   return (
     <motion.article 
-      className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full border border-gray-100 hover:border-gray-200 relative min-h-[200px] cursor-pointer" 
+      className="group card-interactive h-full overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl flex flex-col relative min-h-[200px] cursor-pointer" 
       role="article" 
       aria-labelledby={`product-${product.id}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      whileHover={{ y: -4, scale: 1.02 }}
-      transition={{ duration: 0.2 }}
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.3 }}
     >
       <div className="relative overflow-hidden">
         <Link 
@@ -332,7 +347,7 @@ export default function ProductCard({ product, viewMode = 'grid', onDelete }: Pr
               src={getImageUrl(primaryImage) || "/placeholder.svg"} 
               alt={`${product.name} product image`}
               fill 
-              className={`object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+              className={`object-cover transition-all duration-500 group-hover:scale-110 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
               loading="lazy"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               placeholder="blur"
@@ -340,21 +355,6 @@ export default function ProductCard({ product, viewMode = 'grid', onDelete }: Pr
               onLoad={() => setImageLoaded(true)}
               onError={() => handleImageError(primaryImage || '')}
             />
-            
-            {/* Secondary Image (shown on hover) - desktop only */}
-            {secondaryImage && secondaryImage !== primaryImage && (
-              <Image 
-                src={getImageUrl(secondaryImage) || "/placeholder.svg"} 
-                alt={`${product.name} alternate view`}
-                fill 
-                className="object-cover transition-opacity duration-300 opacity-0 group-hover:opacity-100 hidden md:block" 
-                loading="lazy"
-                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                placeholder="blur"
-                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-                onError={() => handleImageError(secondaryImage || '')}
-              />
-            )}
             
             {/* Loading state */}
             {!imageLoaded && !imageError && (
@@ -394,61 +394,60 @@ export default function ProductCard({ product, viewMode = 'grid', onDelete }: Pr
           )}
         </div>
 
-        {/* Wishlist Button - Top Right Corner */}
-        <div className="absolute top-2 right-2 z-20">
-          {/* Desktop - Hover Only */}
-          <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 hidden md:block">
+        {/* Hover Action Icons - Desktop Only (Grid View) */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 hidden md:flex items-center justify-center gap-3 z-20">
+          {/* Quick View Button */}
+          <Link href={`/products/${product.id}`}>
             <Button
               size="sm"
               variant="secondary"
-              className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl min-h-[36px] min-w-[36px] transition-all duration-200 hover:scale-110"
-              onClick={toggleWishlist}
-              aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+              className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl min-h-[44px] min-w-[44px] transition-all duration-200 hover:scale-110 border-0"
+              aria-label={`Quick view ${product.name}`}
             >
-              <Heart className={`h-5 w-5 ${isWishlisted ? "text-red-500 fill-current" : "text-gray-600"}`} />
+              <Eye className="h-5 w-5 text-gray-700" />
             </Button>
-          </div>
-          
-          {/* Mobile - Always Visible */}
-          <div className="md:hidden">
-            <Button
-              size="sm"
-              variant="secondary"
-              className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg min-h-[32px] min-w-[32px]"
-              onClick={toggleWishlist}
-              aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
-            >
-              <Heart className={`h-4 w-4 ${isWishlisted ? "text-red-500 fill-current" : "text-gray-600"}`} />
-            </Button>
-          </div>
+          </Link>
+
+          {/* Add to Cart Button */}
+          <Button
+            size="sm"
+            className={`rounded-full shadow-lg min-h-[44px] min-w-[44px] transition-all duration-200 hover:scale-110 border-0 ${
+              isInCart
+                ? '!bg-green-500 !text-white'
+                : 'bg-white/95 hover:bg-white text-gray-700'
+            }`}
+            onClick={handleToggleCart}
+            aria-label={isInCart ? `Remove ${product.name} from cart` : `Add ${product.name} to cart`}
+          >
+            <ShoppingCart className={`h-5 w-5 ${isInCart ? 'fill-current' : ''}`} />
+          </Button>
+
+          {/* Wishlist Button */}
+          <Button
+            size="sm"
+            variant="secondary"
+            className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl min-h-[44px] min-w-[44px] transition-all duration-200 hover:scale-110 border-0"
+            onClick={toggleWishlist}
+            aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+          >
+            <Heart className={`h-5 w-5 ${isWishlisted ? "text-red-500 fill-current" : "text-gray-700"}`} />
+          </Button>
         </div>
 
-        {/* Persistent Cart Indicator - Always Visible */}
-        {isInCart && (
-          <div className="absolute bottom-2 right-2 z-20">
-            <div className="bg-green-500 text-white rounded-full p-2 shadow-lg">
-              <ShoppingCart className="h-4 w-4 fill-current" />
-            </div>
-          </div>
-        )}
-
-        {/* Add to Cart Overlay - Lower Center Positioned (Desktop Only) */}
-        <div className="absolute inset-0 bg-black/15 opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm hidden md:flex">
-          <div className="absolute top-[60%] left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <Button
-              size="lg"
-              className={`${
-                isInCart
-                  ? '!bg-green-500 hover:!bg-green-600 text-white shadow-xl hover:shadow-2xl group-hover:!bg-green-500' 
-                  : 'bg-white/95 hover:bg-white text-gray-700 hover:text-gray-900 shadow-xl hover:shadow-2xl'
-              } min-h-[52px] min-w-[52px] rounded-full transition-all duration-300 hover:scale-110 border border-gray-200/50`}
-              onClick={handleToggleCart}
-              aria-label={isInCart ? `Remove ${product.name} from cart` : `Add ${product.name} to cart`}
-            >
-              <ShoppingCart className={`h-5 w-5 ${isInCart ? 'text-white fill-current' : 'text-gray-600'}`} />
-            </Button>
-          </div>
+        {/* Mobile Wishlist Button - Always Visible */}
+        <div className="absolute top-2 right-2 z-20 md:hidden">
+          <Button
+            size="sm"
+            variant="secondary"
+            className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg min-h-[32px] min-w-[32px]"
+            onClick={toggleWishlist}
+            aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+          >
+            <Heart className={`h-4 w-4 ${isWishlisted ? "text-red-500 fill-current" : "text-gray-600"}`} />
+          </Button>
         </div>
+
+        
       </div>
 
       <div className="p-4 flex flex-col flex-grow">
@@ -470,8 +469,8 @@ export default function ProductCard({ product, viewMode = 'grid', onDelete }: Pr
           </h3>
         </Link>
 
-        {/* Price and Delete Button */}
-        <div className="flex items-center mb-2 justify-between">
+        {/* Price */}
+        <div className="flex items-center mb-2">
           <span className="text-base sm:text-lg font-bold text-gray-800">
             KES {product.price.toLocaleString()}
           </span>
@@ -479,17 +478,6 @@ export default function ProductCard({ product, viewMode = 'grid', onDelete }: Pr
             <span className="ml-2 text-xs sm:text-sm text-gray-500 line-through">
               KES {product.original_price.toLocaleString()}
             </span>
-          )}
-          {onDelete && (
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={onDelete}
-              className="ml-2 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-xl min-h-[32px] min-w-[32px] transition-all duration-200 hover:scale-110"
-              aria-label={`Remove ${product.name} from wishlist`}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
           )}
         </div>
 
@@ -521,7 +509,7 @@ export default function ProductCard({ product, viewMode = 'grid', onDelete }: Pr
           size="sm"
           className={`flex-1 min-h-[44px] text-sm font-semibold rounded-lg shadow-sm hover:shadow-md transition-all duration-300 ${
             isInCart
-              ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg' 
+              ? '!bg-green-500 !text-white shadow-lg'
               : 'bg-green-600 hover:bg-green-700 text-white'
           }`}
           onClick={handleToggleCart}

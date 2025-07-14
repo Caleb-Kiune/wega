@@ -379,7 +379,7 @@ function OrdersPage() {
                         className="hover:bg-slate-50 transition-colors duration-200"
                       >
                         <td className="px-4 py-3 font-mono font-bold text-emerald-700">#{order.id}</td>
-                        <td className="px-4 py-3">{order.customer_name}</td>
+                        <td className="px-4 py-3">{order.first_name} {order.last_name}</td>
                         <td className="px-4 py-3">{format(parseISO(order.created_at), 'MMM d, yyyy')}</td>
                         <td className="px-4 py-3">
                           <Badge className={getStatusColor(order.status) + ' px-2 py-1 rounded-full text-xs font-semibold'}>

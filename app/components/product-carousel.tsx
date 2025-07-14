@@ -44,7 +44,7 @@ export default function ProductCarousel({ category, excludeProductId }: ProductC
             filterParams.is_sale = true;
           } else {
             // For other categories, filter by category name
-            filterParams.category = category;
+            filterParams.categories = [category];
           }
         }
         

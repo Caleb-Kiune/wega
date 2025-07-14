@@ -27,6 +27,9 @@ class Config:
         'http://127.0.0.1:3001',
         'http://127.0.0.1:3002',
         'http://127.0.0.1:3003',
+        # Allow all localhost origins for development
+        'http://localhost:*',
+        'http://127.0.0.1:*',
         # Production URLs
         'https://wega-one.vercel.app',  # Your actual Vercel frontend URL
         'https://wega-kitchenware.vercel.app',  # Alternative Vercel URL
