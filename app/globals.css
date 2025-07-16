@@ -811,3 +811,141 @@ div.hide-scrollbar::-webkit-scrollbar-thumb {
     @apply text-gray-100;
   }
 }
+
+/* Enhanced Slider Styles - Optimized for Smooth Scrolling */
+.featured-slider {
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-x;
+  /* Responsive container sizing */
+  max-width: calc(4 * 280px + 3 * 24px); /* 4 cards + 3 gaps on desktop */
+  margin: 0 auto;
+  /* Hardware acceleration */
+  transform: translateZ(0);
+  will-change: scroll-position;
+}
+
+.featured-slider-item {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  touch-action: manipulation;
+  pointer-events: auto;
+  /* Hardware acceleration */
+  transform: translateZ(0);
+  /* Ensure consistent card sizing */
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .featured-slider {
+    max-width: none; /* Full width on mobile */
+    padding: 0 8px; /* Add some padding for better touch experience */
+  }
+  
+  .featured-slider-item {
+    /* Ensure 2 cards fit perfectly on mobile */
+    width: calc(50% - 6px) !important; /* Override inline styles */
+    min-width: calc(50% - 6px);
+  }
+}
+
+.slider-nav-button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  /* Enhanced button interactions */
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  /* Smooth button scaling */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slider-nav-button:hover {
+  transform: scale(1.1) translateZ(0);
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+.slider-nav-button:active {
+  transform: scale(0.95) translateZ(0);
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slider-gradient-overlay {
+  pointer-events: none;
+  z-index: 10;
+  /* Smooth gradient transitions */
+  transition: opacity 0.3s ease;
+  /* Hardware acceleration for overlays */
+  transform: translateZ(0);
+}
+
+/* Smooth transitions for slider elements */
+.slider-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Enhanced easing for smoother feel */
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced focus states for accessibility */
+.slider-nav-button:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  ring-offset: 2px;
+  /* Smooth focus transitions */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth scroll snap behavior */
+.featured-slider-item {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
+/* Enhanced touch interactions for mobile */
+@media (hover: none) and (pointer: coarse) {
+  .slider-nav-button {
+    min-height: 56px;
+    min-width: 56px;
+    /* Larger touch targets on mobile */
+  }
+  
+  .featured-slider {
+    /* Enhanced mobile scrolling */
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+}
+
+/* Smooth autoplay transitions */
+.featured-slider.autoplay-active {
+  scroll-behavior: smooth;
+}
+
+/* Performance optimizations */
+.featured-slider-item {
+  /* Optimize for GPU acceleration */
+  transform: translateZ(0);
+}
+
+/* Responsive slider adjustments */
+@media (max-width: 1280px) {
+  .featured-slider {
+    max-width: calc(3 * 280px + 2 * 24px); /* 3 cards on smaller screens */
+  }
+}
+
+@media (max-width: 1024px) {
+  .featured-slider {
+    max-width: calc(2 * 280px + 1 * 24px); /* 2 cards on medium screens */
+  }
+}
+
+@media (max-width: 768px) {
+  .featured-slider {
+    max-width: none; /* Full width on mobile */
+  }
+}

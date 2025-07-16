@@ -10,7 +10,7 @@ import { useCart } from "@/lib/hooks/use-cart"
 import { useWishlist } from "@/lib/hooks/use-wishlist"
 import { Product } from "@/lib/types"
 import { getImageUrl } from "@/lib/products"
-import { motion } from "framer-motion"
+
 import { toast } from "sonner"
 
 interface ProductCardProps {
@@ -24,7 +24,6 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
   const isWishlisted = isInWishlist(String(product.id))
   const [imageLoaded, setImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
 
   // Check if item is in cart
   const isInCart = cart?.items?.some(item => item.product_id === product.id) || false
@@ -128,7 +127,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
         src={getImageUrl(primaryImage) || "/placeholder.svg"} 
         alt={`${product.name} product image`}
         fill 
-        className={`object-cover transition-all duration-500 group-hover:scale-110 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+        className="object-cover transition-all duration-500 group-hover:scale-110"
         loading="lazy"
         sizes={viewMode === 'list' 
           ? "(max-width: 768px) 100vw, 224px"
@@ -188,6 +187,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
       variant="secondary"
       className={`rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg min-h-[32px] min-w-[32px] ${className}`}
       onClick={(e) => {
+        e.preventDefault()
         e.stopPropagation()
         toggleWishlist(e)
       }}
@@ -203,9 +203,12 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
       <Button
         size="sm"
         variant="secondary"
-        className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl min-h-[40px] min-w-[40px] transition-all duration-200 hover:scale-110 border-0"
+                          className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl min-h-[40px] min-w-[40px] transition-all duration-200 border-0"
         aria-label={`Quick view ${product.name}`}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+        }}
       >
         <Eye className="h-4 w-4 text-gray-700" />
       </Button>
@@ -218,6 +221,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
             : 'bg-white/95 hover:bg-white text-gray-700'
         }`}
         onClick={(e) => {
+          e.preventDefault()
           e.stopPropagation()
           handleToggleCart()
         }}
@@ -232,14 +236,10 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
 
   if (viewMode === 'list') {
     return (
-      <motion.article 
-        className="group card-interactive overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl relative cursor-pointer rounded-xl"
+      <article 
+        className="group card-interactive h-full overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl relative cursor-pointer rounded-xl"
         role="article" 
         aria-labelledby={`product-${product.id}`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        whileHover={{ y: -2 }}
-        transition={{ duration: 0.3 }}
       >
         <Link 
           href={`/products/${product.id}`} 
@@ -254,7 +254,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
                   src={getImageUrl(primaryImage) || "/placeholder.svg"} 
                   alt={`${product.name} product image`}
                   fill 
-                  className={`object-cover transition-all duration-500 group-hover:scale-105 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  className="object-cover transition-all duration-500 group-hover:scale-110"
                   loading="lazy"
                   sizes="(max-width: 640px) 100vw, (max-width: 768px) 224px, (max-width: 1024px) 224px, 256px"
                   placeholder="blur"
@@ -276,7 +276,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
                   </div>
                 )}
                 
-                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300" />
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300" />
               </div>
               
               <ProductBadges />
@@ -286,21 +286,25 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
                 <Button
                   size="sm"
                   variant="secondary"
-                  className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl min-h-[40px] min-w-[40px] transition-all duration-200 hover:scale-110 border-0"
+                  className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl min-h-[40px] min-w-[40px] transition-all duration-200 border-0"
                   aria-label={`Quick view ${product.name}`}
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                  }}
                 >
                   <Eye className="h-4 w-4 text-gray-700" />
                 </Button>
 
                 <Button
                   size="sm"
-                  className={`rounded-full shadow-lg min-h-[40px] min-w-[40px] transition-all duration-200 hover:scale-110 border-0 ${
+                  className={`rounded-full shadow-lg min-h-[40px] min-w-[40px] transition-all duration-200 border-0 ${
                     isInCart
                       ? '!bg-green-500 !text-white'
                       : 'bg-white/95 hover:bg-white text-gray-700'
                   }`}
                   onClick={(e) => {
+                    e.preventDefault()
                     e.stopPropagation()
                     handleToggleCart()
                   }}
@@ -366,7 +370,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
                 {/* Product Title - Enhanced Typography */}
                 <h3 
                   id={`product-${product.id}`} 
-                  className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 hover:text-green-600 transition-colors line-clamp-2 leading-tight"
+                  className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 group-hover:text-green-600 transition-colors duration-200 line-clamp-2 leading-tight"
                 >
                   {product.name}
                 </h3>
@@ -421,6 +425,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
                       : 'bg-green-600 hover:bg-green-700 text-white'
                   }`}
                   onClick={(e) => {
+                    e.preventDefault()
                     e.stopPropagation()
                     handleToggleCart()
                   }}
@@ -434,7 +439,10 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
                   variant="outline"
                   size="lg"
                   className="min-h-[48px] sm:min-h-[52px] px-4 border-gray-300 hover:border-green-600 hover:text-green-600 transition-all duration-200"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                  }}
                 >
                   <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   <span className="hidden sm:inline">View Details</span>
@@ -444,20 +452,16 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
             </div>
           </div>
         </Link>
-      </motion.article>
+      </article>
     )
   }
 
   // Grid View
   return (
-    <motion.article 
-      className="group card-interactive h-full overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl flex flex-col relative min-h-[200px] cursor-pointer" 
+    <article 
+      className="group card-interactive h-full overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl flex flex-col relative min-h-[200px] cursor-pointer rounded-xl" 
       role="article" 
       aria-labelledby={`product-${product.id}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      whileHover={{ y: -2 }}
-      transition={{ duration: 0.3 }}
     >
       <Link 
         href={`/products/${product.id}`} 
@@ -484,7 +488,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
           
           <h3 
             id={`product-${product.id}`} 
-            className="text-sm sm:text-base font-semibold text-gray-800 mb-2 hover:text-green-600 transition-colors line-clamp-2 leading-tight"
+            className="text-sm sm:text-base font-semibold text-gray-800 mb-2 group-hover:text-green-600 transition-colors duration-200 line-clamp-2 leading-tight"
           >
             {product.name}
           </h3>
@@ -511,6 +515,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
                   : 'bg-white/95 hover:bg-white text-gray-700 shadow-md'
               }`}
               onClick={(e) => {
+                e.preventDefault()
                 e.stopPropagation()
                 if (isInCart) {
                   handleToggleCart()
@@ -546,6 +551,6 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
           )}
         </div>
       </Link>
-    </motion.article>
+    </article>
   )
 } 

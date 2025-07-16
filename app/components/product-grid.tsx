@@ -160,7 +160,7 @@ export default function ProductGrid({
       {products.slice(0, limit).map((product, index) => (
           <div 
             key={product.id} 
-            className={`${index >= mobileLimit ? 'hidden sm:block' : ''} transition-all duration-300 hover:transform hover:scale-105`}
+            className={`${index >= mobileLimit ? 'hidden sm:block' : ''}`}
           >
           <ProductCard product={product} />
         </div>

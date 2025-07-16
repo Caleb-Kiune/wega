@@ -3,6 +3,7 @@ import { ArrowRight, Sparkles, Star, TrendingUp, Truck, Shield, DollarSign, Hear
 import HeroSection from "@/components/hero-section"
 import ProductGrid from "@/components/product-grid"
 import CategorySection from "@/components/category-section"
+import FeaturedProducts from "@/components/featured-products"
 
 export default function Home() {
   return (
@@ -39,7 +40,7 @@ export default function Home() {
               <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
             </Link>
           </div>
-          <ProductGrid category="featured" limit={4} />
+          <FeaturedProducts />
         </div>
       </section>
 

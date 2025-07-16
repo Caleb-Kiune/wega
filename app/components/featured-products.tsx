@@ -1,16 +1,11 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { ChevronLeft, ChevronRight, Star, ShoppingCart, Heart } from "lucide-react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import ProductCard from "@/components/product-card"
 import { productsApi } from "@/lib/products"
 import { Product } from "@/shared/types"
 import { useCarouselScroll } from "@/lib/hooks/use-carousel-scroll"
-import { useToast } from "@/lib/hooks/use-toast"
-import { useCart } from "@/lib/hooks/use-cart"
-import { useWishlist } from "@/lib/hooks/use-wishlist"
-import Link from 'next/link'
-import Image from 'next/image'
 
 interface ApiError extends Error {
   response?: {
@@ -26,6 +21,9 @@ export default function FeaturedProducts() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isHovered, setIsHovered] = useState(false)
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true)
+  const [isTransitioning, setIsTransitioning] = useState(false)
 
   // Use shared carousel scroll handler
   const { isScrolling } = useCarouselScroll(carouselRef);
@@ -90,6 +88,15 @@ export default function FeaturedProducts() {
     fetchProducts()
   }, [])
 
+  // Create infinite scroll products by duplicating the array
+  const getInfiniteProducts = () => {
+    if (products.length === 0) return []
+    // Duplicate products 3 times to ensure smooth infinite scrolling
+    return [...products, ...products, ...products]
+  }
+
+  const infiniteProducts = getInfiniteProducts()
+
   const checkScrollButtons = () => {
     if (carouselRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current
@@ -97,7 +104,7 @@ export default function FeaturedProducts() {
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10) // 10px buffer
       
       // Calculate current slide based on scroll position
-      const slideWidth = 320 + 24 // card width + gap
+      const slideWidth = 280 + 24 // card width + gap (adjusted for 4 cards)
       const newCurrentSlide = Math.round(scrollLeft / slideWidth)
       setCurrentSlide(newCurrentSlide)
     }
@@ -113,31 +120,95 @@ export default function FeaturedProducts() {
     }
   }, [products]) // Re-check when products change
 
+  // Simplified smooth scroll function
+  const smoothScroll = (targetScrollLeft: number) => {
+    if (!carouselRef.current || isTransitioning) return
+    
+    setIsTransitioning(true)
+    
+    carouselRef.current.scrollTo({
+      left: targetScrollLeft,
+      behavior: 'smooth'
+    })
+    
+    // Reset transition state after animation
+    setTimeout(() => {
+      setIsTransitioning(false)
+    }, 800)
+  }
+
+  // Handle infinite scroll reset
+  const handleScrollReset = () => {
+    if (!carouselRef.current || isTransitioning) return
+    
+    const carousel = carouselRef.current
+    const { scrollLeft } = carousel
+    const cardWidth = 280 + 24 // card width + gap
+    const originalSetWidth = products.length * cardWidth
+    
+    // If we've scrolled past the first set, reset to the middle set
+    if (scrollLeft >= originalSetWidth) {
+      setIsTransitioning(true)
+      const newScrollLeft = scrollLeft - originalSetWidth
+      carousel.scrollTo({ left: newScrollLeft, behavior: "auto" })
+      setTimeout(() => setIsTransitioning(false), 100)
+    }
+    // If we've scrolled before the first set, reset to the middle set
+    else if (scrollLeft < 0) {
+      setIsTransitioning(true)
+      const newScrollLeft = scrollLeft + originalSetWidth
+      carousel.scrollTo({ left: newScrollLeft, behavior: "auto" })
+      setTimeout(() => setIsTransitioning(false), 100)
+    }
+  }
+
+  useEffect(() => {
+    const carousel = carouselRef.current
+    if (carousel) {
+      carousel.addEventListener("scroll", handleScrollReset)
+      return () => carousel.removeEventListener("scroll", handleScrollReset)
+    }
+  }, [products, isTransitioning])
+
   const scroll = (direction: "left" | "right") => {
-    if (carouselRef.current) {
-      const { clientWidth } = carouselRef.current
-      const scrollAmount = direction === "left" ? -clientWidth / 2 : clientWidth / 2
-      carouselRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" })
+    if (carouselRef.current && !isTransitioning) {
+      const cardWidth = 280 + 24 // card width + gap (adjusted for 4 cards)
+      const currentScrollLeft = carouselRef.current.scrollLeft
+      const targetScrollLeft = direction === "left" 
+        ? currentScrollLeft - cardWidth 
+        : currentScrollLeft + cardWidth
+      
+      smoothScroll(targetScrollLeft)
+      
+      // Pause autoplay when manually scrolling
+      setIsAutoPlaying(false)
+      setTimeout(() => setIsAutoPlaying(true), 5000) // Resume after 5 seconds
     }
   }
 
-  const goToSlide = (slideIndex: number) => {
-    if (carouselRef.current) {
-      const slideWidth = 320 + 24 // card width + gap
-      const scrollPosition = slideIndex * slideWidth
-      carouselRef.current.scrollTo({ left: scrollPosition, behavior: "smooth" })
-    }
-  }
-
-  // Calculate total slides based on visible cards
+  // Calculate total slides based on visible cards (4 cards per view)
   const getTotalSlides = () => {
-    if (carouselRef.current) {
-      const { clientWidth } = carouselRef.current
-      const cardWidth = 320 + 24 // card width + gap
-      return Math.ceil(products.length / Math.floor(clientWidth / cardWidth))
-    }
-    return Math.ceil(products.length / 3) // fallback
+    if (!products || products.length === 0) return 1
+    return Math.ceil(products.length / 4) // 4 cards per slide
   }
+
+  // Simplified autoplay
+  useEffect(() => {
+    if (!carouselRef.current || !isAutoPlaying || isHovered || isTransitioning) return;
+
+    const interval = setInterval(() => {
+      const carousel = carouselRef.current;
+      if (!carousel) return;
+      
+      const cardWidth = 280 + 24; // card width + gap (adjusted for 4 cards)
+      const currentScrollLeft = carousel.scrollLeft
+      const targetScrollLeft = currentScrollLeft + cardWidth
+      
+      smoothScroll(targetScrollLeft)
+    }, 4000); // 4 seconds interval
+
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, isHovered, products, isTransitioning]);
 
   if (loading) {
     return (
@@ -180,84 +251,56 @@ export default function FeaturedProducts() {
   const totalSlides = getTotalSlides()
 
   return (
-    <div className="relative" role="region" aria-label="Featured products carousel">
-      {/* Scroll Buttons */}
-      {canScrollLeft && (
-        <button
-          onClick={() => scroll("left")}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 focus:outline-none transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px]"
-          aria-label="Scroll featured products left"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </button>
-      )}
-      {canScrollRight && (
-        <button
-          onClick={() => scroll("right")}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 focus:outline-none transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px]"
-          aria-label="Scroll featured products right"
-        >
-          <ChevronRight className="h-6 w-6" />
-        </button>
-      )}
-
-      {/* Desktop Carousel */}
-      <div
-        ref={carouselRef}
-        className="hidden md:flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4 will-change-transform"
-        style={{
-          scrollSnapType: 'x mandatory',
-          WebkitOverflowScrolling: 'touch',
-          scrollBehavior: 'smooth',
-          overscrollBehavior: 'contain',
-          touchAction: 'pan-x',
-          pointerEvents: 'auto'
-        }}
+    <div 
+      className="relative" 
+      role="region" 
+      aria-label="Featured products carousel"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Enhanced Navigation Buttons */}
+      <button
+        onClick={() => scroll("left")}
+        className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-sm border border-gray-200/50 rounded-full p-2 md:p-3 shadow-xl hover:shadow-2xl focus:outline-none min-h-[40px] min-w-[40px] md:min-h-[48px] md:min-w-[48px] opacity-30 hover:opacity-100 slider-nav-button slider-transition ${
+          canScrollLeft ? 'pointer-events-auto' : 'pointer-events-none opacity-0'
+        }`}
+        aria-label="Scroll featured products left"
+        disabled={!canScrollLeft || isTransitioning}
       >
-        {products.map((product) => (
-          <div 
-            key={product.id} 
-            className="flex-none w-[200px] sm:w-[240px] md:w-[280px] lg:w-[320px] xl:w-[360px]"
-            style={{ 
-              scrollSnapAlign: 'start',
-              scrollSnapStop: 'always',
-              touchAction: 'manipulation',
-              pointerEvents: 'auto'
-            }}
-          >
-            <ProductCard product={product} />
-          </div>
-        ))}
-      </div>
+        <ChevronLeft className="h-4 w-4 md:h-6 md:w-6 text-gray-700" />
+      </button>
+      
+      <button
+        onClick={() => scroll("right")}
+        className={`absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-sm border border-gray-200/50 rounded-full p-2 md:p-3 shadow-xl hover:shadow-2xl focus:outline-none min-h-[40px] min-w-[40px] md:min-h-[48px] md:min-w-[48px] opacity-30 hover:opacity-100 slider-nav-button slider-transition ${
+          canScrollRight ? 'pointer-events-auto' : 'pointer-events-none opacity-0'
+        }`}
+        aria-label="Scroll featured products right"
+        disabled={!canScrollRight || isTransitioning}
+      >
+        <ChevronRight className="h-4 w-4 md:h-6 md:w-6 text-gray-700" />
+      </button>
 
-      {/* Mobile Stackable Grid */}
-      <div className="md:hidden grid grid-cols-2 gap-4">
-        {products.slice(0, 4).map((product) => (
-          <div key={product.id}>
-            <ProductCard product={product} />
-          </div>
-        ))}
-      </div>
-
-      {/* Dot Indicators - Only show on desktop */}
-      {totalSlides > 1 && (
-        <div className="hidden md:flex justify-center mt-6 space-x-2">
-          {Array.from({ length: totalSlides }, (_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center ${
-                index === currentSlide 
-                  ? 'bg-green-600 scale-110' 
-                  : 'bg-gray-300 hover:bg-gray-400'
-              }`}
-              aria-label={`Go to slide ${index + 1} of ${totalSlides}`}
-              aria-current={index === currentSlide ? "true" : "false"}
-              style={{ willChange: 'transform, background-color' }}
-            />
+      {/* Enhanced Carousel Container */}
+      <div className="relative overflow-hidden">
+        <div
+          ref={carouselRef}
+          className="flex gap-3 md:gap-6 overflow-x-auto scroll-smooth pb-4 will-change-transform hide-scrollbar featured-slider"
+        >
+          {infiniteProducts.map((product, index) => (
+            <div 
+              key={`${product.id}-${index}`} 
+              className="flex-none w-[calc(50%-6px)] md:w-[280px] featured-slider-item"
+            >
+              <ProductCard product={product} />
+            </div>
           ))}
         </div>
-      )}
+        
+        {/* Enhanced Gradient Overlays for Smooth Edges */}
+        <div className="absolute left-0 top-0 bottom-0 w-8 md:w-12 bg-gradient-to-r from-white via-white/80 to-transparent slider-gradient-overlay pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-8 md:w-12 bg-gradient-to-l from-white via-white/80 to-transparent slider-gradient-overlay pointer-events-none" />
+      </div>
     </div>
   )
 }
