@@ -37,10 +37,7 @@ interface Product {
   }>;
 }
 
-interface Category {
-  name: string;
-  href: string;
-}
+
 
 const searchProducts = (products: Product[], query: string): Product[] => {
   if (!query.trim()) return []
@@ -52,14 +49,7 @@ const searchProducts = (products: Product[], query: string): Product[] => {
   ).slice(0, 5) // Limit to 5 results for dropdown
 }
 
-const categories: Category[] = [
-  { name: "Cookware", href: "/products?category=cookware" },
-  { name: "Utensils", href: "/products?category=utensils" },
-  { name: "Appliances", href: "/products?category=appliances" },
-  { name: "Storage", href: "/products?category=storage" },
-  { name: "Bakeware", href: "/products?category=bakeware" },
-  { name: "Accessories", href: "/products?category=accessories" },
-]
+
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -515,11 +505,11 @@ export default function Header() {
                 ))}
                 
                 {/* Mobile Action Buttons */}
-                <div className="flex items-center justify-between px-4 py-3">
-                          <Link
+                <div className="space-y-2">
+                  <Link
                     href="/wishlist"
                     onClick={handleNavigationClick}
-                    className="flex items-center gap-3 text-gray-700 hover:text-green-600 transition-colors duration-200"
+                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:text-green-600 hover:bg-gray-50 rounded-2xl transition-colors duration-200"
                   >
                     <Heart className="h-5 w-5" />
                     <span>Wishlist</span>
@@ -528,11 +518,11 @@ export default function Header() {
                         {wishlistItems.length}
                       </Badge>
                     )}
-                          </Link>
+                  </Link>
                   <Link
                     href="/cart"
                     onClick={handleNavigationClick}
-                    className="flex items-center gap-3 text-gray-700 hover:text-green-600 transition-colors duration-200"
+                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:text-green-600 hover:bg-gray-50 rounded-2xl transition-colors duration-200"
                   >
                     <ShoppingCart className="h-5 w-5" />
                     <span>Cart</span>
@@ -544,22 +534,7 @@ export default function Header() {
                   </Link>
                 </div>
 
-                {/* Mobile Categories */}
-                <div className="border-t border-gray-200 pt-4">
-                  <h3 className="px-4 py-2 text-sm font-semibold text-gray-900">Categories</h3>
-                  <div className="space-y-1">
-                    {categories.map((category) => (
-                      <Link
-                        key={category.name}
-                        href={category.href}
-                        onClick={handleNavigationClick}
-                        className="block px-4 py-3 text-sm text-gray-700 hover:text-green-600 hover:bg-gray-50 rounded-2xl transition-colors duration-200"
-                      >
-                        {category.name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
+
 
                 {/* Mobile Account Link */}
                 <div className="border-t border-gray-200 pt-4">

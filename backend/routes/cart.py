@@ -101,7 +101,12 @@ def update_cart_item(item_id):
 @cart_bp.route('/api/cart/items/<int:item_id>', methods=['DELETE'])
 def remove_from_cart(item_id):
     """Remove item from cart"""
-    cart_item = CartItem.query.get_or_404(item_id)
+    cart_item = CartItem.query.get(item_id)
+    
+    if not cart_item:
+        # Item doesn't exist, return success since the goal is achieved
+        return jsonify({'message': 'Item not found in cart', 'items': [], 'total': 0}), 200
+    
     cart = cart_item.cart
     
     try:

@@ -6,12 +6,12 @@ import Image from "next/image"
 import { ShoppingCart, Heart, Eye, Star, Sparkles, TrendingUp, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { useToast } from "@/lib/hooks/use-toast"
 import { useCart } from "@/lib/hooks/use-cart"
 import { useWishlist } from "@/lib/hooks/use-wishlist"
 import { Product } from "@/lib/types"
 import { getImageUrl } from "@/lib/products"
 import { motion } from "framer-motion"
+import { toast } from "sonner"
 
 interface ProductCardProps {
   product: Product
@@ -19,7 +19,6 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
-  const { toast } = useToast()
   const { addToCart, removeFromCart, cart } = useCart()
   const { addItem, removeItem, isInWishlist } = useWishlist()
   const isWishlisted = isInWishlist(String(product.id))
@@ -45,28 +44,62 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
     try {
       if (isInCart) {
         await removeFromCart(product.id)
-        toast({
-          title: "Removed from cart",
-          description: `${product.name} has been removed from your cart.`,
-        })
+        toast.success(`${product.name} has been removed from your cart.`)
       } else {
         await addToCart(cartItem)
-        toast({
-          title: "Added to cart",
-          description: `${product.name} has been added to your cart.`,
-        })
+        toast.success(`${product.name} has been added to your cart.`)
       }
     } catch (error) {
       console.error('Cart operation failed:', error)
-      toast({
-        title: "Error",
-        description: isInCart 
-          ? "Failed to remove item from cart. Please try again."
-          : "Failed to add item to cart. Please try again.",
-        variant: "destructive",
+      toast.error(isInCart 
+        ? "Failed to remove item from cart. Please try again."
+        : "Failed to add item to cart. Please try again.")
+    }
+  }, [product, primaryImage, addToCart, removeFromCart, isInCart, cart])
+
+  const handleAddToCartWithUndo = useCallback(async () => {
+    const cartItem = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: getImageUrl(primaryImage) || "/placeholder.svg",
+      quantity: 1
+    }
+    
+    try {
+      // Add item to cart
+      await addToCart(cartItem)
+      
+      // Show toast with undo option
+      toast("Added to cart", {
+        description: `${product.name} has been added to your cart.`,
+        action: {
+          label: "Undo",
+          onClick: async () => {
+            try {
+              // Small delay to ensure cart state is updated
+              await new Promise(resolve => setTimeout(resolve, 100))
+              await removeFromCart(product.id)
+              toast("Undo", {
+                description: `${product.name} removed from cart.`
+              })
+            } catch (error) {
+              console.error("Failed to undo add to cart:", error)
+              toast("Error", {
+                description: "Failed to remove item from cart. Please try again."
+              })
+            }
+          },
+        },
+        duration: 2000,
+      })
+    } catch (error) {
+      console.error("Failed to add item to cart:", error)
+      toast("Error", {
+        description: "Failed to add item to cart. Please try again."
       })
     }
-  }, [product, primaryImage, addToCart, removeFromCart, toast, isInCart, cart])
+  }, [product, primaryImage, addToCart, removeFromCart])
 
   const toggleWishlist = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -74,10 +107,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
     
     if (isWishlisted) {
       removeItem(String(product.id))
-      toast({
-        title: "Removed from wishlist",
-        description: `${product.name} has been removed from your wishlist.`,
-      })
+      toast.success(`${product.name} has been removed from your wishlist.`)
     } else {
       addItem({
         id: String(product.id),
@@ -86,10 +116,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
         image: getImageUrl(primaryImage) || "/placeholder.svg",
         category: product.category,
       })
-      toast({
-        title: "Added to wishlist",
-        description: `${product.name} has been added to your wishlist.`,
-      })
+      toast.success(`${product.name} has been added to your wishlist.`)
     }
   }, [isWishlisted, product, primaryImage, addItem, removeItem, toast])
 
@@ -469,16 +496,32 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
           </h3>
         </Link>
 
-        {/* Price */}
-        <div className="flex items-center mb-2">
-          <span className="text-base sm:text-lg font-bold text-gray-800">
-            KES {product.price.toLocaleString()}
-          </span>
-          {product.original_price && (
-            <span className="ml-2 text-xs sm:text-sm text-gray-500 line-through">
-              KES {product.original_price.toLocaleString()}
+        {/* Price and Cart Icon */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center">
+            <span className="text-base sm:text-lg font-bold text-gray-800">
+              KES {product.price.toLocaleString()}
             </span>
-          )}
+            {product.original_price && (
+              <span className="ml-2 text-xs sm:text-sm text-gray-500 line-through">
+                KES {product.original_price.toLocaleString()}
+              </span>
+            )}
+          </div>
+          
+          {/* Cart Icon Button - Bottom Right */}
+          <Button
+            size="sm"
+            className={`rounded-full shadow-lg min-h-[36px] min-w-[36px] transition-all duration-200 hover:scale-110 border-0 ${
+              isInCart
+                ? '!bg-green-500 !text-white shadow-lg'
+                : 'bg-white/95 hover:bg-white text-gray-700 shadow-md'
+            }`}
+            onClick={isInCart ? handleToggleCart : handleAddToCartWithUndo}
+            aria-label={isInCart ? `Remove ${product.name} from cart` : `Add ${product.name} to cart`}
+          >
+            <ShoppingCart className={`h-4 w-4 ${isInCart ? 'fill-current' : ''}`} />
+          </Button>
         </div>
 
         {/* Rating */}
@@ -501,23 +544,6 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
             </span>
           </div>
         )}
-      </div>
-
-      {/* Mobile Action Buttons */}
-      <div className="md:hidden flex gap-2 p-4 pt-0">
-        <Button
-          size="sm"
-          className={`flex-1 min-h-[44px] text-sm font-semibold rounded-lg shadow-sm hover:shadow-md transition-all duration-300 ${
-            isInCart
-              ? '!bg-green-500 !text-white shadow-lg'
-              : 'bg-green-600 hover:bg-green-700 text-white'
-          }`}
-          onClick={handleToggleCart}
-          aria-label={isInCart ? `Remove ${product.name} from cart` : `Add ${product.name} to cart`}
-        >
-          <ShoppingCart className={`h-4 w-4 mr-1 ${isInCart ? 'fill-current' : ''}`} />
-          {isInCart ? 'Remove from Cart' : 'Add to Cart'}
-        </Button>
       </div>
     </motion.article>
   )

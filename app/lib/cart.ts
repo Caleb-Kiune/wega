@@ -183,6 +183,16 @@ export const cartApi = {
     if (!response.ok) throw new Error('Failed to remove item from cart');
     const data = await response.json();
     
+    // Handle case where item doesn't exist (backend returns success)
+    if (data.message === 'Item not found in cart') {
+      console.log('Item not found in cart, returning empty cart state');
+      return {
+        id: 0,
+        session_id: sessionId,
+        items: []
+      };
+    }
+    
     // Transform the response to match the frontend interface
     if (data.items) {
       data.items = data.items.map((item: any) => ({

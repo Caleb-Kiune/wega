@@ -79,18 +79,40 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const removeFromCart = async (productId: number) => {
     try {
-      // Find the cart item by product ID
-      const cartItem = cart?.items.find(item => item.product_id === productId);
+      // First, try to find the cart item in the current state
+      let cartItem = cart?.items.find(item => item.product_id === productId);
+      
       if (!cartItem) {
-        console.error('Cart item not found for product ID:', productId);
-        return;
+        // If not found in current state, refresh cart from server and try again
+        console.log(`Cart item not found in current state for product ID: ${productId}, refreshing cart...`);
+        try {
+          const refreshedCart = await cartApi.getCart();
+          setCart(refreshedCart);
+          setCartCount(refreshedCart.items.reduce((total, item) => total + item.quantity, 0));
+          
+          // Try to find the item in the refreshed cart
+          cartItem = refreshedCart.items.find(item => item.product_id === productId);
+          
+          if (!cartItem) {
+            console.log(`Cart item still not found after refresh for product ID: ${productId}`);
+            // Item might have been removed by another process or doesn't exist
+            // Return successfully since the goal (item not in cart) is achieved
+            return;
+          }
+        } catch (refreshError) {
+          console.error("Failed to refresh cart:", refreshError);
+          // If we can't refresh, assume the item was already removed
+          return;
+        }
       }
       
+      // Remove the item from the backend
       const updatedCart = await cartApi.removeItem(cartItem.id);
       setCart(updatedCart);
       setCartCount(updatedCart.items.reduce((total, item) => total + item.quantity, 0));
     } catch (error) {
       console.error("Failed to remove item from cart:", error);
+      // Don't throw the error, just log it and show a user-friendly message
       toast({
         title: "Error",
         description: "Failed to remove item from cart. Please try again.",
