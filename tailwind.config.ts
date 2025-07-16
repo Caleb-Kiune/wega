@@ -4,10 +4,10 @@ const config: Config = {
   darkMode: ["class"],
   content: [
     "./app/**/*.{ts,tsx}",
-    "./frontend/src/**/*.{ts,tsx}",
-    "./frontend/src/components/**/*.{ts,tsx}",
-    "./frontend/src/lib/**/*.{ts,tsx}",
-    "./frontend/src/shared/**/*.{ts,tsx}",
+    "./app/components/**/*.{ts,tsx}",
+    "./app/lib/**/*.{ts,tsx}",
+    "./app/shared/**/*.{ts,tsx}",
+    "./app/contexts/**/*.{ts,tsx}",
     "./*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {

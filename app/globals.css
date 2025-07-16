@@ -479,7 +479,7 @@
   }
   
   .grid-responsive {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6;
+    @apply grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6;
   }
   
   .grid-responsive-sm {
@@ -532,7 +532,7 @@
   }
   
   .benefit-card {
-    @apply p-4;
+    @apply p-3 sm:p-4 lg:p-8;
   }
 }
 
@@ -574,15 +574,15 @@
   }
   
   .benefit-card-icon {
-    @apply w-10 h-10;
+    @apply w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12;
   }
   
   .benefit-card-icon svg {
-    @apply w-6 h-6;
+    @apply w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8;
   }
   
   .benefit-card {
-    @apply p-3;
+    @apply p-2 sm:p-3;
   }
 }
 

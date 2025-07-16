@@ -84,7 +84,7 @@ export default function CategorySection() {
         </div>
 
         {/* Category Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
           {categories.map((category) => {
             const Icon = category.icon
             return (
@@ -96,13 +96,13 @@ export default function CategorySection() {
               >
                 <div className="card-interactive h-full overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl">
                   {/* Image Container */}
-                  <div className="relative h-48 sm:h-52 lg:h-56 overflow-hidden">
+                  <div className="relative h-40 sm:h-52 lg:h-56 overflow-hidden">
                     <Image
                       src={category.image}
                       alt={`${category.name} category`}
                       fill
                       className="object-cover transition-all duration-500 group-hover:scale-110"
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 25vw, 25vw"
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 25vw, 25vw"
                       placeholder="blur"
                       blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                     />
@@ -111,26 +111,26 @@ export default function CategorySection() {
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300" />
                     
                     {/* Icon Badge */}
-                    <div className="absolute top-4 left-4">
-                      <div className={`p-3 rounded-2xl bg-gradient-to-br ${category.gradientFrom} ${category.gradientTo} group-hover:scale-110 transition-all duration-300 shadow-lg backdrop-blur-sm border border-white/20`}>
-                        <Icon className={`h-6 w-6 ${category.iconColor} drop-shadow-sm`} />
+                    <div className="absolute top-3 left-3 sm:top-4 sm:left-4">
+                      <div className={`p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-gradient-to-br ${category.gradientFrom} ${category.gradientTo} group-hover:scale-110 transition-all duration-300 shadow-lg backdrop-blur-sm border border-white/20`}>
+                        <Icon className={`h-4 w-4 sm:h-6 sm:w-6 ${category.iconColor} drop-shadow-sm`} />
                       </div>
                     </div>
                   </div>
 
                   {/* Content */}
-                  <div className="p-6">
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2 group-hover:text-green-600 transition-colors duration-200">
+                  <div className="p-4 sm:p-6">
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 group-hover:text-green-600 transition-colors duration-200">
                       {category.name}
                     </h3>
-                    <p className="text-gray-600 text-sm mb-4">
+                    <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4">
                       {category.description}
                     </p>
                     
                     {/* CTA */}
-                    <div className="flex items-center text-green-600 font-medium text-sm group-hover:text-green-700 transition-colors duration-200">
+                    <div className="flex items-center text-green-600 font-medium text-xs sm:text-sm group-hover:text-green-700 transition-colors duration-200">
                       <span>Shop {category.name}</span>
-                      <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
+                      <ArrowRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4 group-hover:translate-x-1 transition-transform duration-200" />
                     </div>
                   </div>
                 </div>
