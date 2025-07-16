@@ -139,17 +139,22 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
 
   const activeFiltersCount = getActiveFiltersCount();
 
-  // Minimalist Filter Section
+  // Enhanced Filter Section
   const FilterSection = ({ 
     title, 
-    children 
+    children,
+    icon: Icon
   }: { 
     title: string; 
-    children: React.ReactNode; 
+    children: React.ReactNode;
+    icon?: React.ComponentType<{ className?: string }>;
   }) => (
     <div className="border-b border-gray-100 last:border-b-0">
       <div className="py-6">
-        <h3 className="text-sm font-medium text-gray-900 mb-4">{title}</h3>
+        <div className="flex items-center gap-3 mb-4">
+          {Icon && <Icon className="h-4 w-4 text-gray-500" />}
+          <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+        </div>
         {children}
       </div>
     </div>
@@ -193,7 +198,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
     </button>
   );
 
-  // Native Checkbox Option
+  // Enhanced Native Checkbox Option
   const NativeCheckbox = ({
     label,
     checked,
@@ -203,48 +208,53 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
     checked: boolean;
     onChange: (checked: boolean) => void;
   }) => (
-    <label className="flex items-center gap-3 w-full py-3 px-0 cursor-pointer select-none">
+    <label className="flex items-center gap-3 w-full py-3 px-0 cursor-pointer select-none hover:bg-gray-50 rounded-lg transition-colors duration-200">
       <input
         type="checkbox"
         checked={checked}
         onChange={() => onChange(!checked)}
-        className="form-checkbox h-5 w-5 accent-green-600 rounded border-gray-300 focus:ring-green-500 transition"
+        className="form-checkbox h-5 w-5 accent-green-600 rounded border-gray-300 focus:ring-green-500 focus:ring-2 transition-all duration-200"
       />
-      <span className="text-sm text-gray-900">{label}</span>
+      <span className={`text-sm font-medium transition-colors duration-200 ${checked ? 'text-gray-900' : 'text-gray-700'}`}>
+        {label}
+      </span>
     </label>
   );
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg">
-      {/* Minimalist Header */}
-      <div className="px-6 py-4 border-b border-gray-100">
+    <div className="bg-white">
+      {/* Enhanced Header */}
+      <div className="px-6 py-6 border-b border-gray-100 bg-gray-50/30">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Filter className="h-5 w-5 text-gray-600" />
+            <div className="p-2 bg-green-100 rounded-lg">
+              <Filter className="h-5 w-5 text-green-600" />
+            </div>
             <div>
-              <h2 className="text-base font-medium text-gray-900">Filters</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
               {activeFiltersCount > 0 && (
-                <p className="text-xs text-gray-500 mt-0.5">{activeFiltersCount} active</p>
+                <p className="text-sm text-gray-600 mt-0.5">{activeFiltersCount} active filters</p>
               )}
             </div>
           </div>
           {activeFiltersCount > 0 && (
             <button
               onClick={clearFilters}
-              className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors font-medium"
             >
+              <RotateCcw className="h-4 w-4" />
               Clear all
             </button>
           )}
         </div>
       </div>
 
-      {/* Main Scrollable Filter Content */}
+      {/* Enhanced Scrollable Filter Content */}
       <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
         <div className="px-6">
           {/* Product Status */}
-          <FilterSection title="Product Status">
-            <div className="space-y-1 max-h-48 overflow-y-auto">
+          <FilterSection title="Product Status" icon={Star}>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
               <NativeCheckbox
                 label="Featured Products"
                 checked={filters.is_featured || false}
@@ -264,13 +274,13 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
           </FilterSection>
 
           {/* Categories */}
-          <FilterSection title="Categories">
+          <FilterSection title="Categories" icon={Tag}>
             {categoriesLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
               </div>
             ) : (
-              <div className="space-y-1 max-h-48 overflow-y-auto">
+              <div className="space-y-2 max-h-48 overflow-y-auto">
                 {categories?.map((category) => (
                   <NativeCheckbox
                     key={category.name}
@@ -284,13 +294,13 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
           </FilterSection>
 
           {/* Brands */}
-          <FilterSection title="Brands">
+          <FilterSection title="Brands" icon={Building2}>
             {brandsLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
               </div>
             ) : (
-              <div className="space-y-1 max-h-48 overflow-y-auto">
+              <div className="space-y-2 max-h-48 overflow-y-auto">
                 {brands?.map((brand) => (
                   <NativeCheckbox
                     key={brand.name}
@@ -304,34 +314,34 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
           </FilterSection>
 
           {/* Price Range */}
-          <FilterSection title="Price Range">
+          <FilterSection title="Price Range" icon={DollarSign}>
             <div className="space-y-4">
-              {/* Price Inputs */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Enhanced Price Inputs */}
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-gray-700">Min Price</label>
+                  <label className="text-sm font-medium text-gray-700">Min Price</label>
                   <Input
                     type="number"
                     value={priceInputs.min}
                     onChange={(e) => handlePriceInputChange('min', e.target.value)}
                     placeholder="0"
-                    className="h-9 text-sm border-gray-200 focus:border-gray-900 focus:ring-gray-900/20"
+                    className="h-10 text-sm border-gray-200 focus:border-green-500 focus:ring-green-500/20 transition-colors"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-gray-700">Max Price</label>
+                  <label className="text-sm font-medium text-gray-700">Max Price</label>
                   <Input
                     type="number"
                     value={priceInputs.max}
                     onChange={(e) => handlePriceInputChange('max', e.target.value)}
                     placeholder="50,000"
-                    className="h-9 text-sm border-gray-200 focus:border-gray-900 focus:ring-gray-900/20"
+                    className="h-10 text-sm border-gray-200 focus:border-green-500 focus:ring-green-500/20 transition-colors"
                   />
                 </div>
               </div>
 
-              {/* Slider */}
-              <div className="space-y-3">
+              {/* Enhanced Slider */}
+              <div className="space-y-4">
                 <Slider
                   value={priceRange}
                   onValueChange={handlePriceRangeChange}
@@ -340,17 +350,17 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                   step={1000}
                   className="w-full"
                 />
-                <div className="flex items-center justify-between text-xs text-gray-500">
+                <div className="flex items-center justify-between text-sm text-gray-600 font-medium">
                   <span>KES {priceRange[0].toLocaleString()}</span>
                   <span>KES {priceRange[1].toLocaleString()}</span>
                 </div>
               </div>
 
-              {/* Sticky Apply Button */}
-              <div className="sticky bottom-0 bg-white pt-2 pb-2 z-10">
+              {/* Enhanced Apply Button */}
+              <div className="pt-4">
                 <Button
                   onClick={handleApplyPriceFilters}
-                  className="w-full h-9 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors shadow"
+                  className="w-full h-11 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
                 >
                   Apply Price Filter
                 </Button>

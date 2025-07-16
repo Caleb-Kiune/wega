@@ -8,7 +8,7 @@ import { ProductsLoading } from '@/components/products-loading';
 import { Button } from '@/components/ui/button';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Product, ProductsParams } from '@/lib/products';
-import { Search, Grid3X3, List, Filter, X, Sparkles, Star, TrendingUp, SlidersHorizontal, SortAsc, ChevronDown, Loader2 } from 'lucide-react';
+import { Search, Grid3X3, List, Filter, X, Sparkles, Star, TrendingUp, SlidersHorizontal, SortAsc, ChevronDown, Loader2, Tag, Building2, DollarSign } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
@@ -160,46 +160,233 @@ export default function ProductsPage() {
     return count;
   };
 
+  // Get all active filters with their details for individual removal
+  const getActiveFilters = () => {
+    const activeFilters: Array<{
+      id: string;
+      label: string;
+      type: 'category' | 'brand' | 'price' | 'featured' | 'new' | 'sale';
+      value: string;
+    }> = [];
+
+    // Categories
+    if (filters.categories?.length) {
+      filters.categories.forEach(category => {
+        activeFilters.push({
+          id: `category-${category}`,
+          label: category,
+          type: 'category',
+          value: category
+        });
+      });
+    }
+
+    // Brands
+    if (filters.brands?.length) {
+      filters.brands.forEach(brand => {
+        activeFilters.push({
+          id: `brand-${brand}`,
+          label: brand,
+          type: 'brand',
+          value: brand
+        });
+      });
+    }
+
+    // Price range
+    if (filters.min_price || filters.max_price) {
+      const minPrice = filters.min_price || 0;
+      const maxPrice = filters.max_price || 50000;
+      activeFilters.push({
+        id: 'price-range',
+        label: `KES ${minPrice.toLocaleString()} - KES ${maxPrice.toLocaleString()}`,
+        type: 'price',
+        value: 'price-range'
+      });
+    }
+
+    // Featured
+    if (filters.is_featured) {
+      activeFilters.push({
+        id: 'featured',
+        label: 'Featured Products',
+        type: 'featured',
+        value: 'featured'
+      });
+    }
+
+    // New
+    if (filters.is_new) {
+      activeFilters.push({
+        id: 'new',
+        label: 'New Arrivals',
+        type: 'new',
+        value: 'new'
+      });
+    }
+
+    // Sale
+    if (filters.is_sale) {
+      activeFilters.push({
+        id: 'sale',
+        label: 'On Sale',
+        type: 'sale',
+        value: 'sale'
+      });
+    }
+
+    return activeFilters;
+  };
+
   const activeFiltersCount = getActiveFiltersCount();
+  const activeFilters = getActiveFilters();
+
+  // Handle individual filter removal with toast feedback
+  const handleRemoveFilter = (filterType: string, filterValue: string) => {
+    let filterLabel = '';
+    
+    switch (filterType) {
+      case 'category':
+        filterLabel = filterValue;
+        const updatedCategories = filters.categories?.filter(cat => cat !== filterValue);
+        handleFiltersChange({
+          ...filters,
+          categories: updatedCategories?.length ? updatedCategories : undefined,
+          page: 1
+        });
+        break;
+      
+      case 'brand':
+        filterLabel = filterValue;
+        const updatedBrands = filters.brands?.filter(brand => brand !== filterValue);
+        handleFiltersChange({
+          ...filters,
+          brands: updatedBrands?.length ? updatedBrands : undefined,
+          page: 1
+        });
+        break;
+      
+      case 'price':
+        filterLabel = 'Price range';
+        handleFiltersChange({
+          ...filters,
+          min_price: undefined,
+          max_price: undefined,
+          page: 1
+        });
+        break;
+      
+      case 'featured':
+        filterLabel = 'Featured Products';
+        handleFiltersChange({
+          ...filters,
+          is_featured: undefined,
+          page: 1
+        });
+        break;
+      
+      case 'new':
+        filterLabel = 'New Arrivals';
+        handleFiltersChange({
+          ...filters,
+          is_new: undefined,
+          page: 1
+        });
+        break;
+      
+      case 'sale':
+        filterLabel = 'On Sale';
+        handleFiltersChange({
+          ...filters,
+          is_sale: undefined,
+          page: 1
+        });
+        break;
+    }
+    
+    // Optional: Add toast notification for filter removal
+    // toast.success(`${filterLabel} filter removed`);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      {/* Mobile-Optimized Hero Section */}
-      <div className="relative bg-gradient-to-br from-green-600 via-green-700 to-green-800 text-white overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+      {/* Enhanced Hero Section with Modern Design */}
+      <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
+        {/* Animated Background Pattern */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse"></div>
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(34,197,94,0.1),transparent_50%)]"></div>
         </div>
         
-        <div className="relative container mx-auto px-4 py-8 sm:py-12">
+        <div className="relative container mx-auto px-4 py-12 sm:py-16 lg:py-20">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center max-w-4xl mx-auto"
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="text-center max-w-5xl mx-auto"
           >
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 tracking-tight leading-tight">
-              Premium Kitchenware Collection
-            </h1>
-            <p className="text-base sm:text-lg text-green-100 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-4">
-              Discover handcrafted kitchen essentials that transform your cooking experience. 
-              From professional-grade cookware to elegant serving pieces.
-            </p>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mb-6"
+            >
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 mb-6">
+                <Sparkles className="h-4 w-4 text-green-400" />
+                <span className="text-sm font-medium">Premium Collection</span>
+              </div>
+            </motion.div>
             
-
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold mb-6 tracking-tight leading-tight">
+              <span className="bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
+                Premium Kitchenware
+              </span>
+              <br />
+              <span className="text-green-400">Collection</span>
+            </h1>
+            
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-lg sm:text-xl text-slate-200 mb-8 max-w-3xl mx-auto leading-relaxed px-4"
+            >
+              Discover handcrafted kitchen essentials that transform your cooking experience. 
+              From professional-grade cookware to elegant serving pieces, every item is designed 
+              with precision and style.
+            </motion.p>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            >
+              <div className="flex items-center gap-6 text-sm text-slate-300">
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-green-400" />
+                  <span>Premium Quality</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-green-400" />
+                  <span>Best Sellers</span>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         </div>
       </div>
 
-      {/* Main Content - No permanent sidebar */}
-      <div className="container mx-auto px-4 py-6 sm:py-8">
-        <div className="flex flex-col gap-6 lg:gap-8">
+      {/* Enhanced Main Content */}
+      <div className="container mx-auto px-4 py-8 sm:py-12 lg:py-16">
+        <div className="flex flex-col gap-8 lg:gap-12">
           {/* Products Section (full width) */}
           <div className="flex-1">
-            {/* Header Controls */}
-            <div className="mb-6 sm:mb-8">
+            {/* Enhanced Header Controls */}
+            <div className="mb-8 sm:mb-12">
               {/* Results, Search Status, and Active Filters */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+              <div className="flex flex-col gap-4 mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center justify-between sm:justify-start gap-3">
                   <div className="text-sm text-gray-600">
                     {!loading && !error && (
@@ -231,37 +418,128 @@ export default function ProductsPage() {
                     </div>
                   )}
                   
-                  {/* Active Filters Badge */}
+                  {/* Enhanced Active Filters Display */}
                   {activeFiltersCount > 0 && (
-                    <Badge className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+                    <div className="flex flex-col gap-3">
+                      {/* Summary Badge */}
+                      <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5">
+                        <span className="text-xs text-green-700 font-medium">
+                          {products.length} products
+                        </span>
+                        <div className="w-px h-3 bg-green-300"></div>
+                        <span className="text-xs text-green-700">
                       {activeFiltersCount} filter{activeFiltersCount !== 1 ? 's' : ''}
-                    </Badge>
+                        </span>
+                        <button
+                          onClick={() => handleFiltersChange({
+                            page: 1,
+                            limit: 30,
+                            categories: undefined,
+                            brands: undefined,
+                            min_price: undefined,
+                            max_price: undefined,
+                            is_featured: undefined,
+                            is_new: undefined,
+                            is_sale: undefined,
+                            search: undefined,
+                          })}
+                          disabled={loading}
+                          className="text-green-500 hover:text-green-700 transition-colors p-0.5 rounded-full hover:bg-green-100 disabled:opacity-50"
+                          aria-label="Clear all filters"
+                        >
+                          {loading ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <X className="h-3 w-3" />
+                          )}
+                        </button>
+                      </div>
+                      
+                      {/* Individual Filter Tags */}
+                      {activeFilters.length > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+                          {activeFilters.map((filter) => {
+                            // Get appropriate icon for filter type
+                            const getFilterIcon = (type: string) => {
+                              switch (type) {
+                                case 'category':
+                                  return <Tag className="h-3 w-3 text-blue-500" />;
+                                case 'brand':
+                                  return <Building2 className="h-3 w-3 text-purple-500" />;
+                                case 'price':
+                                  return <DollarSign className="h-3 w-3 text-green-500" />;
+                                case 'featured':
+                                  return <Star className="h-3 w-3 text-yellow-500" />;
+                                case 'new':
+                                  return <Sparkles className="h-3 w-3 text-blue-500" />;
+                                case 'sale':
+                                  return <TrendingUp className="h-3 w-3 text-red-500" />;
+                                default:
+                                  return <Filter className="h-3 w-3 text-gray-500" />;
+                              }
+                            };
+
+                                                          return (
+                                <motion.div
+                                  key={filter.id}
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.8 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="flex items-center gap-2 bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-sm hover:shadow-md transition-all duration-200 group hover:border-gray-300"
+                                >
+                                  {getFilterIcon(filter.type)}
+                                  <span className="text-xs text-gray-700 font-medium truncate max-w-[120px] sm:max-w-[150px]">
+                                    {filter.label}
+                                  </span>
+                                  <button
+                                    onClick={() => handleRemoveFilter(filter.type, filter.value)}
+                                    disabled={loading}
+                                    className="text-gray-400 hover:text-red-500 transition-all duration-200 p-0.5 rounded-full hover:bg-red-50 disabled:opacity-50 group-hover:scale-110 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-1"
+                                    aria-label={`Remove ${filter.label} filter`}
+                                    title={`Remove ${filter.label} filter`}
+                                  >
+                                    {loading ? (
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      <X className="h-3 w-3" />
+                                    )}
+                                  </button>
+                                </motion.div>
+                              );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
-                {/* Filter, Sort, and View Controls */}
-                <div className="flex items-center gap-2 sm:gap-3">
-                  {/* Filter Sheet - always available */}
+              </div>
+              
+              {/* Enhanced Filter, Sort, and View Controls */}
+              <div className="flex items-center gap-3 sm:gap-4">
+                  {/* Enhanced Filter Sheet */}
                   <Sheet open={showFilters} onOpenChange={setShowFilters}>
                     <SheetTrigger asChild>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex items-center gap-2 h-10 px-3 sm:px-4 bg-white border-gray-200 hover:bg-gray-50"
+                        className="flex items-center gap-2 h-11 px-4 sm:px-5 bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm"
                       >
                         <SlidersHorizontal className="h-4 w-4" />
-                        <span className="hidden sm:inline">Filters</span>
+                        <span className="hidden sm:inline font-medium">Filters</span>
                         {activeFiltersCount > 0 && (
-                          <Badge className="ml-1 bg-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                          <Badge className="ml-1 bg-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
                             {activeFiltersCount}
                           </Badge>
                         )}
                       </Button>
                     </SheetTrigger>
-                    <SheetContent side="left" className="w-[85vw] sm:w-[400px] p-0">
-                      <SheetHeader className="px-6 py-4 border-b border-gray-200">
-                        <SheetTitle className="text-lg font-semibold">Filters</SheetTitle>
+                    <SheetContent side="left" className="w-[85vw] sm:w-[420px] p-0 border-r border-gray-200">
+                      <SheetHeader className="px-6 py-6 border-b border-gray-100 bg-gray-50/50">
+                        <SheetTitle className="text-xl font-semibold text-gray-900">Filters</SheetTitle>
+                        <p className="text-sm text-gray-600 mt-1">Refine your search</p>
                       </SheetHeader>
-                      <div className="p-6 overflow-y-auto max-h-[calc(100vh-120px)]">
+                      <div className="overflow-y-auto max-h-[calc(100vh-140px)]">
                         <ProductFilters 
                           filters={filters} 
                           onFiltersChange={handleFiltersChange} 
@@ -270,17 +548,18 @@ export default function ProductsPage() {
                       </div>
                     </SheetContent>
                   </Sheet>
-                  {/* Sort Menu */}
+                  
+                  {/* Enhanced Sort Menu */}
                   <div className="relative">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setShowSortMenu(!showSortMenu)}
-                      className="flex items-center gap-2 h-10 px-3 sm:px-4 bg-white border-gray-200 hover:bg-gray-50"
+                      className="flex items-center gap-2 h-11 px-4 sm:px-5 bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm"
                     >
                       <SortAsc className="h-4 w-4" />
-                      <span className="hidden sm:inline">Sort</span>
-                      <ChevronDown className={`h-4 w-4 transition-transform ${showSortMenu ? 'rotate-180' : ''}`} />
+                      <span className="hidden sm:inline font-medium">Sort</span>
+                      <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showSortMenu ? 'rotate-180' : ''}`} />
                     </Button>
                     <AnimatePresence>
                       {showSortMenu && (
@@ -288,41 +567,47 @@ export default function ProductsPage() {
                           initial={{ opacity: 0, y: -10, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                          className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 z-50"
+                          transition={{ duration: 0.2 }}
+                          className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden"
                         >
                           <div className="py-2">
                             {[
-                              { value: 'featured', label: 'Featured' },
-                              { value: 'newest', label: 'Newest' },
-                              { value: 'price-low', label: 'Price: Low to High' },
-                              { value: 'price-high', label: 'Price: High to Low' },
-                              { value: 'name', label: 'Name: A to Z' },
-                            ].map((option) => (
+                              { value: 'featured', label: 'Featured', icon: Star },
+                              { value: 'newest', label: 'Newest', icon: Sparkles },
+                              { value: 'price-low', label: 'Price: Low to High', icon: TrendingUp },
+                              { value: 'price-high', label: 'Price: High to Low', icon: TrendingUp },
+                              { value: 'name', label: 'Name: A to Z', icon: List },
+                            ].map((option) => {
+                              const IconComponent = option.icon;
+                              return (
                               <button
                                 key={option.value}
                                 onClick={() => {
                                   setSortBy(option.value);
                                   setShowSortMenu(false);
                                 }}
-                                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${
+                                  className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors flex items-center gap-3 ${
                                   sortBy === option.value ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
                                 }`}
                               >
+                                  <IconComponent className="h-4 w-4" />
                                 {option.label}
                               </button>
-                            ))}
+                              );
+                            })}
                           </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
                   </div>
-                  {/* View Mode Toggle */}
-                  <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                  
+                  {/* Enhanced View Mode Toggle */}
+                  <div className="flex items-center bg-gray-100 rounded-lg p-1 shadow-sm">
                     <Button
                       variant={viewMode === 'grid' ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => setViewMode('grid')}
-                      className="h-8 w-8 p-0 rounded-md"
+                      className="h-9 w-9 p-0 rounded-md transition-all duration-200"
                     >
                       <Grid3X3 className="h-4 w-4" />
                     </Button>
@@ -330,7 +615,7 @@ export default function ProductsPage() {
                       variant={viewMode === 'list' ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => setViewMode('list')}
-                      className="h-8 w-8 p-0 rounded-md"
+                      className="h-9 w-9 p-0 rounded-md transition-all duration-200"
                     >
                       <List className="h-4 w-4" />
                     </Button>
@@ -408,8 +693,8 @@ export default function ProductsPage() {
                 >
                   <div className={`
                     ${viewMode === 'grid' 
-                      ? 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6' 
-                      : 'space-y-3 sm:space-y-4'
+                      ? 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 md:gap-8' 
+                      : 'space-y-6 sm:space-y-8'
                     }
                   `}>
                     <AnimatePresence>
@@ -432,24 +717,24 @@ export default function ProductsPage() {
                     </AnimatePresence>
                   </div>
 
-                  {/* Mobile-Optimized Pagination */}
+                  {/* Enhanced Pagination */}
                   {totalPages > 1 && (
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="mt-8 sm:mt-12"
+                      className="mt-12 sm:mt-16"
                     >
-                      <div className="flex flex-col items-center gap-4 sm:gap-6">
-                        <div className="text-sm text-gray-600">
+                      <div className="flex flex-col items-center gap-6 sm:gap-8">
+                        <div className="text-sm text-gray-600 font-medium">
                           Page {currentPage} of {totalPages}
                         </div>
-                        <nav className="flex items-center gap-2">
+                        <nav className="flex items-center gap-3">
                           <Button
                             variant="outline"
                             size="sm"
                             disabled={currentPage === 1}
                             onClick={() => handlePageChange(1)}
-                            className="min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm"
+                            className="min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-50 transition-all duration-200"
                           >
                             First
                           </Button>
@@ -458,7 +743,7 @@ export default function ProductsPage() {
                             size="sm"
                             disabled={currentPage === 1}
                             onClick={() => handlePageChange(currentPage - 1)}
-                            className="min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm"
+                            className="min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-50 transition-all duration-200"
                           >
                             Prev
                           </Button>
@@ -482,10 +767,10 @@ export default function ProductsPage() {
                                       variant={currentPage === page ? 'default' : 'outline'}
                                       size="sm"
                                       onClick={() => handlePageChange(page)}
-                                      className={`min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm ${
+                                      className={`min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
                                         currentPage === page 
-                                          ? 'bg-green-600 hover:bg-green-700 text-white' 
-                                          : ''
+                                          ? 'bg-green-600 hover:bg-green-700 text-white shadow-md' 
+                                          : 'hover:bg-gray-50'
                                       }`}
                                     >
                                       {page}
@@ -500,7 +785,7 @@ export default function ProductsPage() {
                             size="sm"
                             disabled={currentPage === totalPages}
                             onClick={() => handlePageChange(currentPage + 1)}
-                            className="min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm"
+                            className="min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-50 transition-all duration-200"
                           >
                             Next
                           </Button>
@@ -509,7 +794,7 @@ export default function ProductsPage() {
                             size="sm"
                             disabled={currentPage === totalPages}
                             onClick={() => handlePageChange(totalPages)}
-                            className="min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm"
+                            className="min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-50 transition-all duration-200"
                           >
                             Last
                           </Button>
