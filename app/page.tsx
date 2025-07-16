@@ -130,77 +130,85 @@ export default function Home() {
           </div>
 
           {/* Benefit Cards Grid */}
-          <div className="grid-responsive">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {/* Fast Delivery */}
-            <div className="card-interactive text-center group bg-white/95 backdrop-blur-sm border-2 border-green-300/60 shadow-xl benefit-card">
+            <div className="card-interactive text-center group bg-white/95 backdrop-blur-sm border-2 border-green-300/60 shadow-xl benefit-card h-full flex flex-col justify-between p-4 sm:p-6 lg:p-8">
               <div className="flex justify-center mb-4 sm:mb-6">
-                <div className="p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl sm:rounded-3xl group-hover:bg-gradient-to-br group-hover:from-green-100 group-hover:to-emerald-100 transition-all duration-300 shadow-xl border-2 border-green-300/60 relative overflow-hidden benefit-card-icon">
+                <div className="flex items-center justify-center p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl sm:rounded-3xl group-hover:bg-gradient-to-br group-hover:from-green-100 group-hover:to-emerald-100 transition-all duration-300 shadow-xl border-2 border-green-300/60 relative overflow-hidden benefit-card-icon">
                   {/* Background glow effect */}
                   <div className="absolute inset-0 bg-green-400/8 rounded-2xl sm:rounded-3xl blur-md"></div>
                   {/* Icon with enhanced styling */}
-                  <div className="relative z-10">
-                    <Truck className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-green-900 drop-shadow-lg" />
+                  <div className="relative z-10 flex items-center justify-center">
+                    <Truck className="h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10 text-green-900 drop-shadow-lg" />
                   </div>
                 </div>
               </div>
+              <div className="flex-1 flex flex-col justify-center">
               <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 sm:mb-3">Fast Delivery</h3>
               <p className="text-gray-600 text-xs sm:text-responsive-sm">
                 Quick and reliable delivery across Kenya with real-time tracking
               </p>
+              </div>
             </div>
 
             {/* Premium Quality */}
-            <div className="card-interactive text-center group bg-white/95 backdrop-blur-sm border-2 border-blue-300/60 shadow-xl benefit-card">
+            <div className="card-interactive text-center group bg-white/95 backdrop-blur-sm border-2 border-blue-300/60 shadow-xl benefit-card h-full flex flex-col justify-between p-4 sm:p-6 lg:p-8">
               <div className="flex justify-center mb-4 sm:mb-6">
-                <div className="p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl sm:rounded-3xl group-hover:bg-gradient-to-br group-hover:from-blue-100 group-hover:to-indigo-100 transition-all duration-300 shadow-xl border-2 border-blue-300/60 relative overflow-hidden benefit-card-icon">
+                <div className="flex items-center justify-center p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl sm:rounded-3xl group-hover:bg-gradient-to-br group-hover:from-blue-100 group-hover:to-indigo-100 transition-all duration-300 shadow-xl border-2 border-blue-300/60 relative overflow-hidden benefit-card-icon">
                   {/* Background glow effect */}
                   <div className="absolute inset-0 bg-blue-400/8 rounded-2xl sm:rounded-3xl blur-md"></div>
                   {/* Icon with enhanced styling */}
-                  <div className="relative z-10">
-                    <Shield className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-blue-900 drop-shadow-lg" />
+                  <div className="relative z-10 flex items-center justify-center">
+                    <Shield className="h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10 text-blue-900 drop-shadow-lg" />
                   </div>
                 </div>
               </div>
+              <div className="flex-1 flex flex-col justify-center">
               <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 sm:mb-3">Premium Quality</h3>
               <p className="text-gray-600 text-xs sm:text-responsive-sm">
                 High-quality materials and craftsmanship for lasting performance
               </p>
+              </div>
             </div>
 
             {/* Affordable Prices */}
-            <div className="card-interactive text-center group bg-white/95 backdrop-blur-sm border-2 border-orange-300/60 shadow-xl benefit-card">
+            <div className="card-interactive text-center group bg-white/95 backdrop-blur-sm border-2 border-orange-300/60 shadow-xl benefit-card h-full flex flex-col justify-between p-4 sm:p-6 lg:p-8">
               <div className="flex justify-center mb-4 sm:mb-6">
-                <div className="p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl sm:rounded-3xl group-hover:bg-gradient-to-br group-hover:from-orange-100 group-hover:to-amber-100 transition-all duration-300 shadow-xl border-2 border-orange-300/60 relative overflow-hidden benefit-card-icon">
+                <div className="flex items-center justify-center p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl sm:rounded-3xl group-hover:bg-gradient-to-br group-hover:from-orange-100 group-hover:to-amber-100 transition-all duration-300 shadow-xl border-2 border-orange-300/60 relative overflow-hidden benefit-card-icon">
                   {/* Background glow effect */}
                   <div className="absolute inset-0 bg-orange-400/8 rounded-2xl sm:rounded-3xl blur-md"></div>
                   {/* Icon with enhanced styling */}
-                  <div className="relative z-10">
-                    <DollarSign className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-orange-900 drop-shadow-lg" />
+                  <div className="relative z-10 flex items-center justify-center">
+                    <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10 text-orange-900 drop-shadow-lg" />
                   </div>
                 </div>
               </div>
+              <div className="flex-1 flex flex-col justify-center">
               <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 sm:mb-3">Affordable Prices</h3>
               <p className="text-gray-600 text-xs sm:text-responsive-sm">
                 Competitive pricing without compromising on quality or service
               </p>
+              </div>
             </div>
 
             {/* Locally Trusted */}
-            <div className="card-interactive text-center group bg-white/95 backdrop-blur-sm border-2 border-purple-300/60 shadow-xl benefit-card">
+            <div className="card-interactive text-center group bg-white/95 backdrop-blur-sm border-2 border-purple-300/60 shadow-xl benefit-card h-full flex flex-col justify-between p-4 sm:p-6 lg:p-8">
               <div className="flex justify-center mb-4 sm:mb-6">
-                <div className="p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl sm:rounded-3xl group-hover:bg-gradient-to-br group-hover:from-purple-100 group-hover:to-pink-100 transition-all duration-300 shadow-xl border-2 border-purple-300/60 relative overflow-hidden benefit-card-icon">
+                <div className="flex items-center justify-center p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl sm:rounded-3xl group-hover:bg-gradient-to-br group-hover:from-purple-100 group-hover:to-pink-100 transition-all duration-300 shadow-xl border-2 border-purple-300/60 relative overflow-hidden benefit-card-icon">
                   {/* Background glow effect */}
                   <div className="absolute inset-0 bg-purple-400/8 rounded-2xl sm:rounded-3xl blur-md"></div>
                   {/* Icon with enhanced styling */}
-                  <div className="relative z-10">
-                    <CheckCircle className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-purple-900 drop-shadow-lg" />
+                  <div className="relative z-10 flex items-center justify-center">
+                    <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10 text-purple-900 drop-shadow-lg" />
                   </div>
                 </div>
               </div>
+              <div className="flex-1 flex flex-col justify-center">
               <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 sm:mb-3">Locally Trusted</h3>
               <p className="text-gray-600 text-xs sm:text-responsive-sm">
                 Trusted by thousands of Kenyan families for their kitchen needs
               </p>
+              </div>
             </div>
           </div>
 

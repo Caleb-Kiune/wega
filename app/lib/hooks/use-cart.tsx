@@ -102,7 +102,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         } catch (refreshError) {
           console.error("Failed to refresh cart:", refreshError);
           // If we can't refresh, assume the item was already removed
-          return;
+        return;
         }
       }
       

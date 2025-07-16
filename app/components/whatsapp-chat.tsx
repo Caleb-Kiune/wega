@@ -25,7 +25,7 @@ export default function WhatsAppChat() {
 
       {/* Chat Popup */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-80 bg-white rounded-lg shadow-xl z-50 overflow-hidden">
+        <div className="fixed bottom-24 right-6 w-80 bg-gray-900 rounded-lg shadow-xl z-50 overflow-hidden border border-gray-700">
           {/* Header */}
           <div className="bg-green-600 text-white p-4 flex justify-between items-center">
             <div className="flex items-center">
@@ -43,8 +43,8 @@ export default function WhatsAppChat() {
           </div>
 
           {/* Body */}
-          <div className="p-4">
-            <p className="text-gray-700 mb-4">
+          <div className="p-4 bg-gray-900">
+            <p className="text-gray-200 mb-4">
               Hello! Need help with your kitchenware needs? Chat with our customer support team on WhatsApp for quick
               assistance.
             </p>

@@ -124,13 +124,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 p-4 sm:p-6">
             {/* Product Images */}
             <div className="flex flex-col items-center h-full w-full">
-              {/* Main Large Image */}
-              <div className="relative w-full aspect-square bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center mb-4 border border-gray-200">
+              {/* Main Large Image - Reduced height for better proportions */}
+              <div className="relative w-full aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center mb-4 border border-gray-200">
                 <Image
                   src={getImageUrl(product.images?.[selectedImageIndex]?.image_url)}
                   alt={product.name}
                   fill
-                  className="object-contain"
+                  className="object-cover"
                   priority
                 />
               </div>
@@ -162,89 +162,91 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               )}
             </div>
 
-            {/* Product Info */}
-            <div>
-              <div className="mb-2">
-                <Link
-                  href={`/products?brand=${product.brand?.toLowerCase()}`}
-                  className="text-xs sm:text-sm text-green-600 hover:underline"
-                >
-                  {product.brand}
-                </Link>
-              </div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-3 sm:mb-4">{product.name}</h1>
+            {/* Product Info - Restructured for better alignment */}
+            <div className="flex flex-col justify-between h-full">
+              <div>
+                <div className="mb-2">
+                  <Link
+                    href={`/products?brand=${product.brand?.toLowerCase()}`}
+                    className="text-xs sm:text-sm text-green-600 hover:underline"
+                  >
+                    {product.brand}
+                  </Link>
+                </div>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-3 sm:mb-4">{product.name}</h1>
 
-              {/* Price */}
-              <div className="mb-4 sm:mb-6">
-                <span className="text-2xl sm:text-3xl font-bold text-gray-800">KES {product.price?.toLocaleString()}</span>
-                {product.originalPrice && (
-                  <span className="ml-2 text-base sm:text-lg text-gray-500 line-through">
-                    KES {product.originalPrice?.toLocaleString()}
+                {/* Price */}
+                <div className="mb-4 sm:mb-6">
+                  <span className="text-2xl sm:text-3xl font-bold text-gray-800">KES {product.price?.toLocaleString()}</span>
+                  {product.originalPrice && (
+                    <span className="ml-2 text-base sm:text-lg text-gray-500 line-through">
+                      KES {product.originalPrice?.toLocaleString()}
+                    </span>
+                  )}
+                  <p className="text-xs sm:text-sm text-gray-500 mt-1">Inclusive of all taxes</p>
+                </div>
+
+                {/* Short Description */}
+                <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">{product.description}</p>
+
+                {/* Stock Status */}
+                <div className="mb-4 sm:mb-6">
+                  <span
+                    className={`inline-block px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${product.stock > 0 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
+                  >
+                    {product.stock > 0 ? `In Stock (${product.stock} available)` : "Out of Stock"}
                   </span>
-                )}
-                <p className="text-xs sm:text-sm text-gray-500 mt-1">Inclusive of all taxes</p>
-              </div>
+                </div>
 
-              {/* Short Description */}
-              <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">{product.description}</p>
-
-              {/* Stock Status */}
-              <div className="mb-4 sm:mb-6">
-                <span
-                  className={`inline-block px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${product.stock > 0 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
-                >
-                  {product.stock > 0 ? `In Stock (${product.stock} available)` : "Out of Stock"}
-                </span>
-              </div>
-
-              {/* Add to Cart */}
-              <div className="mb-4 sm:mb-6">
-                <div className="flex items-center mb-4">
-                  <div className="flex items-center border rounded-md mr-4">
-                    <button 
-                      className="px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                      onClick={() => handleQuantityChange(false)}
-                      disabled={quantity <= 1}
+                {/* Add to Cart */}
+                <div className="mb-4 sm:mb-6">
+                  <div className="flex items-center mb-4">
+                    <div className="flex items-center border rounded-md mr-4">
+                      <button 
+                        className="px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        onClick={() => handleQuantityChange(false)}
+                        disabled={quantity <= 1}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <span className="px-4 py-2 border-x min-w-[60px] text-center">{quantity}</span>
+                      <button 
+                        className="px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        onClick={() => handleQuantityChange(true)}
+                        disabled={quantity >= product.stock}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <button
+                      onClick={handleWishlistClick}
+                      className={`p-2 rounded-full border min-h-[44px] min-w-[44px] flex items-center justify-center ${
+                        isInWishlist(product.id.toString())
+                          ? "bg-red-50 border-red-200 text-red-600"
+                          : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+                      }`}
                     >
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <span className="px-4 py-2 border-x min-w-[60px] text-center">{quantity}</span>
-                    <button 
-                      className="px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                      onClick={() => handleQuantityChange(true)}
-                      disabled={quantity >= product.stock}
-                    >
-                      <Plus className="h-4 w-4" />
+                      <Heart className="h-5 w-5" fill={isInWishlist(product.id.toString()) ? "currentColor" : "none"} />
                     </button>
                   </div>
-                  <button
-                    onClick={handleWishlistClick}
-                    className={`p-2 rounded-full border min-h-[44px] min-w-[44px] flex items-center justify-center ${
-                      isInWishlist(product.id.toString())
-                        ? "bg-red-50 border-red-200 text-red-600"
-                        : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600"
-                    }`}
-                  >
-                    <Heart className="h-5 w-5" fill={isInWishlist(product.id.toString()) ? "currentColor" : "none"} />
-                  </button>
-                </div>
 
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                  <AddToCartButton
-                    product={product}
-                    quantity={quantity}
-                    className="flex-1 min-h-[44px]"
-                  />
-                  <WhatsAppOrderButton
-                    product={product}
-                    quantity={quantity}
-                    className="flex-1 min-h-[44px]"
-                  />
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                    <AddToCartButton
+                      product={product}
+                      quantity={quantity}
+                      className="flex-1 min-h-[44px]"
+                    />
+                    <WhatsAppOrderButton
+                      product={product}
+                      quantity={quantity}
+                      className="flex-1 min-h-[44px]"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Features */}
-              <div className="space-y-3 sm:space-y-4 mb-6">
+              {/* Features - Now positioned to align with image bottom */}
+              <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-center text-sm sm:text-base text-gray-600">
                   <Truck className="h-5 w-5 mr-3 text-green-600 flex-shrink-0" />
                   <span>Free delivery on orders above KES 5,000</span>

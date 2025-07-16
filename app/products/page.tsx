@@ -8,7 +8,7 @@ import { ProductsLoading } from '@/components/products-loading';
 import { Button } from '@/components/ui/button';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Product, ProductsParams } from '@/lib/products';
-import { Search, Grid3X3, List, Filter, X, Sparkles, Star, TrendingUp, SlidersHorizontal, SortAsc, ChevronDown } from 'lucide-react';
+import { Search, Grid3X3, List, Filter, X, Sparkles, Star, TrendingUp, SlidersHorizontal, SortAsc, ChevronDown, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
@@ -123,6 +123,32 @@ export default function ProductsPage() {
     router.replace(newUrl, { scroll: false });
   };
 
+  // Enhanced search handling with better UX
+  const handleSearchChange = (newSearch: string) => {
+    const updatedFilters = { ...filters, search: newSearch || undefined, page: 1 };
+    setFilters(updatedFilters);
+    
+    // Update URL with new search
+    const params = new URLSearchParams();
+    if (updatedFilters.page > 1) params.set('page', updatedFilters.page.toString());
+    if (updatedFilters.limit !== 30) params.set('limit', updatedFilters.limit.toString());
+    if (updatedFilters.categories?.length) {
+      updatedFilters.categories.forEach(category => params.append('categories[]', category));
+    }
+    if (updatedFilters.brands?.length) {
+      updatedFilters.brands.forEach(brand => params.append('brands[]', brand));
+    }
+    if (updatedFilters.min_price) params.set('min_price', updatedFilters.min_price.toString());
+    if (updatedFilters.max_price) params.set('max_price', updatedFilters.max_price.toString());
+    if (updatedFilters.is_featured) params.set('is_featured', 'true');
+    if (updatedFilters.is_new) params.set('is_new', 'true');
+    if (updatedFilters.is_sale) params.set('is_sale', 'true');
+    if (updatedFilters.search) params.set('search', updatedFilters.search);
+    
+    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+    router.replace(newUrl, { scroll: false });
+  };
+
   const getActiveFiltersCount = () => {
     let count = 0;
     if (filters.categories?.length) count += filters.categories.length;
@@ -160,35 +186,7 @@ export default function ProductsPage() {
               From professional-grade cookware to elegant serving pieces.
             </p>
             
-            {/* Mobile-Optimized Search Bar */}
-            {filters.search && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 sm:p-4 mb-6 mx-4"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                    <Search className="h-4 w-4 sm:h-5 sm:w-5 text-green-200 flex-shrink-0" />
-                    <div className="text-sm sm:text-base text-green-100 truncate">
-                      <span className="hidden sm:inline">Search results for: </span>
-                      <span className="font-semibold">"{filters.search}"</span>
-                      <span className="text-green-200 ml-2">
-                        ({products.length} {products.length === 1 ? 'product' : 'products'})
-                      </span>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleClearSearch}
-                    className="text-green-100 hover:text-white hover:bg-white/20 flex-shrink-0 h-8 w-8 p-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </motion.div>
-            )}
+
           </motion.div>
         </div>
       </div>
@@ -200,7 +198,7 @@ export default function ProductsPage() {
           <div className="flex-1">
             {/* Header Controls */}
             <div className="mb-6 sm:mb-8">
-              {/* Results and Active Filters */}
+              {/* Results, Search Status, and Active Filters */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                 <div className="flex items-center justify-between sm:justify-start gap-3">
                   <div className="text-sm text-gray-600">
@@ -210,6 +208,29 @@ export default function ProductsPage() {
                       </>
                     )}
                   </div>
+                  
+                  {/* Search Status - Integrated with Product Controls */}
+                  {filters.search && (
+                    <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5">
+                      <Search className="h-3 w-3 text-green-600" />
+                      <span className="text-xs text-green-700">
+                        Search: <span className="font-semibold">"{filters.search}"</span>
+                      </span>
+                      <button
+                        onClick={handleClearSearch}
+                        disabled={loading}
+                        className="text-green-500 hover:text-green-700 transition-colors p-0.5 rounded-full hover:bg-green-100 disabled:opacity-50"
+                        aria-label="Clear search"
+                      >
+                        {loading ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <X className="h-3 w-3" />
+                        )}
+                      </button>
+                    </div>
+                  )}
+                  
                   {/* Active Filters Badge */}
                   {activeFiltersCount > 0 && (
                     <Badge className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">

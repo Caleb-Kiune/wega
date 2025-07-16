@@ -84,68 +84,38 @@ export function useProducts(filters: ProductsParams = {}): UseProductsResult {
     loadAllProducts();
   }, [isInitialized]); // Only run once
 
-  // Client-side filtering for search
+  // Handle server-side filtering (including search)
   useEffect(() => {
-    if (!isInitialized) return;
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log('Fetching products with filters:', filters);
+        
+        const data = await productsApi.getAll(filters);
+        
+        setFilteredProducts(data.products);
+        setTotalPages(data.pages);
+        setCurrentPage(data.current_page);
+        
+        console.log('Server-side filtered results:', {
+          totalProducts: data.products.length,
+          pages: data.pages,
+          currentPage: data.current_page,
+          search: filters.search
+        });
+      } catch (err) {
+        console.error('Error fetching filtered products:', err);
+        setError(err instanceof Error ? err : new Error('Failed to fetch filtered products'));
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    if (!filters.search) {
-      setFilteredProducts(allProducts);
-      return;
-    }
-    
-    const results = searchProducts(allProducts, filters.search);
-    setFilteredProducts(results);
-    
-    console.log('Client-side search results:', {
-      query: filters.search,
-      totalProducts: allProducts.length,
-      filteredResults: results.length
-    });
-  }, [filters.search, allProducts, isInitialized]);
-
-  // Handle other filters (category, brand, etc.) with server-side filtering
-  useEffect(() => {
-    if (!isInitialized) return;
-    
-    const hasServerFilters = filters.categories?.length || 
-                           filters.brands?.length || 
-                           filters.min_price || 
-                           filters.max_price || 
-                           filters.is_featured || 
-                           filters.is_new || 
-                           filters.is_sale;
-    
-    if (hasServerFilters) {
-      const fetchFilteredProducts = async () => {
-        try {
-          setLoading(true);
-          setError(null);
-          
-          console.log('Fetching products with server-side filters:', filters);
-          
-          const data = await productsApi.getAll(filters);
-          
-          setFilteredProducts(data.products);
-          setTotalPages(data.pages);
-          setCurrentPage(data.current_page);
-          
-          console.log('Server-side filtered results:', {
-            totalProducts: data.products.length,
-            pages: data.pages,
-            currentPage: data.current_page
-          });
-        } catch (err) {
-          console.error('Error fetching filtered products:', err);
-          setError(err instanceof Error ? err : new Error('Failed to fetch filtered products'));
-        } finally {
-          setLoading(false);
-        }
-      };
-      
-      fetchFilteredProducts();
-    }
-  }, [filters.categories, filters.brands, filters.min_price, filters.max_price, 
-      filters.is_featured, filters.is_new, filters.is_sale, isInitialized]);
+    // Always fetch from server when filters change (including search)
+    fetchProducts();
+  }, [filters]);
 
   return { 
     products: filteredProducts, 
