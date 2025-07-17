@@ -4,6 +4,8 @@ import HeroSection from "@/components/hero-section"
 import ProductGrid from "@/components/product-grid"
 import CategorySection from "@/components/category-section"
 import FeaturedProducts from "@/components/featured-products"
+import NewArrivalsCarousel from "@/components/new-arrivals-carousel"
+import SpecialOffersCarousel from "@/components/special-offers-carousel"
 
 export default function Home() {
   return (
@@ -70,7 +72,7 @@ export default function Home() {
               <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
             </Link>
           </div>
-          <ProductGrid category="new-arrivals" limit={4} />
+          <NewArrivalsCarousel />
         </div>
       </section>
 
@@ -100,7 +102,7 @@ export default function Home() {
               <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
             </Link>
           </div>
-          <ProductGrid category="special-offers" limit={4} />
+          <SpecialOffersCarousel />
         </div>
       </section>
 

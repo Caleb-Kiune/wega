@@ -1253,3 +1253,395 @@ div.hide-scrollbar::-webkit-scrollbar-thumb {
     line-height: 1.75rem;
   }
 }
+
+/* New Arrivals Carousel - Match Featured Products styling */
+.new-arrivals-carousel {
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-x;
+  /* Constrained width container */
+  width: 100%;
+  margin: 0;
+  /* Hardware acceleration */
+  transform: translateZ(0);
+  will-change: scroll-position;
+  /* Ensure no partial cards are visible */
+  scroll-padding: 0;
+  /* Prevent partial card visibility */
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* Ensure container fits exactly the number of cards */
+  display: flex;
+  flex-wrap: nowrap;
+  /* Center the container */
+  justify-content: flex-start;
+}
+
+.new-arrivals-item {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  touch-action: manipulation;
+  pointer-events: auto;
+  /* Hardware acceleration */
+  transform: translateZ(0);
+  /* Allow cards to size naturally like Featured Products */
+  flex-shrink: 0;
+  flex-grow: 0;
+  /* Ensure cards are properly sized */
+  box-sizing: border-box;
+  /* Match Featured Products card sizing */
+  width: auto;
+  min-width: auto;
+}
+
+/* Responsive adjustments for new arrivals */
+@media (max-width: 768px) {
+  .new-arrivals-carousel {
+    width: 100%;
+  }
+}
+
+/* PC view - ensure exactly 4 cards are visible */
+@media (min-width: 1024px) {
+  .new-arrivals-carousel {
+    /* Container width is calculated dynamically */
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  
+  .new-arrivals-item {
+    /* Match Featured Products card sizing on PC */
+    min-width: 250px;
+    flex-shrink: 0;
+    /* Allow cards to grow to match Featured Products */
+    flex-grow: 0;
+  }
+}
+
+/* Tablet view - ensure exactly 3 cards are visible */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .new-arrivals-carousel {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  
+  .new-arrivals-item {
+    min-width: 220px;
+    flex-shrink: 0;
+    flex-grow: 0;
+  }
+}
+
+/* Mobile view - ensure exactly 2 cards are visible */
+@media (max-width: 767px) {
+  .new-arrivals-carousel {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  
+  .new-arrivals-item {
+    min-width: 180px;
+    flex-shrink: 0;
+    flex-grow: 0;
+  }
+}
+
+/* New Arrivals Navigation Gradient Overlays */
+.new-arrivals-nav-gradient {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 64px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.new-arrivals-nav-gradient.left {
+  left: 0;
+  background: linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.9), transparent);
+}
+
+.new-arrivals-nav-gradient.right {
+  right: 0;
+  background: linear-gradient(to left, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.9), transparent);
+}
+
+/* Premium button styling for new arrivals */
+.new-arrivals-nav-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 50%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.new-arrivals-nav-button:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(229, 231, 235, 1);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  transform: scale(1.05);
+}
+
+.new-arrivals-nav-button:active {
+  transform: scale(0.95);
+}
+
+.new-arrivals-nav-button svg {
+  transition: all 0.3s ease;
+  color: rgba(55, 65, 81, 0.8);
+}
+
+.new-arrivals-nav-button:hover svg {
+  transform: scale(1.1);
+  color: rgba(55, 65, 81, 1);
+}
+
+/* Responsive carousel navigation for new arrivals */
+@media (max-width: 768px) {
+  .new-arrivals-nav-button {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .new-arrivals-nav-gradient {
+    width: 48px;
+  }
+}
+
+/* Ensure new arrivals cards match other product sections */
+.new-arrivals-carousel .card-interactive {
+  height: 100%;
+  min-height: 320px; /* Consistent minimum height */
+  display: flex;
+  flex-direction: column;
+}
+
+.new-arrivals-item {
+  height: 100%;
+  display: flex;
+}
+
+/* Consistent card sizing across all product sections */
+.new-arrivals-carousel .card-interactive {
+  height: 100%;
+  min-height: 320px;
+  max-height: 400px;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Ensure new arrivals cards have exact same width */
+.new-arrivals-item .card-interactive {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+/* Special Offers Carousel - Match New Arrivals styling */
+.special-offers-carousel {
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-x;
+  /* Constrained width container */
+  width: 100%;
+  margin: 0;
+  /* Hardware acceleration */
+  transform: translateZ(0);
+  will-change: scroll-position;
+  /* Ensure no partial cards are visible */
+  scroll-padding: 0;
+  /* Prevent partial card visibility */
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* Ensure container fits exactly the number of cards */
+  display: flex;
+  flex-wrap: nowrap;
+  /* Center the container */
+  justify-content: flex-start;
+}
+
+.special-offers-item {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  touch-action: manipulation;
+  pointer-events: auto;
+  /* Hardware acceleration */
+  transform: translateZ(0);
+  /* Allow cards to size naturally like New Arrivals */
+  flex-shrink: 0;
+  flex-grow: 0;
+  /* Ensure cards are properly sized */
+  box-sizing: border-box;
+  /* Match New Arrivals card sizing */
+  width: auto;
+  min-width: auto;
+}
+
+/* Responsive adjustments for special offers */
+@media (max-width: 768px) {
+  .special-offers-carousel {
+    width: 100%;
+  }
+}
+
+/* PC view - ensure exactly 4 cards are visible */
+@media (min-width: 1024px) {
+  .special-offers-carousel {
+    /* Container width is calculated dynamically */
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  
+  .special-offers-item {
+    /* Match New Arrivals card sizing on PC */
+    min-width: 250px;
+    flex-shrink: 0;
+    /* Allow cards to grow to match New Arrivals */
+    flex-grow: 0;
+  }
+}
+
+/* Tablet view - ensure exactly 3 cards are visible */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .special-offers-carousel {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  
+  .special-offers-item {
+    min-width: 220px;
+    flex-shrink: 0;
+    flex-grow: 0;
+  }
+}
+
+/* Mobile view - ensure exactly 2 cards are visible */
+@media (max-width: 767px) {
+  .special-offers-carousel {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  
+  .special-offers-item {
+    min-width: 180px;
+    flex-shrink: 0;
+    flex-grow: 0;
+  }
+}
+
+/* Special Offers Navigation Gradient Overlays */
+.special-offers-nav-gradient {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 64px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.special-offers-nav-gradient.left {
+  left: 0;
+  background: linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.9), transparent);
+}
+
+.special-offers-nav-gradient.right {
+  right: 0;
+  background: linear-gradient(to left, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.9), transparent);
+}
+
+/* Premium button styling for special offers */
+.special-offers-nav-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 50%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.special-offers-nav-button:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(229, 231, 235, 1);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  transform: scale(1.05);
+}
+
+.special-offers-nav-button:active {
+  transform: scale(0.95);
+}
+
+.special-offers-nav-button svg {
+  transition: all 0.3s ease;
+  color: rgba(55, 65, 81, 0.8);
+}
+
+.special-offers-nav-button:hover svg {
+  transform: scale(1.1);
+  color: rgba(55, 65, 81, 1);
+}
+
+/* Responsive carousel navigation for special offers */
+@media (max-width: 768px) {
+  .special-offers-nav-button {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .special-offers-nav-gradient {
+    width: 48px;
+  }
+}
+
+/* Ensure special offers cards match other product sections */
+.special-offers-carousel .card-interactive {
+  height: 100%;
+  min-height: 320px; /* Consistent minimum height */
+  display: flex;
+  flex-direction: column;
+}
+
+.special-offers-item {
+  height: 100%;
+  display: flex;
+}
+
+/* Consistent card sizing across all product sections */
+.special-offers-carousel .card-interactive {
+  height: 100%;
+  min-height: 320px;
+  max-height: 400px;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Ensure special offers cards have exact same width */
+.special-offers-item .card-interactive {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
