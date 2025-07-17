@@ -28,75 +28,113 @@ export default function FeaturedProducts() {
   // Use shared carousel scroll handler
   const { isScrolling } = useCarouselScroll(carouselRef);
 
-  // Simplified card width calculation - enforce 4 cards on PC
+  // Enhanced card width calculation - match New Arrivals sizing
   const getCardWidth = () => {
     if (typeof window === 'undefined') return 280
 
     const width = window.innerWidth
     
-    // PC view (lg and above) - exactly 4 cards
+    // PC view (lg and above) - exactly 4 cards - match New Arrivals grid sizing
     if (width >= 1024) {
-      // Calculate container width
+      // Use the same sizing logic as New Arrivals grid
       const containerPadding = 32 // lg:px-8 = 32px
       const maxContainerWidth = 1280 // max-w-7xl = 80rem = 1280px
       const availableWidth = Math.min(width - (containerPadding * 2), maxContainerWidth - (containerPadding * 2))
       
-      // Account for navigation buttons space
-      const navButtonWidth = 48 // min-h-[48px]
-      const navButtonSpace = navButtonWidth + 16 // button width + margin
-      const totalNavSpace = navButtonSpace * 2 // left and right buttons
-      
-      // Calculate card width for exactly 4 cards
+      // Calculate card width to match New Arrivals grid (xl:grid-cols-4)
       const gap = 16 // gap-4 = 16px
       const totalGaps = 3 // 4 cards = 3 gaps
-      const cardWidth = (availableWidth - (totalGaps * gap) - totalNavSpace) / 4
+      const cardWidth = (availableWidth - (totalGaps * gap)) / 4
       
-      return Math.max(cardWidth, 200) // Minimum card width
+      return Math.max(cardWidth, 250) // Increased minimum for better sizing
     }
     
-    // Tablet view (md to lg) - 3 cards
+    // Tablet view (md to lg) - 3 cards - match New Arrivals grid sizing
     if (width >= 768) {
       const containerPadding = 24 // md:px-6 = 24px
       const maxContainerWidth = 1280
       const availableWidth = Math.min(width - (containerPadding * 2), maxContainerWidth - (containerPadding * 2))
       
-      const navButtonWidth = 48
-      const navButtonSpace = navButtonWidth + 16
-      const totalNavSpace = navButtonSpace * 2
-      
       const gap = 16
       const totalGaps = 2 // 3 cards = 2 gaps
-      const cardWidth = (availableWidth - (totalGaps * gap) - totalNavSpace) / 3
+      const cardWidth = (availableWidth - (totalGaps * gap)) / 3
       
-      return Math.max(cardWidth, 200)
+      return Math.max(cardWidth, 220) // Increased minimum for better sizing
     }
     
-    // Mobile view (below md) - 2 cards
+    // Mobile view (below md) - 2 cards - match New Arrivals grid sizing
     const containerPadding = 16 // px-4 = 16px
     const maxContainerWidth = 1280
     const availableWidth = Math.min(width - (containerPadding * 2), maxContainerWidth - (containerPadding * 2))
     
-    const navButtonWidth = 40 // min-h-[40px]
-    const navButtonSpace = navButtonWidth + 16
-    const totalNavSpace = navButtonSpace * 2
-    
     const gap = 16
     const totalGaps = 1 // 2 cards = 1 gap
-    const cardWidth = (availableWidth - (totalGaps * gap) - totalNavSpace) / 2
+    const cardWidth = (availableWidth - (totalGaps * gap)) / 2
     
-    return Math.max(cardWidth, 150) // Minimum card width for mobile
+    return Math.max(cardWidth, 180) // Increased minimum for better sizing
+  }
+
+  // Calculate container width to match New Arrivals sizing
+  const getContainerWidth = () => {
+    if (typeof window === 'undefined') return '100%'
+
+    const width = window.innerWidth
+    
+    // PC view (lg and above) - exactly 4 cards - match New Arrivals grid
+    if (width >= 1024) {
+      const cardWidth = getCardWidth()
+      const gap = 16
+      const totalGaps = 3 // 4 cards = 3 gaps
+      const containerWidth = (cardWidth * 4) + (totalGaps * gap)
+      // Use full available width like New Arrivals grid
+      const maxAvailableWidth = width - 64 // Account for container padding
+      return `${Math.min(containerWidth, maxAvailableWidth)}px`
+    }
+    
+    // Tablet view (md to lg) - 3 cards - match New Arrivals grid
+    if (width >= 768) {
+      const cardWidth = getCardWidth()
+      const gap = 16
+      const totalGaps = 2 // 3 cards = 2 gaps
+      const containerWidth = (cardWidth * 3) + (totalGaps * gap)
+      // Use full available width like New Arrivals grid
+      const maxAvailableWidth = width - 48 // Account for container padding
+      return `${Math.min(containerWidth, maxAvailableWidth)}px`
+    }
+    
+    // Mobile view (below md) - 2 cards - match New Arrivals grid
+    const cardWidth = getCardWidth()
+    const gap = 16
+    const totalGaps = 1 // 2 cards = 1 gap
+    const containerWidth = (cardWidth * 2) + (totalGaps * gap)
+    // Use full available width like New Arrivals grid
+    const maxAvailableWidth = width - 32 // Account for container padding
+    return `${Math.min(containerWidth, maxAvailableWidth)}px`
   }
 
   const [cardWidth, setCardWidth] = useState(getCardWidth())
+  const [containerWidth, setContainerWidth] = useState(getContainerWidth())
 
   useEffect(() => {
-    const updateCardWidth = () => {
-      setCardWidth(getCardWidth())
+    const updateDimensions = () => {
+      const newCardWidth = getCardWidth()
+      const newContainerWidth = getContainerWidth()
+      
+      setCardWidth(newCardWidth)
+      setContainerWidth(newContainerWidth)
+      
+      // Debug logging
+      console.log('Featured Products Dimensions:', {
+        windowWidth: window.innerWidth,
+        cardWidth: newCardWidth,
+        containerWidth: newContainerWidth,
+        screenSize: window.innerWidth >= 1024 ? 'PC' : window.innerWidth >= 768 ? 'Tablet' : 'Mobile'
+      })
     }
 
-    updateCardWidth()
-    window.addEventListener('resize', updateCardWidth)
-    return () => window.removeEventListener('resize', updateCardWidth)
+    updateDimensions()
+    window.addEventListener('resize', updateDimensions)
+    return () => window.removeEventListener('resize', updateDimensions)
   }, [])
 
   const getErrorMessage = (err: unknown): string => {
@@ -249,7 +287,10 @@ export default function FeaturedProducts() {
         ? currentScrollLeft - scrollAmount 
         : currentScrollLeft + scrollAmount
       
-      smoothScroll(targetScrollLeft)
+      // Ensure we scroll to complete card positions
+      const adjustedTargetScrollLeft = Math.round(targetScrollLeft / scrollAmount) * scrollAmount
+      
+      smoothScroll(adjustedTargetScrollLeft)
       
       // Pause autoplay when manually scrolling
       setIsAutoPlaying(false)
@@ -269,7 +310,10 @@ export default function FeaturedProducts() {
       const currentScrollLeft = carousel.scrollLeft
       const targetScrollLeft = currentScrollLeft + scrollAmount
       
-      smoothScroll(targetScrollLeft)
+      // Ensure we scroll to complete card positions
+      const adjustedTargetScrollLeft = Math.round(targetScrollLeft / scrollAmount) * scrollAmount
+      
+      smoothScroll(adjustedTargetScrollLeft)
     }, 4000); // 4 seconds interval
 
     return () => clearInterval(interval);
@@ -356,15 +400,16 @@ export default function FeaturedProducts() {
         </div>
       </button>
 
-      {/* Carousel Container - Enforce 4 cards on PC */}
-      <div className="relative overflow-hidden">
+      {/* Carousel Container - Ensure only complete cards are visible */}
+      <div className="relative overflow-hidden mx-auto" style={{ width: containerWidth }}>
         <div
           ref={carouselRef}
           className="flex gap-4 overflow-x-auto scroll-smooth pb-4 will-change-transform hide-scrollbar featured-products-carousel"
           style={{
             scrollSnapType: 'x mandatory',
             scrollPadding: '0px',
-            scrollBehavior: 'smooth'
+            scrollBehavior: 'smooth',
+            width: '100%'
           }}
         >
           {infiniteProducts.map((product, index) => (
