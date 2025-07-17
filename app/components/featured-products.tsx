@@ -28,6 +28,77 @@ export default function FeaturedProducts() {
   // Use shared carousel scroll handler
   const { isScrolling } = useCarouselScroll(carouselRef);
 
+  // Simplified card width calculation - enforce 4 cards on PC
+  const getCardWidth = () => {
+    if (typeof window === 'undefined') return 280
+
+    const width = window.innerWidth
+    
+    // PC view (lg and above) - exactly 4 cards
+    if (width >= 1024) {
+      // Calculate container width
+      const containerPadding = 32 // lg:px-8 = 32px
+      const maxContainerWidth = 1280 // max-w-7xl = 80rem = 1280px
+      const availableWidth = Math.min(width - (containerPadding * 2), maxContainerWidth - (containerPadding * 2))
+      
+      // Account for navigation buttons space
+      const navButtonWidth = 48 // min-h-[48px]
+      const navButtonSpace = navButtonWidth + 16 // button width + margin
+      const totalNavSpace = navButtonSpace * 2 // left and right buttons
+      
+      // Calculate card width for exactly 4 cards
+      const gap = 16 // gap-4 = 16px
+      const totalGaps = 3 // 4 cards = 3 gaps
+      const cardWidth = (availableWidth - (totalGaps * gap) - totalNavSpace) / 4
+      
+      return Math.max(cardWidth, 200) // Minimum card width
+    }
+    
+    // Tablet view (md to lg) - 3 cards
+    if (width >= 768) {
+      const containerPadding = 24 // md:px-6 = 24px
+      const maxContainerWidth = 1280
+      const availableWidth = Math.min(width - (containerPadding * 2), maxContainerWidth - (containerPadding * 2))
+      
+      const navButtonWidth = 48
+      const navButtonSpace = navButtonWidth + 16
+      const totalNavSpace = navButtonSpace * 2
+      
+      const gap = 16
+      const totalGaps = 2 // 3 cards = 2 gaps
+      const cardWidth = (availableWidth - (totalGaps * gap) - totalNavSpace) / 3
+      
+      return Math.max(cardWidth, 200)
+    }
+    
+    // Mobile view (below md) - 2 cards
+    const containerPadding = 16 // px-4 = 16px
+    const maxContainerWidth = 1280
+    const availableWidth = Math.min(width - (containerPadding * 2), maxContainerWidth - (containerPadding * 2))
+    
+    const navButtonWidth = 40 // min-h-[40px]
+    const navButtonSpace = navButtonWidth + 16
+    const totalNavSpace = navButtonSpace * 2
+    
+    const gap = 16
+    const totalGaps = 1 // 2 cards = 1 gap
+    const cardWidth = (availableWidth - (totalGaps * gap) - totalNavSpace) / 2
+    
+    return Math.max(cardWidth, 150) // Minimum card width for mobile
+  }
+
+  const [cardWidth, setCardWidth] = useState(getCardWidth())
+
+  useEffect(() => {
+    const updateCardWidth = () => {
+      setCardWidth(getCardWidth())
+    }
+
+    updateCardWidth()
+    window.addEventListener('resize', updateCardWidth)
+    return () => window.removeEventListener('resize', updateCardWidth)
+  }, [])
+
   const getErrorMessage = (err: unknown): string => {
     if (!(err instanceof Error)) {
       return 'An unknown error occurred'
@@ -104,8 +175,8 @@ export default function FeaturedProducts() {
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10) // 10px buffer
       
       // Calculate current slide based on scroll position
-      const slideWidth = 280 + 24 // card width + gap (adjusted for 4 cards)
-      const newCurrentSlide = Math.round(scrollLeft / slideWidth)
+      const scrollAmount = cardWidth + 16 // card width + gap
+      const newCurrentSlide = Math.round(scrollLeft / scrollAmount)
       setCurrentSlide(newCurrentSlide)
     }
   }
@@ -118,9 +189,9 @@ export default function FeaturedProducts() {
       checkScrollButtons()
       return () => carousel.removeEventListener("scroll", checkScrollButtons)
     }
-  }, [products]) // Re-check when products change
+  }, [products, cardWidth]) // Re-check when products or card width change
 
-  // Simplified smooth scroll function
+  // Enhanced smooth scroll function
   const smoothScroll = (targetScrollLeft: number) => {
     if (!carouselRef.current || isTransitioning) return
     
@@ -143,8 +214,8 @@ export default function FeaturedProducts() {
     
     const carousel = carouselRef.current
     const { scrollLeft } = carousel
-    const cardWidth = 280 + 24 // card width + gap
-    const originalSetWidth = products.length * cardWidth
+    const scrollAmount = cardWidth + 16 // card width + gap
+    const originalSetWidth = products.length * scrollAmount
     
     // If we've scrolled past the first set, reset to the middle set
     if (scrollLeft >= originalSetWidth) {
@@ -168,15 +239,15 @@ export default function FeaturedProducts() {
       carousel.addEventListener("scroll", handleScrollReset)
       return () => carousel.removeEventListener("scroll", handleScrollReset)
     }
-  }, [products, isTransitioning])
+  }, [products, isTransitioning, cardWidth])
 
   const scroll = (direction: "left" | "right") => {
     if (carouselRef.current && !isTransitioning) {
-      const cardWidth = 280 + 24 // card width + gap (adjusted for 4 cards)
+      const scrollAmount = cardWidth + 16 // card width + gap
       const currentScrollLeft = carouselRef.current.scrollLeft
       const targetScrollLeft = direction === "left" 
-        ? currentScrollLeft - cardWidth 
-        : currentScrollLeft + cardWidth
+        ? currentScrollLeft - scrollAmount 
+        : currentScrollLeft + scrollAmount
       
       smoothScroll(targetScrollLeft)
       
@@ -186,13 +257,7 @@ export default function FeaturedProducts() {
     }
   }
 
-  // Calculate total slides based on visible cards (4 cards per view)
-  const getTotalSlides = () => {
-    if (!products || products.length === 0) return 1
-    return Math.ceil(products.length / 4) // 4 cards per slide
-  }
-
-  // Simplified autoplay
+  // Enhanced autoplay
   useEffect(() => {
     if (!carouselRef.current || !isAutoPlaying || isHovered || isTransitioning) return;
 
@@ -200,15 +265,15 @@ export default function FeaturedProducts() {
       const carousel = carouselRef.current;
       if (!carousel) return;
       
-      const cardWidth = 280 + 24; // card width + gap (adjusted for 4 cards)
+      const scrollAmount = cardWidth + 16; // card width + gap
       const currentScrollLeft = carousel.scrollLeft
-      const targetScrollLeft = currentScrollLeft + cardWidth
+      const targetScrollLeft = currentScrollLeft + scrollAmount
       
       smoothScroll(targetScrollLeft)
     }, 4000); // 4 seconds interval
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying, isHovered, products, isTransitioning]);
+  }, [isAutoPlaying, isHovered, products, isTransitioning, cardWidth]);
 
   if (loading) {
     return (
@@ -248,8 +313,6 @@ export default function FeaturedProducts() {
     )
   }
 
-  const totalSlides = getTotalSlides()
-
   return (
     <div 
       className="relative" 
@@ -261,7 +324,7 @@ export default function FeaturedProducts() {
       {/* Enhanced Navigation Buttons */}
       <button
         onClick={() => scroll("left")}
-        className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-sm border border-gray-200/50 rounded-full p-2 md:p-3 shadow-xl hover:shadow-2xl focus:outline-none min-h-[40px] min-w-[40px] md:min-h-[48px] md:min-w-[48px] opacity-30 hover:opacity-100 slider-nav-button slider-transition ${
+        className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-sm border border-gray-200/50 rounded-full p-2 md:p-3 shadow-xl hover:shadow-2xl focus:outline-none min-h-[40px] min-w-[40px] md:min-h-[48px] md:min-w-[48px] opacity-30 hover:opacity-100 transition-all duration-300 ${
           canScrollLeft ? 'pointer-events-auto' : 'pointer-events-none opacity-0'
         }`}
         aria-label="Scroll featured products left"
@@ -272,7 +335,7 @@ export default function FeaturedProducts() {
       
       <button
         onClick={() => scroll("right")}
-        className={`absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-sm border border-gray-200/50 rounded-full p-2 md:p-3 shadow-xl hover:shadow-2xl focus:outline-none min-h-[40px] min-w-[40px] md:min-h-[48px] md:min-w-[48px] opacity-30 hover:opacity-100 slider-nav-button slider-transition ${
+        className={`absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-sm border border-gray-200/50 rounded-full p-2 md:p-3 shadow-xl hover:shadow-2xl focus:outline-none min-h-[40px] min-w-[40px] md:min-h-[48px] md:min-w-[48px] opacity-30 hover:opacity-100 transition-all duration-300 ${
           canScrollRight ? 'pointer-events-auto' : 'pointer-events-none opacity-0'
         }`}
         aria-label="Scroll featured products right"
@@ -281,25 +344,33 @@ export default function FeaturedProducts() {
         <ChevronRight className="h-4 w-4 md:h-6 md:w-6 text-gray-700" />
       </button>
 
-      {/* Enhanced Carousel Container */}
+      {/* Carousel Container - Enforce 4 cards on PC */}
       <div className="relative overflow-hidden">
         <div
           ref={carouselRef}
-          className="flex gap-3 md:gap-6 overflow-x-auto scroll-smooth pb-4 will-change-transform hide-scrollbar featured-slider"
+          className="flex gap-4 overflow-x-auto scroll-smooth pb-4 will-change-transform hide-scrollbar featured-products-carousel"
+          style={{
+            scrollSnapType: 'x mandatory',
+            scrollPadding: '0px',
+            scrollBehavior: 'smooth'
+          }}
         >
           {infiniteProducts.map((product, index) => (
             <div 
               key={`${product.id}-${index}`} 
-              className="flex-none w-[calc(50%-6px)] md:w-[280px] featured-slider-item"
+              className="flex-none featured-products-item"
+              style={{
+                scrollSnapAlign: 'start',
+                scrollSnapStop: 'always',
+                width: `${cardWidth}px`,
+                minWidth: `${cardWidth}px`,
+                maxWidth: `${cardWidth}px`
+              }}
             >
               <ProductCard product={product} />
             </div>
           ))}
         </div>
-        
-        {/* Enhanced Gradient Overlays for Smooth Edges */}
-        <div className="absolute left-0 top-0 bottom-0 w-8 md:w-12 bg-gradient-to-r from-white via-white/80 to-transparent slider-gradient-overlay pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-8 md:w-12 bg-gradient-to-l from-white via-white/80 to-transparent slider-gradient-overlay pointer-events-none" />
       </div>
     </div>
   )

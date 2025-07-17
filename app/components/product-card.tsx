@@ -370,7 +370,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
                 {/* Product Title - Enhanced Typography */}
                 <h3 
                   id={`product-${product.id}`} 
-                  className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 group-hover:text-green-600 transition-colors duration-200 line-clamp-2 leading-tight"
+                  className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 group-hover:text-green-600 transition-colors duration-200 line-clamp-1 leading-tight product-card-title"
                 >
                   {product.name}
                 </h3>
@@ -459,16 +459,16 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
   // Grid View
   return (
     <article 
-      className="group card-interactive h-full overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl flex flex-col relative min-h-[200px] cursor-pointer rounded-xl" 
+      className="group card-interactive h-full overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl flex flex-col relative min-h-[200px] cursor-pointer rounded-xl w-full" 
       role="article" 
       aria-labelledby={`product-${product.id}`}
     >
       <Link 
         href={`/products/${product.id}`} 
-        className="focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-t-xl flex-1 flex flex-col"
+        className="focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-t-xl flex-1 flex flex-col w-full"
         aria-labelledby={`product-${product.id}`}
       >
-        <div className="relative overflow-hidden">
+        <div className="relative overflow-hidden w-full">
           <ProductImage />
           <ProductBadges />
           <HoverActions />
@@ -479,28 +479,28 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
           </div>
         </div>
 
-        <div className="p-4 flex flex-col flex-grow">
+        <div className="p-4 flex flex-col flex-grow w-full">
           {/* Category and Brand - hidden on mobile */}
-          <div className="items-center justify-between mb-2 hidden sm:flex">
-            <div className="text-xs text-gray-500 font-medium">{product.category}</div>
-            <div className="text-xs font-semibold text-green-600">{product.brand}</div>
+          <div className="items-center justify-between mb-2 hidden sm:flex w-full">
+            <div className="text-xs text-gray-500 font-medium truncate">{product.category}</div>
+            <div className="text-xs font-semibold text-green-600 truncate">{product.brand}</div>
           </div>
           
           <h3 
             id={`product-${product.id}`} 
-            className="text-sm sm:text-base font-semibold text-gray-800 mb-2 group-hover:text-green-600 transition-colors duration-200 line-clamp-2 leading-tight"
+            className="text-sm sm:text-base font-semibold text-gray-800 mb-2 group-hover:text-green-600 transition-colors duration-200 line-clamp-1 leading-tight product-card-title w-full"
           >
             {product.name}
           </h3>
 
           {/* Price and Cart Icon */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center">
-              <span className="text-base sm:text-lg font-bold text-gray-800">
+          <div className="flex items-center justify-between mb-2 w-full">
+            <div className="flex items-center min-w-0 flex-1">
+              <span className="text-base sm:text-lg font-bold text-gray-800 truncate">
                 KES {product.price.toLocaleString()}
               </span>
               {product.original_price && (
-                <span className="ml-2 text-xs sm:text-sm text-gray-500 line-through">
+                <span className="ml-2 text-xs sm:text-sm text-gray-500 line-through flex-shrink-0">
                   KES {product.original_price.toLocaleString()}
                 </span>
               )}
@@ -509,7 +509,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
             {/* Cart Icon Button - Mobile Only */}
             <Button
               size="sm"
-              className={`md:hidden rounded-full shadow-lg min-h-[36px] min-w-[36px] transition-all duration-200 hover:scale-110 border-0 ${
+              className={`md:hidden rounded-full shadow-lg min-h-[36px] min-w-[36px] transition-all duration-200 hover:scale-110 border-0 flex-shrink-0 ${
                 isInCart
                   ? '!bg-green-500 !text-white shadow-lg'
                   : 'bg-white/95 hover:bg-white text-gray-700 shadow-md'
@@ -531,7 +531,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
 
           {/* Rating */}
           {product.rating > 0 && (
-            <div className="flex items-center mb-3">
+            <div className="flex items-center mb-3 w-full">
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
                   <Star
@@ -544,7 +544,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
                   />
                 ))}
               </div>
-              <span className="ml-2 text-xs sm:text-sm text-gray-600">
+              <span className="ml-2 text-xs sm:text-sm text-gray-600 truncate">
                 ({product.review_count})
               </span>
             </div>

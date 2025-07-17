@@ -812,44 +812,57 @@ div.hide-scrollbar::-webkit-scrollbar-thumb {
   }
 }
 
-/* Enhanced Slider Styles - Optimized for Smooth Scrolling */
-.featured-slider {
+/* Featured Products - Enforce 4 cards on PC */
+.featured-products-carousel {
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   touch-action: pan-x;
-  /* Responsive container sizing */
-  max-width: calc(4 * 280px + 3 * 24px); /* 4 cards + 3 gaps on desktop */
-  margin: 0 auto;
+  /* Full width container */
+  width: 100%;
+  margin: 0;
   /* Hardware acceleration */
   transform: translateZ(0);
   will-change: scroll-position;
+  /* Ensure no partial cards are visible */
+  scroll-padding: 0;
+  /* Prevent partial card visibility */
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
-.featured-slider-item {
+.featured-products-item {
   scroll-snap-align: start;
   scroll-snap-stop: always;
   touch-action: manipulation;
   pointer-events: auto;
   /* Hardware acceleration */
   transform: translateZ(0);
-  /* Ensure consistent card sizing */
-  min-width: 0;
+  /* Fixed width to prevent partial cards */
   flex-shrink: 0;
+  flex-grow: 0;
+  /* Ensure cards are properly sized */
+  box-sizing: border-box;
 }
 
-/* Mobile responsive adjustments */
+/* Responsive adjustments for featured products */
 @media (max-width: 768px) {
-  .featured-slider {
-    max-width: none; /* Full width on mobile */
-    padding: 0 8px; /* Add some padding for better touch experience */
+  .featured-products-carousel {
+    width: 100%;
+  }
+}
+
+/* PC view - ensure exactly 4 cards are visible */
+@media (min-width: 1024px) {
+  .featured-products-carousel {
+    /* Ensure container width allows exactly 4 cards */
+    max-width: calc(100vw - 64px); /* Account for container padding */
   }
   
-  .featured-slider-item {
-    /* Ensure 2 cards fit perfectly on mobile */
-    width: calc(50% - 6px) !important; /* Override inline styles */
-    min-width: calc(50% - 6px);
+  .featured-products-item {
+    /* Ensure consistent card sizing on PC */
+    min-width: 200px;
   }
 }
 
@@ -921,31 +934,191 @@ div.hide-scrollbar::-webkit-scrollbar-thumb {
 }
 
 /* Smooth autoplay transitions */
-.featured-slider.autoplay-active {
+.featured-products-carousel.autoplay-active {
   scroll-behavior: smooth;
 }
 
 /* Performance optimizations */
-.featured-slider-item {
+.featured-products-item {
   /* Optimize for GPU acceleration */
   transform: translateZ(0);
 }
 
-/* Responsive slider adjustments */
-@media (max-width: 1280px) {
-  .featured-slider {
-    max-width: calc(3 * 280px + 2 * 24px); /* 3 cards on smaller screens */
+/* Responsive slider adjustments - REMOVED MAX-WIDTH RESTRICTIONS */
+/* All breakpoints now use full width for consistent card sizing */
+
+/* REMOVED SLIDER DOTS - No more dots at the bottom */
+/* Featured products now match New Arrivals exactly */
+
+/* Enhanced carousel navigation */
+.carousel-nav-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-radius: 50%;
+  padding: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  min-height: 44px;
+  min-width: 44px;
+  opacity: 0.3;
+}
+
+.carousel-nav-button:hover {
+  opacity: 1;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.carousel-nav-button:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Responsive carousel navigation */
+@media (max-width: 768px) {
+  .carousel-nav-button {
+    padding: 8px;
+    min-height: 40px;
+    min-width: 40px;
   }
 }
 
-@media (max-width: 1024px) {
-  .featured-slider {
-    max-width: calc(2 * 280px + 1 * 24px); /* 2 cards on medium screens */
-  }
+/* Smooth carousel transitions */
+.carousel-container {
+  overflow: hidden;
+  position: relative;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.5s ease;
+  will-change: transform;
+}
+
+/* Enhanced gradient overlays */
+.carousel-gradient-overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 48px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.carousel-gradient-overlay.left {
+  left: 0;
+  background: linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.8), transparent);
+}
+
+.carousel-gradient-overlay.right {
+  right: 0;
+  background: linear-gradient(to left, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.8), transparent);
 }
 
 @media (max-width: 768px) {
-  .featured-slider {
-    max-width: none; /* Full width on mobile */
+  .carousel-gradient-overlay {
+    width: 32px;
+  }
+}
+
+/* Enhanced text truncation utilities */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* Product card title optimization for slideshow */
+.product-card-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Enhanced slideshow card title styling */
+.featured-products-carousel .product-card-title,
+.product-carousel .product-card-title {
+  font-weight: 600;
+  color: #1f2937; /* text-gray-800 */
+  transition: color 0.2s ease;
+}
+
+.featured-products-carousel .product-card-title:hover,
+.product-carousel .product-card-title:hover {
+  color: #16a34a; /* text-green-600 */
+}
+
+/* Ensure featured products cards match other product sections */
+.featured-products-carousel .card-interactive {
+  height: 100%;
+  min-height: 320px; /* Consistent minimum height */
+  display: flex;
+  flex-direction: column;
+}
+
+.featured-products-item {
+  height: 100%;
+  display: flex;
+}
+
+/* Consistent card sizing across all product sections */
+.product-grid .card-interactive,
+.featured-products-carousel .card-interactive,
+.product-carousel .card-interactive {
+  height: 100%;
+  min-height: 320px;
+  max-height: 400px;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Ensure featured products cards have exact same width */
+.featured-products-item .card-interactive,
+.product-carousel .flex-none .card-interactive {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+/* Responsive text truncation for different screen sizes */
+@media (max-width: 640px) {
+  .product-card-title {
+    font-size: 0.875rem; /* text-sm */
+    line-height: 1.25rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .product-card-title {
+    font-size: 1rem; /* text-base */
+    line-height: 1.5rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .product-card-title {
+    font-size: 1.125rem; /* text-lg */
+    line-height: 1.75rem;
   }
 }
