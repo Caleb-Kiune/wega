@@ -321,27 +321,39 @@ export default function FeaturedProducts() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Enhanced Navigation Buttons */}
+      {/* Premium Minimalistic Navigation Buttons */}
       <button
         onClick={() => scroll("left")}
-        className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-sm border border-gray-200/50 rounded-full p-2 md:p-3 shadow-xl hover:shadow-2xl focus:outline-none min-h-[40px] min-w-[40px] md:min-h-[48px] md:min-w-[48px] opacity-30 hover:opacity-100 transition-all duration-300 ${
-          canScrollLeft ? 'pointer-events-auto' : 'pointer-events-none opacity-0'
+        className={`absolute left-0 top-1/2 -translate-y-1/2 z-20 group transition-all duration-300 ease-out ${
+          canScrollLeft ? 'pointer-events-auto opacity-60 hover:opacity-100' : 'pointer-events-none opacity-0'
         }`}
         aria-label="Scroll featured products left"
         disabled={!canScrollLeft || isTransitioning}
       >
-        <ChevronLeft className="h-4 w-4 md:h-6 md:w-6 text-gray-700" />
+        {/* Gradient Background */}
+        <div className="featured-nav-gradient left" />
+        
+        {/* Button Container */}
+        <div className="featured-nav-button ml-2">
+          <ChevronLeft className="h-5 w-5 text-gray-600 group-hover:text-gray-800 transition-colors duration-200" />
+        </div>
       </button>
       
       <button
         onClick={() => scroll("right")}
-        className={`absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-sm border border-gray-200/50 rounded-full p-2 md:p-3 shadow-xl hover:shadow-2xl focus:outline-none min-h-[40px] min-w-[40px] md:min-h-[48px] md:min-w-[48px] opacity-30 hover:opacity-100 transition-all duration-300 ${
-          canScrollRight ? 'pointer-events-auto' : 'pointer-events-none opacity-0'
+        className={`absolute right-0 top-1/2 -translate-y-1/2 z-20 group transition-all duration-300 ease-out ${
+          canScrollRight ? 'pointer-events-auto opacity-60 hover:opacity-100' : 'pointer-events-none opacity-0'
         }`}
         aria-label="Scroll featured products right"
         disabled={!canScrollRight || isTransitioning}
       >
-        <ChevronRight className="h-4 w-4 md:h-6 md:w-6 text-gray-700" />
+        {/* Gradient Background */}
+        <div className="featured-nav-gradient right" />
+        
+        {/* Button Container */}
+        <div className="featured-nav-button mr-2">
+          <ChevronRight className="h-5 w-5 text-gray-600 group-hover:text-gray-800 transition-colors duration-200" />
+        </div>
       </button>
 
       {/* Carousel Container - Enforce 4 cards on PC */}

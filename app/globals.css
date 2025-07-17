@@ -950,7 +950,7 @@ div.hide-scrollbar::-webkit-scrollbar-thumb {
 /* REMOVED SLIDER DOTS - No more dots at the bottom */
 /* Featured products now match New Arrivals exactly */
 
-/* Enhanced carousel navigation */
+/* Premium Minimalistic Carousel Navigation */
 .carousel-nav-button {
   position: absolute;
   top: 50%;
@@ -979,12 +979,92 @@ div.hide-scrollbar::-webkit-scrollbar-thumb {
   pointer-events: none;
 }
 
+/* Featured Products Premium Navigation */
+.featured-products-carousel {
+  position: relative;
+}
+
+.featured-products-carousel:hover .group {
+  opacity: 1;
+}
+
+/* Ensure navigation buttons are visible */
+.featured-products-carousel .group {
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.featured-products-carousel:hover .group {
+  opacity: 1;
+}
+
+/* Gradient overlay for navigation buttons */
+.featured-nav-gradient {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 64px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.featured-nav-gradient.left {
+  left: 0;
+  background: linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.9), transparent);
+}
+
+.featured-nav-gradient.right {
+  right: 0;
+  background: linear-gradient(to left, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.9), transparent);
+}
+
+/* Premium button styling */
+.featured-nav-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 50%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.featured-nav-button:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(229, 231, 235, 1);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  transform: scale(1.05);
+}
+
+.featured-nav-button:active {
+  transform: scale(0.95);
+}
+
+.featured-nav-button svg {
+  transition: all 0.3s ease;
+  color: rgba(55, 65, 81, 0.8);
+}
+
+.featured-nav-button:hover svg {
+  transform: scale(1.1);
+  color: rgba(55, 65, 81, 1);
+}
+
 /* Responsive carousel navigation */
 @media (max-width: 768px) {
-  .carousel-nav-button {
-    padding: 8px;
-    min-height: 40px;
-    min-width: 40px;
+  .featured-nav-button {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .featured-nav-gradient {
+    width: 48px;
   }
 }
 
@@ -1051,6 +1131,17 @@ div.hide-scrollbar::-webkit-scrollbar-thumb {
   max-width: 100%;
   word-wrap: break-word;
   word-break: break-word;
+}
+
+/* Enhanced line-clamp utility that works with product-card-title */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  white-space: normal; /* Override nowrap for line-clamp */
+  text-overflow: ellipsis;
 }
 
 /* Enhanced slideshow card title styling */
