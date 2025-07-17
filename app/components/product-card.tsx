@@ -131,7 +131,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
         loading="lazy"
         sizes={viewMode === 'list' 
           ? "(max-width: 768px) 100vw, 224px"
-          : "(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+          : "(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 25vw"
         }
         placeholder="blur"
         blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
@@ -459,7 +459,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
   // Grid View
   return (
     <article 
-      className="group card-interactive h-full overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl flex flex-col relative min-h-[200px] cursor-pointer rounded-xl w-full" 
+      className="group card-interactive h-full overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-2xl flex flex-col relative min-h-[180px] cursor-pointer rounded-xl w-full transition-all duration-300 hover:scale-[1.02]" 
       role="article" 
       aria-labelledby={`product-${product.id}`}
     >
@@ -479,7 +479,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
           </div>
         </div>
 
-        <div className="p-4 flex flex-col flex-grow w-full">
+        <div className="p-3 sm:p-4 flex flex-col flex-grow w-full">
           {/* Category and Brand - hidden on mobile */}
           <div className="items-center justify-between mb-2 hidden sm:flex w-full">
             <div className="text-xs text-gray-500 font-medium truncate">{product.category}</div>
@@ -488,7 +488,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
           
           <h3 
             id={`product-${product.id}`} 
-            className="text-sm sm:text-base font-semibold text-gray-800 mb-2 group-hover:text-green-600 transition-colors duration-200 line-clamp-1 leading-tight product-card-title w-full"
+            className="text-sm sm:text-base font-semibold text-gray-800 mb-2 group-hover:text-green-600 transition-colors duration-200 line-clamp-2 leading-tight product-card-title w-full"
           >
             {product.name}
           </h3>
@@ -496,11 +496,11 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
           {/* Price and Cart Icon */}
           <div className="flex items-center justify-between mb-2 w-full">
             <div className="flex items-center min-w-0 flex-1">
-              <span className="text-base sm:text-lg font-bold text-gray-800 truncate">
+              <span className="text-sm sm:text-base font-bold text-gray-800 truncate">
                 KES {product.price.toLocaleString()}
               </span>
               {product.original_price && (
-                <span className="ml-2 text-xs sm:text-sm text-gray-500 line-through flex-shrink-0">
+                <span className="ml-1 sm:ml-2 text-xs text-gray-500 line-through flex-shrink-0">
                   KES {product.original_price.toLocaleString()}
                 </span>
               )}

@@ -29,7 +29,7 @@ export default function ProductsPage() {
   
   const [filters, setFilters] = useState<ProductsFilters>({
     page: Number(searchParams.get('page')) || 1,
-    limit: Number(searchParams.get('limit')) || 30,
+    limit: Number(searchParams.get('limit')) || 24, // Changed from 30 to 24 for better UX
     categories: searchParams.getAll('categories[]'),
     brands: searchParams.getAll('brands[]'),
     min_price: Number(searchParams.get('min_price')) || undefined,
@@ -57,7 +57,7 @@ export default function ProductsPage() {
     // Update URL with new filters
     const params = new URLSearchParams();
     if (updatedFilters.page > 1) params.set('page', updatedFilters.page.toString());
-    if (updatedFilters.limit !== 30) params.set('limit', updatedFilters.limit.toString());
+    if (updatedFilters.limit !== 24) params.set('limit', updatedFilters.limit.toString());
     if (updatedFilters.categories?.length) {
       updatedFilters.categories.forEach(category => params.append('categories[]', category));
     }
@@ -82,7 +82,7 @@ export default function ProductsPage() {
     // Update URL with new page
     const params = new URLSearchParams();
     if (page > 1) params.set('page', page.toString());
-    if (filters.limit !== 30) params.set('limit', filters.limit.toString());
+    if (filters.limit !== 24) params.set('limit', filters.limit.toString());
     if (filters.categories?.length) {
       filters.categories.forEach(category => params.append('categories[]', category));
     }
@@ -106,7 +106,7 @@ export default function ProductsPage() {
     
     // Update URL without search parameter
     const params = new URLSearchParams();
-    if (updatedFilters.limit !== 30) params.set('limit', updatedFilters.limit.toString());
+    if (updatedFilters.limit !== 24) params.set('limit', updatedFilters.limit.toString());
     if (updatedFilters.categories?.length) {
       updatedFilters.categories.forEach(category => params.append('categories[]', category));
     }
@@ -131,7 +131,7 @@ export default function ProductsPage() {
     // Update URL with new search
     const params = new URLSearchParams();
     if (updatedFilters.page > 1) params.set('page', updatedFilters.page.toString());
-    if (updatedFilters.limit !== 30) params.set('limit', updatedFilters.limit.toString());
+    if (updatedFilters.limit !== 24) params.set('limit', updatedFilters.limit.toString());
     if (updatedFilters.categories?.length) {
       updatedFilters.categories.forEach(category => params.append('categories[]', category));
     }
@@ -308,8 +308,102 @@ export default function ProductsPage() {
     // toast.success(`${filterLabel} filter removed`);
   };
 
+  // Dynamic header height calculation for filter panel positioning
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      const header = document.querySelector('header, nav, .header, .navbar');
+      if (header && header instanceof HTMLElement) {
+        const headerHeight = header.offsetHeight;
+        document.documentElement.style.setProperty('--header-height', `${headerHeight}px`);
+        document.documentElement.style.setProperty('--filter-panel-top-offset', `${headerHeight + 16}px`);
+      }
+    };
+
+    // Initial calculation
+    updateHeaderHeight();
+
+    // Recalculate on resize
+    window.addEventListener('resize', updateHeaderHeight);
+
+    // Recalculate after a short delay to ensure all elements are loaded
+    const timer = setTimeout(updateHeaderHeight, 100);
+
+    return () => {
+      window.removeEventListener('resize', updateHeaderHeight);
+      clearTimeout(timer);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+      {/* CSS for Robust Sticky Filter Panel */}
+      <style jsx global>{`
+        :root {
+          --header-height: 80px;
+          --filter-panel-top-offset: calc(var(--header-height) + 1rem);
+        }
+        
+        .sticky-filter-panel {
+          position: sticky !important;
+          top: var(--filter-panel-top-offset) !important;
+          z-index: 10 !important;
+          transform: translateZ(0) !important;
+          backface-visibility: hidden !important;
+          perspective: 1000px !important;
+        }
+        
+        .sticky-filter-panel:hover {
+          z-index: 20 !important;
+        }
+        
+        .sticky-filter-header {
+          position: sticky !important;
+          top: 0 !important;
+          z-index: 15 !important;
+          background: rgba(249, 250, 251, 0.95) !important;
+          backdrop-filter: blur(8px) !important;
+          border-bottom: 1px solid #f3f4f6 !important;
+          padding: 1.25rem 1.5rem 1rem 1.5rem !important;
+          border-radius: 0.5rem 0.5rem 0 0 !important;
+          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+        }
+        
+        .sticky-filter-content {
+          padding: 1rem 1.5rem !important;
+        }
+        
+        /* Mobile-specific improvements */
+        @media (max-width: 1023px) {
+          .sticky-filter-panel {
+            position: static !important;
+          }
+          .sticky-filter-header {
+            position: static !important;
+          }
+          .sticky-filter-content {
+            padding: 0 !important;
+          }
+          
+          /* Enhanced touch targets for mobile */
+          .mobile-touch-target {
+            min-height: 44px !important;
+            min-width: 44px !important;
+          }
+          
+          /* Improved mobile scrolling */
+          .mobile-scroll-area {
+            -webkit-overflow-scrolling: touch !important;
+            scroll-behavior: smooth !important;
+          }
+          
+          /* Better mobile focus states */
+          .mobile-focus:focus {
+            outline: 2px solid #10b981 !important;
+            outline-offset: 2px !important;
+          }
+        }
+      `}</style>
+      
       {/* Enhanced Hero Section with Modern Design */}
       <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
         {/* Animated Background Pattern */}
@@ -380,7 +474,7 @@ export default function ProductsPage() {
       {/* Enhanced Main Content */}
       <div className="container mx-auto px-4 py-8 sm:py-12 lg:py-16">
         <div className="flex flex-col gap-8 lg:gap-12">
-          {/* Products Section (full width) */}
+          {/* Products Section with Side-by-Side Layout */}
           <div className="flex-1">
             {/* Enhanced Header Controls */}
             <div className="mb-8 sm:mb-12">
@@ -392,6 +486,11 @@ export default function ProductsPage() {
                     {!loading && !error && (
                       <>
                         <span className="font-semibold text-gray-900">{products.length}</span> products
+                        {totalPages > 1 && (
+                          <span className="text-gray-500 ml-2">
+                            • Page {currentPage} of {totalPages}
+                          </span>
+                        )}
                       </>
                     )}
                   </div>
@@ -431,9 +530,9 @@ export default function ProductsPage() {
                       {activeFiltersCount} filter{activeFiltersCount !== 1 ? 's' : ''}
                         </span>
                         <button
-                          onClick={() => handleFiltersChange({
+                          onClick={() =>           handleFiltersChange({
                             page: 1,
-                            limit: 30,
+            limit: 24,
                             categories: undefined,
                             brands: undefined,
                             min_price: undefined,
@@ -516,35 +615,115 @@ export default function ProductsPage() {
               </div>
               
               {/* Enhanced Filter, Sort, and View Controls */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                {/* Left Side - Primary Controls */}
               <div className="flex items-center gap-3 sm:gap-4">
-                  {/* Enhanced Filter Sheet */}
+                  {/* Enhanced Filter Sheet - Mobile Only */}
                   <Sheet open={showFilters} onOpenChange={setShowFilters}>
                     <SheetTrigger asChild>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex items-center gap-2 h-11 px-4 sm:px-5 bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm"
+                        className="flex items-center gap-2 h-12 px-4 sm:px-5 bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100 transition-all duration-200 shadow-sm lg:hidden mobile-touch-target"
                       >
                         <SlidersHorizontal className="h-4 w-4" />
                         <span className="hidden sm:inline font-medium">Filters</span>
                         {activeFiltersCount > 0 && (
-                          <Badge className="ml-1 bg-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                          <Badge className="ml-1 bg-green-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-medium shadow-sm">
                             {activeFiltersCount}
                           </Badge>
                         )}
                       </Button>
                     </SheetTrigger>
-                    <SheetContent side="left" className="w-[85vw] sm:w-[420px] p-0 border-r border-gray-200">
-                      <SheetHeader className="px-6 py-6 border-b border-gray-100 bg-gray-50/50">
-                        <SheetTitle className="text-xl font-semibold text-gray-900">Filters</SheetTitle>
-                        <p className="text-sm text-gray-600 mt-1">Refine your search</p>
-                      </SheetHeader>
-                      <div className="overflow-y-auto max-h-[calc(100vh-140px)]">
-                        <ProductFilters 
-                          filters={filters} 
-                          onFiltersChange={handleFiltersChange} 
-                          loading={loading} 
-                        />
+                    <SheetContent side="left" className="w-[85vw] sm:w-[400px] p-0 border-r border-gray-200 bg-white">
+                      {/* Hidden SheetTitle for accessibility */}
+                      <SheetTitle className="sr-only">Filter Products</SheetTitle>
+                      
+                      {/* Enhanced Mobile Header */}
+                      <div className="sticky top-0 z-20 bg-white border-b border-gray-100 shadow-sm">
+                        <div className="flex items-center justify-between px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-1 h-6 bg-green-500 rounded-full"></div>
+                            <div>
+                              <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+                              <p className="text-sm text-gray-600">Refine your search</p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowFilters(false)}
+                            className="h-10 w-10 p-0 rounded-full hover:bg-gray-100"
+                          >
+                            <X className="h-5 w-5" />
+                          </Button>
+                        </div>
+                        
+                        {/* Active Filters Summary */}
+                        {activeFiltersCount > 0 && (
+                          <div className="px-6 pb-4">
+                            <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-green-700 font-medium">
+                                  {activeFiltersCount} active filter{activeFiltersCount !== 1 ? 's' : ''}
+                                </span>
+                                <div className="w-1 h-4 bg-green-300 rounded-full"></div>
+                                <span className="text-sm text-green-600">
+                                  {products.length} products found
+                                </span>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleFiltersChange({
+                                  page: 1,
+                                  limit: 24,
+                                  categories: undefined,
+                                  brands: undefined,
+                                  min_price: undefined,
+                                  max_price: undefined,
+                                  is_featured: undefined,
+                                  is_new: undefined,
+                                  is_sale: undefined,
+                                  search: undefined,
+                                })}
+                                className="text-green-600 hover:text-green-700 hover:bg-green-100 text-sm font-medium"
+                              >
+                                Clear All
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Enhanced Mobile Filter Content */}
+                      <div className="overflow-y-auto mobile-scroll-area" style={{ height: 'calc(100vh - 140px)' }}>
+                        <div className="px-6 py-4">
+                          <ProductFilters 
+                            filters={filters} 
+                            onFiltersChange={handleFiltersChange} 
+                            loading={loading} 
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Mobile Action Footer */}
+                      <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4 shadow-lg">
+                        <div className="flex gap-3">
+                          <Button
+                            variant="outline"
+                            onClick={() => setShowFilters(false)}
+                            className="flex-1 h-12 text-sm font-medium"
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={() => setShowFilters(false)}
+                            className="flex-1 h-12 bg-green-600 hover:bg-green-700 text-white text-sm font-medium"
+                          >
+                            Apply Filters
+                          </Button>
+                        </div>
                       </div>
                     </SheetContent>
                   </Sheet>
@@ -568,7 +747,7 @@ export default function ProductsPage() {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -10, scale: 0.95 }}
                           transition={{ duration: 0.2 }}
-                          className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden"
+                          className="absolute left-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden"
                         >
                           <div className="py-2">
                             {[
@@ -600,6 +779,28 @@ export default function ProductsPage() {
                       )}
                     </AnimatePresence>
                   </div>
+                </div>
+
+                {/* Right Side - Secondary Controls */}
+                <div className="flex items-center gap-3 sm:gap-4">
+                  {/* Products Per Page Selector */}
+                  <div className="flex items-center gap-2">
+                    <span className="hidden sm:inline text-xs text-gray-600 font-medium">Show:</span>
+                    <span className="sm:hidden text-xs text-gray-600 font-medium">Per page:</span>
+                    <div className="flex items-center bg-gray-100 rounded-lg p-1 shadow-sm">
+                      {[12, 24, 36, 48].map((count) => (
+                        <Button
+                          key={count}
+                          variant={filters.limit === count ? 'default' : 'ghost'}
+                          size="sm"
+                          onClick={() => handleFiltersChange({ limit: count, page: 1 })}
+                          className="h-8 w-8 p-0 rounded-md transition-all duration-200 text-xs font-medium"
+                        >
+                          {count}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
                   
                   {/* Enhanced View Mode Toggle */}
                   <div className="flex items-center bg-gray-100 rounded-lg p-1 shadow-sm">
@@ -623,7 +824,31 @@ export default function ProductsPage() {
                 </div>
               </div>
             </div>
-            {/* Products Grid/List and Pagination remain unchanged */}
+            </div>
+            {/* Side-by-Side Layout: Filters + Products */}
+            <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 relative">
+              {/* Filter Panel - Desktop Only - Robust Sticky Positioning */}
+              <div className="hidden lg:block lg:w-56 xl:w-60 2xl:w-64 flex-shrink-0">
+                <div className="sticky-filter-panel max-h-[calc(100vh-2rem)] overflow-y-auto bg-white rounded-lg border border-gray-200 shadow-sm will-change-transform transform-gpu">
+                  <div className="sticky-filter-header">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-1 h-4 bg-green-500 rounded-full"></div>
+                      <h3 className="text-sm font-semibold text-gray-900">Filters</h3>
+                    </div>
+                    <p className="text-xs text-gray-600">Refine your search</p>
+                  </div>
+                  <div className="sticky-filter-content">
+                    <ProductFilters 
+                      filters={filters} 
+                      onFiltersChange={handleFiltersChange} 
+                      loading={loading} 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Products Section */}
+              <div className="flex-1 min-w-0">
             <AnimatePresence mode="wait">
               {loading ? (
                 <motion.div
@@ -693,7 +918,7 @@ export default function ProductsPage() {
                 >
                   <div className={`
                     ${viewMode === 'grid' 
-                      ? 'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8' 
+                      ? 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-8' 
                       : 'space-y-6 sm:space-y-8'
                     }
                   `}>
@@ -805,6 +1030,8 @@ export default function ProductsPage() {
                 </motion.div>
               )}
             </AnimatePresence>
+              </div>
+            </div>
           </div>
         </div>
       </div>

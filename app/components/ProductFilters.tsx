@@ -139,7 +139,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
 
   const activeFiltersCount = getActiveFiltersCount();
 
-  // Enhanced Filter Section
+  // Compact Filter Section
   const FilterSection = ({ 
     title, 
     children,
@@ -150,10 +150,10 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
     icon?: React.ComponentType<{ className?: string }>;
   }) => (
     <div className="border-b border-gray-100 last:border-b-0">
-      <div className="py-6">
-        <div className="flex items-center gap-3 mb-4">
+      <div className="py-4">
+        <div className="flex items-center gap-2 mb-3">
           {Icon && <Icon className="h-4 w-4 text-gray-500" />}
-          <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+          <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">{title}</h3>
         </div>
         {children}
       </div>
@@ -198,7 +198,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
     </button>
   );
 
-  // Enhanced Native Checkbox Option
+  // Compact Native Checkbox Option
   const NativeCheckbox = ({
     label,
     checked,
@@ -208,12 +208,12 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
     checked: boolean;
     onChange: (checked: boolean) => void;
   }) => (
-    <label className="flex items-center gap-3 w-full py-3 px-0 cursor-pointer select-none hover:bg-gray-50 rounded-lg transition-colors duration-200">
+    <label className="flex items-center gap-3 w-full py-3 px-0 cursor-pointer select-none hover:bg-gray-50 rounded-lg transition-colors duration-200 touch-manipulation mobile-touch-target mobile-focus">
       <input
         type="checkbox"
         checked={checked}
         onChange={() => onChange(!checked)}
-        className="form-checkbox h-5 w-5 accent-green-600 rounded border-gray-300 focus:ring-green-500 focus:ring-2 transition-all duration-200"
+        className="form-checkbox h-4 w-4 accent-green-600 rounded border-gray-300 focus:ring-green-500 focus:ring-2 transition-all duration-200"
       />
       <span className={`text-sm font-medium transition-colors duration-200 ${checked ? 'text-gray-900' : 'text-gray-700'}`}>
         {label}
@@ -223,38 +223,30 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
 
   return (
     <div className="bg-white">
-      {/* Enhanced Header */}
-      <div className="px-6 py-6 border-b border-gray-100 bg-gray-50/30">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Filter className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
-              {activeFiltersCount > 0 && (
-                <p className="text-sm text-gray-600 mt-0.5">{activeFiltersCount} active filters</p>
-              )}
+      {/* Compact Header */}
+      {activeFiltersCount > 0 && (
+        <div className="sticky top-0 z-10 bg-white border-b border-gray-100 bg-gray-50/50 backdrop-blur-sm">
+          <div className="py-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-600 font-medium">{activeFiltersCount} active filters</span>
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <RotateCcw className="h-3 w-3" />
+                Clear
+              </button>
             </div>
           </div>
-          {activeFiltersCount > 0 && (
-            <button
-              onClick={clearFilters}
-              className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors font-medium"
-            >
-              <RotateCcw className="h-4 w-4" />
-              Clear all
-            </button>
-          )}
         </div>
-      </div>
+      )}
 
-      {/* Enhanced Scrollable Filter Content */}
-      <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
-        <div className="px-6">
+      {/* Compact Filter Content */}
+      <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 240px)' }}>
+        <div>
           {/* Product Status */}
           <FilterSection title="Product Status" icon={Star}>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
+            <div className="space-y-1 max-h-32 overflow-y-auto">
               <NativeCheckbox
                 label="Featured Products"
                 checked={filters.is_featured || false}
@@ -276,11 +268,11 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
           {/* Categories */}
           <FilterSection title="Categories" icon={Tag}>
             {categoriesLoading ? (
-              <div className="flex items-center justify-center py-8">
+              <div className="flex items-center justify-center py-6">
                 <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
               </div>
             ) : (
-              <div className="space-y-2 max-h-48 overflow-y-auto">
+              <div className="space-y-1 max-h-32 overflow-y-auto">
                 {categories?.map((category) => (
                   <NativeCheckbox
                     key={category.name}
@@ -296,11 +288,11 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
           {/* Brands */}
           <FilterSection title="Brands" icon={Building2}>
             {brandsLoading ? (
-              <div className="flex items-center justify-center py-8">
+              <div className="flex items-center justify-center py-6">
                 <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
               </div>
             ) : (
-              <div className="space-y-2 max-h-48 overflow-y-auto">
+              <div className="space-y-1 max-h-32 overflow-y-auto">
                 {brands?.map((brand) => (
                   <NativeCheckbox
                     key={brand.name}
@@ -317,7 +309,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
           <FilterSection title="Price Range" icon={DollarSign}>
             <div className="space-y-4">
               {/* Enhanced Price Inputs */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Min Price</label>
                   <Input
@@ -325,7 +317,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                     value={priceInputs.min}
                     onChange={(e) => handlePriceInputChange('min', e.target.value)}
                     placeholder="0"
-                    className="h-10 text-sm border-gray-200 focus:border-green-500 focus:ring-green-500/20 transition-colors"
+                    className="h-10 text-sm border-gray-200 focus:border-green-500 focus:ring-green-500/20 transition-colors mobile-touch-target mobile-focus"
                   />
                 </div>
                 <div className="space-y-2">
@@ -334,14 +326,14 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
                     type="number"
                     value={priceInputs.max}
                     onChange={(e) => handlePriceInputChange('max', e.target.value)}
-                    placeholder="50,000"
-                    className="h-10 text-sm border-gray-200 focus:border-green-500 focus:ring-green-500/20 transition-colors"
+                    placeholder="50K"
+                    className="h-10 text-sm border-gray-200 focus:border-green-500 focus:ring-green-500/20 transition-colors mobile-touch-target mobile-focus"
                   />
                 </div>
               </div>
 
               {/* Enhanced Slider */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <Slider
                   value={priceRange}
                   onValueChange={handlePriceRangeChange}
@@ -357,10 +349,10 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
               </div>
 
               {/* Enhanced Apply Button */}
-              <div className="pt-4">
+              <div className="pt-2">
                 <Button
                   onClick={handleApplyPriceFilters}
-                  className="w-full h-11 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+                  className="w-full h-10 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white text-sm font-semibold rounded-lg transition-all duration-200 shadow-sm mobile-touch-target mobile-focus"
                 >
                   Apply Price Filter
                 </Button>

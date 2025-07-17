@@ -116,7 +116,7 @@ export default function ProductGrid({
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
         {[...Array(limit)].map((_, index) => (
           <div key={index} className={`${index >= mobileLimit ? 'hidden sm:block' : ''}`}>
             <ProductSkeleton />
@@ -156,7 +156,7 @@ export default function ProductGrid({
   return (
     <div className="space-y-6">
       {/* Products Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
       {products.slice(0, limit).map((product, index) => (
           <div 
             key={product.id} 
