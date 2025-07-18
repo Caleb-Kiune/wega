@@ -7,7 +7,7 @@ import { format, isValid, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Package, Truck, CheckCircle, XCircle, Search, Filter, Download, Trash2, LogOut, MoreVertical, ArrowLeft } from 'lucide-react';
+import { Eye, Package, Truck, CheckCircle, XCircle, Search, Filter, Download, Trash2, LogOut, MoreVertical, ArrowLeft, ChevronDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import {
@@ -436,14 +436,78 @@ function OrdersPage() {
                         <td className="px-4 py-3">{order.first_name} {order.last_name}</td>
                         <td className="px-4 py-3">{format(parseISO(order.created_at), 'MMM d, yyyy')}</td>
                         <td className="px-4 py-3">
-                          <Badge className={getStatusColor(order.status) + ' px-2 py-1 rounded-full text-xs font-semibold'}>
-                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge className={getStatusColor(order.status) + ' px-2 py-1 rounded-full text-xs font-semibold'}>
+                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            </Badge>
+                            {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button size="icon" variant="ghost" className="h-6 w-6 p-0">
+                                    <ChevronDown className="h-3 w-3" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-32">
+                                  {order.status === 'pending' && (
+                                    <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'processing')}>
+                                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                                      Processing
+                                    </DropdownMenuItem>
+                                  )}
+                                  {order.status === 'processing' && (
+                                    <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'shipped')}>
+                                      <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                                      Shipped
+                                    </DropdownMenuItem>
+                                  )}
+                                  {order.status === 'shipped' && (
+                                    <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'delivered')}>
+                                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                      Delivered
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'cancelled')} className="text-red-600">
+                                    <XCircle className="h-4 w-4 mr-2" />
+                                    Cancel
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-3">
-                          <Badge className={getPaymentStatusColor(order.payment_status) + ' px-2 py-1 rounded-full text-xs font-semibold'}>
-                            {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge className={getPaymentStatusColor(order.payment_status) + ' px-2 py-1 rounded-full text-xs font-semibold'}>
+                              {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
+                            </Badge>
+                            {order.payment_status !== 'failed' && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button size="icon" variant="ghost" className="h-6 w-6 p-0">
+                                    <ChevronDown className="h-3 w-3" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-32">
+                                  {order.payment_status === 'pending' && (
+                                    <DropdownMenuItem onClick={() => handlePaymentStatusChange(order.id, 'paid')}>
+                                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                      Mark Paid
+                                    </DropdownMenuItem>
+                                  )}
+                                  {order.payment_status === 'paid' && (
+                                    <DropdownMenuItem onClick={() => handlePaymentStatusChange(order.id, 'pending')}>
+                                      <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                                      Mark Pending
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuItem onClick={() => handlePaymentStatusChange(order.id, 'failed')} className="text-red-600">
+                                    <XCircle className="h-4 w-4 mr-2" />
+                                    Mark Failed
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-3">
                           <Badge className={`px-2 py-1 rounded-full text-xs font-semibold ${getPaymentMethodColor(order.payment_method)}`}>
@@ -452,24 +516,24 @@ function OrdersPage() {
                         </td>
                         <td className="px-4 py-3 font-semibold text-slate-900">KES {(order.total_amount || 0).toLocaleString()}</td>
                         <td className="px-4 py-3">
-                          <div className="flex gap-2">
+                          <div className="flex gap-1">
                             <Link href={`/admin/orders/${order.id}`}>
-                              <Button size="icon" variant="secondary" className="hover:bg-emerald-100">
-                                <Eye className="h-4 w-4 text-emerald-700" />
+                              <Button size="icon" variant="secondary" className="h-8 w-8 hover:bg-emerald-100">
+                                <Eye className="h-3 w-3 text-emerald-700" />
                               </Button>
                             </Link>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button size="icon" variant="ghost">
-                                  <MoreVertical className="h-4 w-4" />
+                                <Button size="icon" variant="ghost" className="h-8 w-8">
+                                  <MoreVertical className="h-3 w-3" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
+                              <DropdownMenuContent align="end" className="w-40">
                                 <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'cancelled')} className="text-red-600">
                                   <XCircle className="h-4 w-4 mr-2" /> Cancel Order
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleBulkDelete()} className="text-red-600">
-                                  <Trash2 className="h-4 w-4 mr-2" /> Delete
+                                  <Trash2 className="h-4 w-4 mr-2" /> Delete Order
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
