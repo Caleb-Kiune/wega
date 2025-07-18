@@ -7,7 +7,7 @@ import { useDebounce } from '@/lib/hooks/use-debounce';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Edit, Trash2, MapPin, Package, Check, X, Grid, List } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, MapPin, Package, Check, X, Grid, List, ArrowLeft } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -207,6 +207,17 @@ export default function DeliveryLocationsPage() {
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 mb-6 sm:mb-8">
           <div>
+            <div className="flex items-center gap-3 mb-2">
+              <Button
+                onClick={() => router.push('/admin')}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Dashboard
+              </Button>
+            </div>
             <h1 className="text-2xl sm:text-4xl font-bold text-gray-900">Delivery Locations</h1>
             <p className="mt-2 text-sm sm:text-base text-gray-600">Manage delivery locations and shipping costs</p>
           </div>

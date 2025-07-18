@@ -6,7 +6,7 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Truck, ShieldCheck, Copy, Check, AlertCircle, Lock, CreditCard, Eye, EyeOff } from "lucide-react"
+import { ArrowLeft, Truck, ShieldCheck, Copy, Check, AlertCircle, Lock, CreditCard, Eye, EyeOff, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useCart } from "@/lib/hooks/use-cart"
 import { useToast } from "@/lib/hooks/use-toast"
+import { useDeliveryLocations } from "@/lib/hooks/use-delivery-locations"
 import { ordersApi, CreateOrderRequest } from "@/lib/orders"
 import { getSessionId } from "@/lib/session"
 
@@ -23,6 +24,7 @@ export default function CheckoutPage() {
   const items = cart?.items || []
   const { toast } = useToast()
   const router = useRouter()
+  const { deliveryLocations, loading: locationsLoading } = useDeliveryLocations()
   
   // Add debugging
   console.log('Checkout page - Cart items:', items)
@@ -50,9 +52,22 @@ export default function CheckoutPage() {
     }
   }, [])
 
+  // Save selected location to localStorage when it changes
+  const handleLocationChange = (value: string) => {
+    setSelectedLocation(value)
+    if (value) {
+      localStorage.setItem('selectedDeliveryLocation', value)
+    } else {
+      localStorage.removeItem('selectedDeliveryLocation')
+    }
+  }
+
   // Calculate totals
   const subtotal = items?.reduce((total, item) => total + ((item.product?.price || 0) * item.quantity), 0) || 0
-  const shipping = selectedLocation ? 500 : 0 // Fixed shipping cost for now
+  
+  // Get shipping cost based on selected location
+  const selectedDeliveryLocation = deliveryLocations.find(location => location.slug === selectedLocation)
+  const shipping = selectedLocation && selectedLocation !== "none" && selectedDeliveryLocation ? selectedDeliveryLocation.shippingPrice : 0
   const total = subtotal + shipping
 
   console.log('Checkout page - Subtotal:', subtotal)
@@ -133,21 +148,11 @@ export default function CheckoutPage() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    if (!selectedLocation) {
-      toast({
-        title: "Error",
-        description: "Please select a delivery location",
-        variant: "destructive",
-      })
-      setIsSubmitting(false)
-      return
-    }
-
     const form = e.target as HTMLFormElement
     const formData = new FormData(form)
 
     // Validate required fields
-    const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'county', 'postalCode']
+    const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'county']
     const missingFields = requiredFields.filter(field => !formData.get(field))
     
     if (missingFields.length > 0) {
@@ -160,20 +165,25 @@ export default function CheckoutPage() {
       return
     }
 
+    // Validate payment method selection
+    if (!paymentMethod) {
+      toast({
+        title: "Error",
+        description: "Please select a payment method",
+        variant: "destructive",
+      })
+      setIsSubmitting(false)
+      return
+    }
+
     try {
       // Get session ID for cart
       const sessionId = getSessionId()
       console.log('Using session ID:', sessionId)
 
-      // Map location string to ID (for now, use a simple mapping)
-      const locationIdMap: { [key: string]: number } = {
-        'nairobi': 1,
-        'mombasa': 2,
-        'kisumu': 3,
-        'nakuru': 4,
-        'eldoret': 5
-      }
-      const deliveryLocationId = locationIdMap[selectedLocation] || 1
+      // Get delivery location ID from the selected location
+      const selectedDeliveryLocation = deliveryLocations.find(location => location.slug === selectedLocation)
+      const deliveryLocationId = selectedLocation && selectedLocation !== "none" && selectedDeliveryLocation ? selectedDeliveryLocation.id : null
 
       const orderData: CreateOrderRequest = {
         session_id: sessionId,
@@ -182,10 +192,11 @@ export default function CheckoutPage() {
         email: formData.get('email') as string,
         phone: formData.get('phone') as string,
         address: formData.get('address') as string,
-        city: formData.get('city') as string,
+        city: formData.get('county') as string, // Use county as city since city field is removed
         state: formData.get('county') as string,
-        postal_code: formData.get('postalCode') as string,
+        postal_code: "N/A", // Default value since postal code field is removed from UI
         delivery_location_id: deliveryLocationId,
+        payment_method: paymentMethod,
         notes: formData.get('notes') as string || undefined,
         cart_items: items.map(item => ({
           product_id: item.product?.id,
@@ -209,8 +220,8 @@ export default function CheckoutPage() {
       // Clear cart after successful order
       clearCart()
       
-      // Redirect to order confirmation page
-      router.push(`/products/orders/${order.id}`)
+      // Redirect to order success page
+      router.push(`/order-success?orderId=${order.id}`)
       
     } catch (error) {
       console.error('Error submitting order:', error)
@@ -255,7 +266,7 @@ export default function CheckoutPage() {
 
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-8">Checkout</h1>
 
-        <form onSubmit={handleSubmitOrder}>
+        <form onSubmit={handleSubmitOrder} suppressHydrationWarning>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
             {/* Checkout Form */}
             <div className="lg:col-span-2">
@@ -280,18 +291,10 @@ export default function CheckoutPage() {
                       <Label htmlFor="phone">Phone Number</Label>
                       <Input id="phone" name="phone" type="tel" className="mt-1 min-h-[44px] text-base" required />
                     </div>
-                    <div className="md:col-span-2">
-                      <Label htmlFor="address">Street Address</Label>
-                      <Input id="address" name="address" className="mt-1 min-h-[44px] text-base" required />
-                    </div>
-                    <div>
-                      <Label htmlFor="city">City</Label>
-                      <Input id="city" name="city" className="mt-1 min-h-[44px] text-base" required />
-                    </div>
                     <div>
                       <Label htmlFor="county">County</Label>
                       <Select name="county" required>
-                        <SelectTrigger id="county" className="mt-1 min-h-[44px] text-base">
+                        <SelectTrigger id="county" className="mt-1 min-h-[44px] text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500">
                           <SelectValue placeholder="Select county" />
                         </SelectTrigger>
                         <SelectContent>
@@ -304,12 +307,39 @@ export default function CheckoutPage() {
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="postalCode">Postal Code</Label>
-                      <Input id="postalCode" name="postalCode" className="mt-1 min-h-[44px] text-base" required />
+                      <Label htmlFor="deliveryLocation">Delivery Location</Label>
+                      <Select value={selectedLocation} onValueChange={handleLocationChange}>
+                        <SelectTrigger id="deliveryLocation" className="mt-1 min-h-[44px] text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" disabled={locationsLoading}>
+                          <SelectValue placeholder={locationsLoading ? "Loading locations..." : "Select location"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none" className="text-gray-500">
+                            <div className="flex items-center gap-2">
+                              <span>Pickup at store</span>
+                              <span className="text-xs text-gray-400">(Self pickup or other arrangements)</span>
+                            </div>
+                          </SelectItem>
+                          {deliveryLocations.map((location) => (
+                            <SelectItem key={location.id} value={location.slug}>
+                              {location.name} - KES {location.shippingPrice.toLocaleString()}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label htmlFor="address">Street Address</Label>
+                      <Input id="address" name="address" className="mt-1 min-h-[44px] text-base" required />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label htmlFor="notes">Order Notes (Optional)</Label>
+                      <Textarea id="notes" name="notes" placeholder="Special instructions for delivery" className="mt-1 min-h-[44px] text-base" />
                     </div>
                   </div>
                 </div>
               </div>
+
+
 
               <div className="bg-white rounded-lg shadow-sm overflow-hidden">
                 <div className="p-4 sm:p-6">
@@ -317,6 +347,43 @@ export default function CheckoutPage() {
 
                   <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
                     <div className="space-y-4">
+                      <div className="border rounded-lg p-4 flex items-start space-x-3">
+                        <RadioGroupItem value="cod" id="cod" />
+                        <div className="flex-1">
+                          <div className="flex items-center">
+                            <Label htmlFor="cod" className="font-medium text-gray-800 mr-2 text-sm sm:text-base">
+                              Cash on Delivery
+                            </Label>
+                            <div className="flex items-center justify-center w-6 h-6 bg-green-100 rounded-full">
+                              <span className="text-green-600 text-xs font-bold">K</span>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-600">Pay with cash when your order is delivered</p>
+
+                          {paymentMethod === "cod" && (
+                            <div className="mt-4 space-y-4">
+                              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <p className="font-medium text-gray-800 mb-2">Payment Amount:</p>
+                                <p className="text-xl sm:text-2xl font-bold text-green-600">KES {total.toLocaleString()}</p>
+                              </div>
+
+                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-blue-800">
+                                <p className="flex items-start gap-2">
+                                  <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                                  <span>You'll pay the full amount of KES {total.toLocaleString()} in cash when your order is delivered. Please have the exact amount ready.</span>
+                                </p>
+                              </div>
+
+                              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-yellow-800">
+                                <p className="flex items-start gap-2">
+                                  <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                                  <span>Cash on delivery is available for orders within Kenya. Delivery fees may apply.</span>
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                       <div className="border rounded-lg p-4 flex items-start space-x-3">
                         <RadioGroupItem value="mpesa" id="mpesa" />
                         <div className="flex-1">
@@ -572,12 +639,31 @@ export default function CheckoutPage() {
                     <div className="flex justify-between">
                       <span className="text-gray-600 text-sm sm:text-base">Shipping</span>
                       <span className="font-medium text-gray-800 text-sm sm:text-base">
-                        KES {shipping.toLocaleString()}
+                        {locationsLoading ? (
+                          <span className="text-gray-400">Loading...</span>
+                        ) : selectedLocation === "none" ? (
+                          <span className="text-gray-400">Pickup at store</span>
+                        ) : selectedLocation ? (
+                          `KES ${shipping.toLocaleString()}`
+                        ) : (
+                          <span className="text-gray-400">Select location</span>
+                        )}
                       </span>
                     </div>
-                    {selectedLocation && (
+                    {selectedLocation && selectedLocation !== "none" && (
                       <div className="text-sm text-gray-600">
                         Delivery to: {selectedLocation}
+                      </div>
+                    )}
+                    {selectedLocation === "none" && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <div className="text-sm text-blue-800">
+                            <p className="font-medium mb-1">Pickup at store selected</p>
+                            <p>We'll contact you after placing your order to arrange pickup details.</p>
+                          </div>
+                        </div>
                       </div>
                     )}
                     <div className="border-t pt-3 sm:pt-4 flex justify-between">
@@ -587,11 +673,6 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="notes">Order Notes (Optional)</Label>
-                      <Textarea id="notes" name="notes" placeholder="Special instructions for delivery" className="mt-1 min-h-[44px] text-base" />
-                    </div>
-
                     <Button
                       type="submit"
                       className="w-full bg-green-600 hover:bg-green-700 text-white min-h-[44px] text-base"

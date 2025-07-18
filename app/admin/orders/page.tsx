@@ -7,7 +7,7 @@ import { format, isValid, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Package, Truck, CheckCircle, XCircle, Search, Filter, Download, Trash2, LogOut, MoreVertical } from 'lucide-react';
+import { Eye, Package, Truck, CheckCircle, XCircle, Search, Filter, Download, Trash2, LogOut, MoreVertical, ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import {
@@ -40,6 +40,7 @@ function OrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('all');
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,7 +52,7 @@ function OrdersPage() {
 
   useEffect(() => {
     fetchOrders();
-  }, [statusFilter, paymentStatusFilter, currentPage, debouncedSearch, sortBy, sortOrder]);
+  }, [statusFilter, paymentStatusFilter, paymentMethodFilter, currentPage, debouncedSearch, sortBy, sortOrder]);
 
   const fetchOrders = async () => {
     try {
@@ -59,6 +60,7 @@ function OrdersPage() {
       const response = await ordersApi.getAll({
         status: statusFilter !== 'all' ? statusFilter : undefined,
         payment_status: paymentStatusFilter !== 'all' ? paymentStatusFilter : undefined,
+        payment_method: paymentMethodFilter !== 'all' ? paymentMethodFilter : undefined,
         page: currentPage,
         search: debouncedSearch,
         sort_by: sortBy,
@@ -207,6 +209,34 @@ function OrdersPage() {
     }
   };
 
+  const getPaymentMethodDisplay = (method: string | undefined) => {
+    if (!method) return 'Unknown';
+    switch (method.toLowerCase()) {
+      case 'cod':
+        return 'Cash on Delivery';
+      case 'mpesa':
+        return 'M-Pesa';
+      case 'card':
+        return 'Credit Card';
+      default:
+        return method.charAt(0).toUpperCase() + method.slice(1);
+    }
+  };
+
+  const getPaymentMethodColor = (method: string | undefined) => {
+    if (!method) return 'bg-gray-100 text-gray-800';
+    switch (method.toLowerCase()) {
+      case 'cod':
+        return 'bg-blue-100 text-blue-800';
+      case 'mpesa':
+        return 'bg-purple-100 text-purple-800';
+      case 'card':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -263,6 +293,15 @@ function OrdersPage() {
               )}
             </div>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <Button
+                onClick={() => router.push('/admin')}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Dashboard
+              </Button>
               <Button onClick={exportOrders} variant="outline" className="flex items-center gap-2 px-4 py-2.5 h-11 bg-white/80 backdrop-blur-sm border-slate-200 hover:bg-white hover:border-slate-300 shadow-sm">
                 <Download className="h-4 w-4" />
                 <span className="hidden sm:inline">Export</span>
@@ -330,6 +369,20 @@ function OrdersPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700">Payment Method</Label>
+                  <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
+                    <SelectTrigger className="h-11 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20">
+                      <SelectValue placeholder="All Methods" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Methods</SelectItem>
+                      <SelectItem value="cod">Cash on Delivery</SelectItem>
+                      <SelectItem value="mpesa">M-Pesa</SelectItem>
+                      <SelectItem value="card">Credit Card</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label className="text-sm font-medium text-slate-700">Sort By</Label>
                   <Select value={sortBy} onValueChange={setSortBy}>
                     <SelectTrigger className="h-11 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20">
@@ -363,6 +416,7 @@ function OrdersPage() {
                     <th className="px-4 py-3 text-left font-semibold text-slate-700">Date</th>
                     <th className="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
                     <th className="px-4 py-3 text-left font-semibold text-slate-700">Payment</th>
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">Method</th>
                     <th className="px-4 py-3 text-left font-semibold text-slate-700">Total</th>
                     <th className="px-4 py-3 text-left font-semibold text-slate-700">Actions</th>
                   </tr>
@@ -389,6 +443,11 @@ function OrdersPage() {
                         <td className="px-4 py-3">
                           <Badge className={getPaymentStatusColor(order.payment_status) + ' px-2 py-1 rounded-full text-xs font-semibold'}>
                             {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge className={`px-2 py-1 rounded-full text-xs font-semibold ${getPaymentMethodColor(order.payment_method)}`}>
+                            {getPaymentMethodDisplay(order.payment_method)}
                           </Badge>
                         </td>
                         <td className="px-4 py-3 font-semibold text-slate-900">KES {(order.total_amount || 0).toLocaleString()}</td>

@@ -13,11 +13,12 @@ class Order(db.Model):
     address = db.Column(db.String(255), nullable=False)
     city = db.Column(db.String(100), nullable=False)
     state = db.Column(db.String(100), nullable=False)
-    postal_code = db.Column(db.String(20), nullable=False)
+    postal_code = db.Column(db.String(20), nullable=True)
     total_amount = db.Column(db.Numeric(10, 2), nullable=False)
     shipping_cost = db.Column(db.Numeric(10, 2), nullable=False)
     status = db.Column(db.String(50), default='pending', nullable=True)
     payment_status = db.Column(db.String(50), default='pending', nullable=True)
+    payment_method = db.Column(db.String(50), nullable=True)
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
@@ -44,6 +45,7 @@ class Order(db.Model):
             'shipping_cost': float(self.shipping_cost) if self.shipping_cost else 0,
             'status': self.status,
             'payment_status': self.payment_status,
+            'payment_method': self.payment_method,
             'notes': self.notes,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,

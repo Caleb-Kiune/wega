@@ -13,16 +13,18 @@ def create_order():
     
     # Validate required fields
     required_fields = ['session_id', 'first_name', 'last_name', 'email', 'phone', 
-                      'address', 'city', 'state', 'postal_code', 'delivery_location_id']
+                      'address', 'city', 'state']
     
     for field in required_fields:
         if not data.get(field):
             return jsonify({'error': f'{field.replace("_", " ").title()} is required'}), 400
     
-    # Validate delivery location
-    delivery_location = DeliveryLocation.query.get(data['delivery_location_id'])
-    if not delivery_location:
-        return jsonify({'error': 'Invalid delivery location'}), 400
+    # Handle delivery location (can be null for pickup)
+    delivery_location = None
+    if data.get('delivery_location_id'):
+        delivery_location = DeliveryLocation.query.get(data['delivery_location_id'])
+        if not delivery_location:
+            return jsonify({'error': 'Invalid delivery location'}), 400
     
     # Get cart items - either from database cart or from request body
     cart_items = []
@@ -56,8 +58,13 @@ def create_order():
             # Calculate from database cart
             subtotal = sum(float(item.product.price) * item.quantity for item in cart_items)
         
-        shipping_cost = float(delivery_location.shipping_price) if delivery_location.shipping_price else 0.0
+        # Calculate shipping cost (0 for pickup, actual cost for delivery)
+        shipping_cost = float(delivery_location.shipping_price) if delivery_location and delivery_location.shipping_price else 0.0
         total_amount = subtotal + shipping_cost
+        
+        # Determine payment status based on payment method
+        payment_method = data.get('payment_method', 'cod')
+        payment_status = 'paid' if payment_method == 'cod' else 'pending'
         
         # Generate order number
         order_number = f"ORD-{datetime.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
@@ -72,12 +79,13 @@ def create_order():
             address=data['address'],
             city=data['city'],
             state=data['state'],
-            postal_code=data['postal_code'],
+            postal_code=data.get('postal_code', ''),  # Make postal_code optional with default empty string
             total_amount=total_amount,
             shipping_cost=shipping_cost,
             notes=data.get('notes'),
+            payment_method=payment_method,
             status='pending',
-            payment_status='pending'
+            payment_status=payment_status
         )
         
         db.session.add(order)
@@ -129,6 +137,7 @@ def get_orders():
     email = request.args.get('email', '')
     status = request.args.get('status', '')
     payment_status = request.args.get('payment_status', '')
+    payment_method = request.args.get('payment_method', '')
     search = request.args.get('search', '')
     sort_by = request.args.get('sort_by', 'created_at')
     sort_order = request.args.get('sort_order', 'desc')
@@ -145,6 +154,9 @@ def get_orders():
     
     if payment_status:
         query = query.filter(Order.payment_status == payment_status)
+    
+    if payment_method:
+        query = query.filter(Order.payment_method == payment_method)
     
     if search:
         # Search in order number, customer name, and email

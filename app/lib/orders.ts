@@ -24,9 +24,10 @@ export interface Order {
   address: string;
   city: string;
   state: string;
-  postal_code: string;
+  postal_code?: string;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   payment_status: 'pending' | 'paid' | 'failed';
+  payment_method?: string;
   total_amount: number;
   shipping_cost: number;
   notes?: string;
@@ -44,8 +45,9 @@ export interface CreateOrderRequest {
   address: string;
   city: string;
   state: string;
-  postal_code: string;
-  delivery_location_id: number;
+  postal_code?: string;
+  delivery_location_id?: number | null;
+  payment_method?: string;
   notes?: string;
   cart_items?: Array<{
     product_id: number;
@@ -65,6 +67,7 @@ export interface OrdersResponse {
 export interface OrdersParams {
   status?: string;
   payment_status?: string;
+  payment_method?: string;
   page?: number;
   search?: string;
   sort_by?: string;
@@ -77,6 +80,7 @@ export const ordersApi = {
       const queryParams = new URLSearchParams();
       if (params?.status) queryParams.append('status', params.status);
       if (params?.payment_status) queryParams.append('payment_status', params.payment_status);
+      if (params?.payment_method) queryParams.append('payment_method', params.payment_method);
       if (params?.page) queryParams.append('page', params.page.toString());
       if (params?.search) queryParams.append('search', params.search);
       if (params?.sort_by) queryParams.append('sort_by', params.sort_by);
@@ -234,7 +238,6 @@ export const ordersApi = {
         },
         body: JSON.stringify({ order_number: orderNumber, email }),
       });
-
       if (!response.ok) throw new Error('Failed to track order');
       return await response.json();
     } catch (error) {
@@ -276,4 +279,4 @@ export const ordersApi = {
       throw error;
     }
   },
-}; 
+};

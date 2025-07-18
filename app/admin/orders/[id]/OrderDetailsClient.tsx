@@ -303,7 +303,7 @@ export default function OrderDetailsClient({ initialOrder }: OrderDetailsClientP
               initial={{ opacity: 0, y: 20 }} 
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+              className="grid grid-cols-1 lg:grid-cols-3 gap-6"
             >
               {/* Customer Information */}
               <Card className="border-slate-200 bg-white/90 shadow-md">
@@ -342,6 +342,43 @@ export default function OrderDetailsClient({ initialOrder }: OrderDetailsClientP
                 </CardContent>
               </Card>
 
+              {/* Payment Information */}
+              <Card className="border-slate-200 bg-white/90 shadow-md">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+                      <CreditCard className="w-4 h-4 text-white" />
+                    </div>
+                    <CardTitle className="text-lg">Payment Information</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <CreditCard className="h-4 w-4 text-slate-400" />
+                      <div>
+                        <p className="font-medium text-slate-900">
+                          {order.payment_method === 'cod' ? 'Cash on Delivery' :
+                           order.payment_method === 'mpesa' ? 'M-Pesa' :
+                           order.payment_method === 'card' ? 'Credit Card' :
+                           order.payment_method || 'Not specified'}
+                        </p>
+                        <p className="text-sm text-slate-500">Payment Method</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="h-4 w-4 text-slate-400 flex items-center justify-center">
+                        {getPaymentStatusIcon(order.payment_status)}
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-900 capitalize">{order.payment_status}</p>
+                        <p className="text-sm text-slate-500">Payment Status</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Shipping Information */}
               <Card className="border-slate-200 bg-white/90 shadow-md">
                 <CardHeader className="pb-4">
@@ -359,7 +396,7 @@ export default function OrderDetailsClient({ initialOrder }: OrderDetailsClientP
                       <div>
                         <p className="font-medium text-slate-900">{order.address}</p>
                         <p className="text-sm text-slate-500">
-                          {order.city}, {order.state} {order.postal_code}
+                          {order.city}, {order.state}{order.postal_code && order.postal_code !== 'N/A' ? ` ${order.postal_code}` : ''}
                         </p>
                       </div>
                     </div>
