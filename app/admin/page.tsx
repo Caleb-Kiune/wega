@@ -169,13 +169,6 @@ function AdminPage() {
             
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <Button
-              onClick={() => router.push('/admin/create')}
-                className="flex items-center gap-2 px-6 py-2.5 h-11 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-            >
-                <Plus className="w-4 h-4" />
-              Create Product
-            </Button>
-            <Button
               onClick={handleLogout}
               variant="outline"
                 className="flex items-center gap-2 px-4 py-2.5 h-11 border-red-200 text-red-700 hover:bg-red-50 hover:border-red-300"

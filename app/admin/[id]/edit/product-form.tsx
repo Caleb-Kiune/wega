@@ -289,6 +289,25 @@ export default function ProductForm({ productId }: ProductFormProps) {
   const handleSave = async () => {
     if (!product) return;
 
+    // Validate SKU - if it's not empty, it should be unique
+    if (product.sku && product.sku.trim() !== '') {
+      // Check if SKU is unique (excluding current product)
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/products/check-sku?sku=${encodeURIComponent(product.sku.trim())}&exclude_id=${product.id}`);
+        if (response.ok) {
+          const result = await response.json();
+          if (!result.is_unique) {
+            toast.error('SKU already exists. Please use a different SKU or leave it empty.');
+            setSaving(false);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error checking SKU uniqueness:', error);
+        // Continue with save even if SKU check fails
+      }
+    }
+
     try {
       setSaving(true);
       
@@ -351,7 +370,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
       console.log('✅ Product updated successfully:', updatedProduct);
       
       toast.success('Product updated successfully');
-      router.push('/admin');
+      router.push('/admin/products');
     } catch (error) {
       console.error('❌ Error updating product:', error);
       toast.error('Failed to update product');
@@ -441,9 +460,12 @@ export default function ProductForm({ productId }: ProductFormProps) {
                   name="sku"
                   value={product.sku}
                   onChange={handleInputChange}
-                  placeholder="Enter SKU"
+                  placeholder="Enter SKU (leave empty for auto-generation)"
                   className="min-h-[44px]"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Stock Keeping Unit - must be unique. Leave empty to auto-generate.
+                </p>
               </div>
             </div>
 

@@ -588,7 +588,7 @@ function CreateProductPage() {
       await productsApi.create(productData);
       console.log('Product created successfully');
       toast.success('Product created successfully');
-      router.push('/admin');
+      router.push('/admin/products');
     } catch (error) {
       console.error('Error creating product:', error);
       toast.error('Failed to create product');

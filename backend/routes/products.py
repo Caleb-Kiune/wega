@@ -189,7 +189,18 @@ def check_sku():
     if not sku:
         return jsonify({'error': 'SKU parameter is required'}), 400
     
-    existing_product = Product.query.filter_by(sku=sku).first()
+    exclude_id = request.args.get('exclude_id')
+    
+    # Build query to exclude current product if editing
+    query = Product.query.filter_by(sku=sku)
+    if exclude_id:
+        try:
+            exclude_id = int(exclude_id)
+            query = query.filter(Product.id != exclude_id)
+        except ValueError:
+            pass  # Invalid exclude_id, ignore it
+    
+    existing_product = query.first()
     return jsonify({
         'sku': sku,
         'is_unique': existing_product is None,
@@ -213,7 +224,8 @@ def create_product():
             description=data.get('description'),
             price=Decimal(str(data['price'])),
             original_price=Decimal(str(data['original_price'])) if data.get('original_price') else None,
-            sku=data.get('sku'),
+            # Handle SKU - set to None if empty string to avoid UNIQUE constraint issues
+            sku=data.get('sku') if data.get('sku') and data.get('sku').strip() else None,
             stock=data.get('stock'),
             is_new=data.get('is_new', False),
             is_sale=data.get('is_sale', False),
@@ -294,7 +306,9 @@ def update_product(id):
         product.description = data.get('description')
         product.price = Decimal(str(data['price']))
         product.original_price = Decimal(str(data['original_price'])) if data.get('original_price') else None
-        product.sku = data.get('sku')
+        # Handle SKU - set to None if empty string to avoid UNIQUE constraint issues
+        sku_value = data.get('sku')
+        product.sku = sku_value if sku_value and sku_value.strip() else None
         product.stock = data.get('stock')
         product.is_new = data.get('is_new', False)
         product.is_sale = data.get('is_sale', False)

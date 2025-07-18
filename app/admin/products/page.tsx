@@ -266,6 +266,14 @@ function ProductsPage() {
       }
     });
 
+  // Calculate statistics
+  const totalProducts = products.length;
+  const inStockProducts = products.filter(p => p.stock > 0).length;
+  const outOfStockProducts = products.filter(p => p.stock === 0).length;
+  const featuredProducts = products.filter(p => p.is_featured).length;
+  const newProducts = products.filter(p => p.is_new).length;
+  const saleProducts = products.filter(p => p.is_sale).length;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
@@ -785,7 +793,7 @@ function ProductsPage() {
                             </p>
                             <div className="flex items-center justify-between text-sm text-slate-500 mb-3">
                               <span className="font-medium text-emerald-600">
-                                ${product.price?.toFixed(2)}
+                                KES {product.price?.toFixed(2)}
                               </span>
                               <span className="text-xs">
                                 Stock: {product.stock}
@@ -884,7 +892,7 @@ function ProductsPage() {
                           <div className="flex items-center gap-4">
                             <div className="text-right">
                               <div className="font-semibold text-emerald-600">
-                                ${product.price?.toFixed(2)}
+                                KES {product.price?.toFixed(2)}
                               </div>
                               <div className="text-sm text-slate-500">
                                 Stock: {product.stock}

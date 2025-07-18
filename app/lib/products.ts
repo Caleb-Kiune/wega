@@ -472,7 +472,12 @@ export const productsApi = {
         } else if (response.status === 404) {
           errorMessage = 'Product not found';
         } else if (response.status === 500) {
-          errorMessage = errorData.error || 'Server error occurred';
+          // Handle specific database constraint errors
+          if (errorData.error && errorData.error.includes('UNIQUE constraint failed: products.sku')) {
+            errorMessage = 'SKU already exists. Please use a different SKU or leave it empty.';
+          } else {
+            errorMessage = errorData.error || 'Server error occurred';
+          }
         } else {
           errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
         }
