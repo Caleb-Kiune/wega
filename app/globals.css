@@ -1184,6 +1184,26 @@ div.hide-scrollbar::-webkit-scrollbar-thumb {
   text-overflow: ellipsis;
 }
 
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  white-space: normal;
+  text-overflow: ellipsis;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  white-space: normal;
+  text-overflow: ellipsis;
+}
+
 /* Enhanced slideshow card title styling */
 .featured-products-carousel .product-card-title,
 .product-carousel .product-card-title {

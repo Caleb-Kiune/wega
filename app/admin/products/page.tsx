@@ -881,7 +881,7 @@ function ProductsPage() {
                           
                           <h3 
                             id={`product-${product.id}`} 
-                            className="text-xs sm:text-sm lg:text-base font-semibold text-gray-800 mb-1 sm:mb-2 group-hover:text-green-600 transition-colors duration-200 line-clamp-2 leading-tight product-card-title w-full"
+                            className="text-xs sm:text-sm lg:text-base font-semibold text-gray-800 mb-1 sm:mb-2 group-hover:text-green-600 transition-colors duration-200 leading-tight product-card-title w-full truncate"
                           >
                             {product.name}
                           </h3>

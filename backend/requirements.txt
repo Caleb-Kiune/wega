@@ -12,6 +12,7 @@ psycopg2-binary==2.9.9
 # Environment and configuration
 python-dotenv==1.0.1
 Werkzeug==2.3.7
+python-slugify==8.0.4
 
 # Development and testing
 pytest==7.4.3

@@ -43,10 +43,8 @@ class Config:
 class DevelopmentConfig(Config):
     """Development configuration"""
     DEBUG = True
-    # Force Flask to use the main database file instead of instance folder
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///' + os.path.join(
-        os.path.abspath(os.path.dirname(__file__)), 'app.db'
-    )
+    # Use PostgreSQL for development
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'postgresql://wega_user:wega_password@localhost:5432/wega_kitchenware'
     # Set instance path to prevent Flask from using instance folder
     INSTANCE_PATH = os.path.abspath(os.path.dirname(__file__))
     BASE_URL = None  # Will use request.host_url in development
