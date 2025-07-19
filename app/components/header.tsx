@@ -27,10 +27,8 @@ import {
   Truck,
   Shield,
   Clock,
-  TrendingUp,
   Clock as ClockIcon,
-  X as XIcon,
-  Sparkles
+  X as XIcon
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCart } from "@/lib/hooks/use-cart"
@@ -40,8 +38,11 @@ import { motion, AnimatePresence } from "framer-motion"
 interface Product {
   id: string;
   name: string;
+  description?: string;
   price: number;
   category?: string;
+  rating?: number;
+  review_count?: number;
   images?: Array<{
     image_url: string;
     is_primary?: boolean;
@@ -52,27 +53,39 @@ const searchProducts = (products: Product[], query: string): Product[] => {
   if (!query.trim()) return []
   
   const searchTerm = query.toLowerCase()
-  return products.filter(product => 
-    product.name.toLowerCase().includes(searchTerm) ||
-    product.name.toLowerCase().split(' ').some(word => word.startsWith(searchTerm)) ||
-    (product.category && product.category.toLowerCase().includes(searchTerm))
-  ).slice(0, 6)
+  const searchWords = searchTerm.split(' ').filter(word => word.length > 0)
+  
+  return products.filter(product => {
+    const productName = product.name.toLowerCase()
+    const productCategory = product.category?.toLowerCase() || ''
+    const productDescription = product.description?.toLowerCase() || ''
+    
+    // Check if any search word matches the product name
+    const nameMatch = searchWords.some(word => 
+      productName.includes(word) ||
+      productName.split(' ').some(nameWord => nameWord.startsWith(word))
+    )
+    
+    // Check if any search word matches the category
+    const categoryMatch = searchWords.some(word => 
+      productCategory.includes(word)
+    )
+    
+    // Check if any search word matches the description
+    const descriptionMatch = searchWords.some(word => 
+      productDescription.includes(word)
+    )
+    
+    // Check if the full search term matches anywhere
+    const fullMatch = productName.includes(searchTerm) || 
+                     productCategory.includes(searchTerm) ||
+                     productDescription.includes(searchTerm)
+    
+    return nameMatch || categoryMatch || descriptionMatch || fullMatch
+  }).slice(0, 6)
 }
 
-// Trending searches and categories
-const trendingSearches = [
-  "Non-stick pans", "Kitchen knives", "Food processor", "Coffee maker",
-  "Blender", "Cutting board", "Measuring cups", "Mixing bowls"
-]
 
-const searchCategories = [
-  { name: "Cookware", icon: "🍳", count: 45 },
-  { name: "Bakeware", icon: "🥧", count: 32 },
-  { name: "Utensils", icon: "🥄", count: 78 },
-  { name: "Appliances", icon: "⚡", count: 23 },
-  { name: "Storage", icon: "📦", count: 56 },
-  { name: "Accessories", icon: "🔧", count: 34 }
-]
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -502,10 +515,17 @@ export default function Header() {
                                     <div className="font-semibold text-gray-900 truncate">{product.name}</div>
                                     <div className="text-sm text-green-600 font-medium">KES {product.price.toLocaleString()}</div>
                                   </div>
-                                  <div className="flex items-center text-yellow-400">
-                                    <Star className="h-4 w-4 fill-current" />
-                                    <span className="text-xs text-gray-500 ml-1">4.5</span>
-                            </div>
+                                  {product.rating && product.rating > 0 && (
+                                    <div className="flex items-center text-yellow-400">
+                                      <Star className="h-4 w-4 fill-current" />
+                                      <span className="text-xs text-gray-500 ml-1">
+                                        {product.rating.toFixed(1)}
+                                        {product.review_count && (
+                                          <span className="text-gray-400"> ({product.review_count})</span>
+                                        )}
+                                      </span>
+                                    </div>
+                                  )}
                           </Link>
                               </motion.div>
                         ))}
@@ -564,45 +584,9 @@ export default function Header() {
                       </div>
                     )}
 
-                          {/* Trending Searches */}
-                          <div className="mb-4">
-                            <div className="flex items-center gap-2 mb-2">
-                              <TrendingUp className="h-4 w-4 text-green-600" />
-                              <h3 className="text-sm font-semibold text-gray-700">Trending Searches</h3>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {trendingSearches.map((search, index) => (
-                                <button
-                                  key={index}
-                                  onClick={() => handleSearchClick(search)}
-                                  className="flex items-center gap-1 px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 rounded-full text-sm transition-all duration-200"
-                                >
-                                  <Sparkles className="h-3 w-3" />
-                                  {search}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
 
-                          {/* Search Categories */}
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-700 mb-2">Popular Categories</h3>
-                            <div className="grid grid-cols-2 gap-2">
-                              {searchCategories.map((category, index) => (
-                                <button
-                                  key={index}
-                                  onClick={() => handleSearchClick(category.name)}
-                                  className="flex items-center justify-between p-3 bg-gray-50 hover:bg-green-50 rounded-xl transition-all duration-200 group"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-lg">{category.icon}</span>
-                                    <span className="text-sm font-medium text-gray-700 group-hover:text-green-700">{category.name}</span>
-                                  </div>
-                                  <span className="text-xs text-gray-500">{category.count}</span>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
+
+
                   </div>
                 )}
                     </motion.div>
