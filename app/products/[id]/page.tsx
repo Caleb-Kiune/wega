@@ -262,10 +262,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           {/* Product Details Tabs */}
           <div className="p-4 sm:p-6 border-t">
             <Tabs defaultValue="description" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-4 sm:mb-6">
-                <TabsTrigger value="description" className="text-xs sm:text-sm">Description</TabsTrigger>
-                <TabsTrigger value="specifications" className="text-xs sm:text-sm">Specifications</TabsTrigger>
-                <TabsTrigger value="reviews" className="text-xs sm:text-sm">Reviews</TabsTrigger>
+              <TabsList className="flex w-full mb-4 sm:mb-6">
+                <TabsTrigger value="description" className="text-xs sm:text-sm flex-1">Description</TabsTrigger>
+                <TabsTrigger value="specifications" className="text-xs sm:text-sm flex-1">Specifications</TabsTrigger>
+                <TabsTrigger value="features" className="text-xs sm:text-sm flex-1">Features</TabsTrigger>
+                <TabsTrigger value="reviews" className="text-xs sm:text-sm flex-1">Reviews</TabsTrigger>
               </TabsList>
               
               <TabsContent value="description" className="space-y-4">
@@ -286,6 +287,21 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   </div>
                 ) : (
                   <p className="text-sm sm:text-base text-gray-500">No specifications available.</p>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="features" className="space-y-4">
+                {product.features && product.features.length > 0 ? (
+                  <div className="space-y-3">
+                    {product.features.map((feature: any, index: number) => (
+                      <div key={index} className="flex items-start py-2 border-b">
+                        <span className="text-green-600 mr-2">•</span>
+                        <span className="text-sm sm:text-base text-gray-600">{feature.feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm sm:text-base text-gray-500">No features available.</p>
                 )}
               </TabsContent>
               

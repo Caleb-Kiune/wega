@@ -321,168 +321,173 @@ function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-      <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
-        {/* Modern Header */}
+      <div className="container mx-auto p-3 sm:p-4 lg:p-6 max-w-7xl">
+        {/* Mobile-Optimized Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 sm:gap-6">
+            <div className="space-y-2 w-full lg:w-auto">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                 <Button
                   onClick={() => router.push('/admin')}
                   variant="outline"
                   size="sm"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  Back to Dashboard
+                  <span className="hidden xs:inline">Back to Dashboard</span>
+                  <span className="xs:hidden">Back</span>
                 </Button>
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Package className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-                    Products Management
-                  </h1>
-                  <p className="text-slate-600 text-sm lg:text-base">
-                    Manage your kitchenware catalog with precision and ease
-                  </p>
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                    <Package className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent leading-tight">
+                      Products Management
+                    </h1>
+                    <p className="text-slate-600 text-xs sm:text-sm lg:text-base mt-1">
+                      Manage your kitchenware catalog
+                    </p>
+                  </div>
                 </div>
               </div>
               {user && (
                 <div className="flex items-center gap-2 text-xs text-slate-500">
                   <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                  <span>Logged in as {user.username} ({user.role})</span>
+                  <span className="truncate">Logged in as {user.username} ({user.role})</span>
                 </div>
               )}
             </div>
             
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <Button
                 onClick={() => router.push('/admin/create')}
-                className="flex items-center gap-2 px-6 py-2.5 h-11 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 h-11 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
               >
                 <Plus className="w-4 h-4" />
-                Create Product
+                <span className="hidden xs:inline">Create Product</span>
+                <span className="xs:hidden">Create</span>
               </Button>
               <Button
                 onClick={handleLogout}
                 variant="outline"
-                className="flex items-center gap-2 px-4 py-2.5 h-11 border-red-200 text-red-700 hover:bg-red-50 hover:border-red-300"
+                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 h-11 border-red-200 text-red-700 hover:bg-red-50 hover:border-red-300 w-full sm:w-auto"
               >
                 <LogOut className="h-4 w-4" />
                 <span className="hidden sm:inline">Logout</span>
+                <span className="sm:hidden">Logout</span>
               </Button>
             </div>
           </div>
         </motion.div>
 
-        {/* Product Statistics */}
+        {/* Mobile-Optimized Product Statistics */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8"
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-6 sm:mb-8"
         >
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-blue-700">Total Products</p>
-                  <p className="text-2xl font-bold text-blue-900">{totalProducts}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-blue-700 truncate">Total Products</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-900">{totalProducts}</p>
                 </div>
-                <Package className="h-8 w-8 text-blue-600" />
+                <Package className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-green-700">In Stock</p>
-                  <p className="text-2xl font-bold text-green-900">{inStockProducts}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-green-700 truncate">In Stock</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-green-900">{inStockProducts}</p>
                 </div>
-                <div className="h-8 w-8 bg-green-500 rounded-full flex items-center justify-center">
-                  <Check className="h-4 w-4 text-white" />
+                <div className="h-6 w-6 sm:h-8 sm:w-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Check className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-red-700">Out of Stock</p>
-                  <p className="text-2xl font-bold text-red-900">{outOfStockProducts}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-red-700 truncate">Out of Stock</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-red-900">{outOfStockProducts}</p>
                 </div>
-                <AlertTriangle className="h-8 w-8 text-red-600" />
+                <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 text-red-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-            <CardContent className="p-4">
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 hidden sm:block lg:block">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-purple-700">Featured</p>
-                  <p className="text-2xl font-bold text-purple-900">{featuredProducts}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-purple-700 truncate">Featured</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-purple-900">{featuredProducts}</p>
                 </div>
-                <Star className="h-8 w-8 text-purple-600" />
+                <Star className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-            <CardContent className="p-4">
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 hidden lg:block">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-orange-700">New</p>
-                  <p className="text-2xl font-bold text-orange-900">{newProducts}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-orange-700 truncate">New</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-orange-900">{newProducts}</p>
                 </div>
-                <Zap className="h-8 w-8 text-orange-600" />
+                <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200">
-            <CardContent className="p-4">
+          <Card className="bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200 hidden lg:block">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-pink-700">On Sale</p>
-                  <p className="text-2xl font-bold text-pink-900">{saleProducts}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-pink-700 truncate">On Sale</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-pink-900">{saleProducts}</p>
                 </div>
-                <Tag className="h-8 w-8 text-pink-600" />
+                <Tag className="h-6 w-6 sm:h-8 sm:w-8 text-pink-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
-        <div className="space-y-6">
-          {/* Enhanced Filters and Search */}
+        <div className="space-y-4 sm:space-y-6">
+          {/* Mobile-Optimized Filters and Search */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
             <Card className="border-slate-200 bg-white/80 backdrop-blur-sm shadow-sm">
-              <CardHeader className="pb-4">
+              <CardHeader className="pb-3 sm:pb-4">
                 <div className="flex items-center gap-2">
-                  <Filter className="h-5 w-5 text-slate-600" />
-                  <CardTitle className="text-lg">Filters & Search</CardTitle>
+                  <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+                  <CardTitle className="text-base sm:text-lg">Filters & Search</CardTitle>
                 </div>
-                <CardDescription>
+                <CardDescription className="text-xs sm:text-sm">
                   Find and filter products by name, category, brand, and more
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <CardContent className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-700">Search Products</Label>
+                    <Label className="text-xs sm:text-sm font-medium text-slate-700">Search Products</Label>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
@@ -490,15 +495,15 @@ function ProductsPage() {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={handleSearchKeyDown}
-                        className="h-11 pl-10 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                        className="h-10 sm:h-11 pl-10 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 text-sm"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-700">Category</Label>
+                    <Label className="text-xs sm:text-sm font-medium text-slate-700">Category</Label>
                     <Select value={category} onValueChange={setCategory}>
-                      <SelectTrigger className="h-11 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20">
+                      <SelectTrigger className="h-10 sm:h-11 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 text-sm">
                         <SelectValue placeholder="All Categories" />
                       </SelectTrigger>
                       <SelectContent>
@@ -513,9 +518,9 @@ function ProductsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-700">Brand</Label>
+                    <Label className="text-xs sm:text-sm font-medium text-slate-700">Brand</Label>
                     <Select value={brand} onValueChange={setBrand}>
-                      <SelectTrigger className="h-11 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20">
+                      <SelectTrigger className="h-10 sm:h-11 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 text-sm">
                         <SelectValue placeholder="All Brands" />
                       </SelectTrigger>
                       <SelectContent>
@@ -530,10 +535,10 @@ function ProductsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-700">Sort By</Label>
+                    <Label className="text-xs sm:text-sm font-medium text-slate-700">Sort By</Label>
                     <div className="flex gap-2">
                       <Select value={sortBy} onValueChange={setSortBy}>
-                        <SelectTrigger className="h-11 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 flex-1">
+                        <SelectTrigger className="h-10 sm:h-11 bg-white border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20 flex-1 text-sm">
                           <SelectValue placeholder="Sort by" />
                         </SelectTrigger>
                         <SelectContent>
@@ -546,7 +551,7 @@ function ProductsPage() {
                         variant="outline"
                         size="icon"
                         onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                        className="h-11 w-11 border-slate-200 hover:border-slate-300"
+                        className="h-10 sm:h-11 w-10 sm:w-11 border-slate-200 hover:border-slate-300"
                       >
                         {sortOrder === 'asc' ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
                       </Button>
@@ -557,7 +562,7 @@ function ProductsPage() {
             </Card>
           </motion.div>
 
-          {/* Enhanced Bulk Actions */}
+          {/* Mobile-Optimized Bulk Actions */}
           <AnimatePresence>
             {selectedProducts.length > 0 && (
               <motion.div
@@ -567,14 +572,14 @@ function ProductsPage() {
                 transition={{ duration: 0.2 }}
               >
                 <Card className="border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50 shadow-lg">
-                  <CardContent className="pt-6">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <CardContent className="pt-4 sm:pt-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                          <Check className="h-5 w-5 text-orange-600" />
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                          <Check className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-orange-800">
+                          <p className="text-xs sm:text-sm font-semibold text-orange-800">
                             {selectedProducts.length} product{selectedProducts.length !== 1 ? 's' : ''} selected
                           </p>
                           <p className="text-xs text-orange-600">Ready for bulk operations</p>
@@ -585,19 +590,21 @@ function ProductsPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => setSelectedProducts([])}
-                          className="h-10 border-orange-200 text-orange-700 hover:bg-orange-50"
+                          className="h-9 sm:h-10 border-orange-200 text-orange-700 hover:bg-orange-50 w-full sm:w-auto"
                         >
-                          <X className="w-4 h-4 mr-2" />
-                          Clear Selection
+                          <X className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                          <span className="hidden xs:inline">Clear Selection</span>
+                          <span className="xs:hidden">Clear</span>
                         </Button>
                         <Button
                           variant="destructive"
                           size="sm"
                           onClick={handleBulkDelete}
-                          className="h-10 bg-red-500 hover:bg-red-600"
+                          className="h-9 sm:h-10 bg-red-500 hover:bg-red-600 w-full sm:w-auto"
                         >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete Selected
+                          <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                          <span className="hidden xs:inline">Delete Selected</span>
+                          <span className="xs:hidden">Delete</span>
                         </Button>
                       </div>
                     </div>
@@ -607,51 +614,51 @@ function ProductsPage() {
             )}
           </AnimatePresence>
 
-          {/* Enhanced View Controls */}
+          {/* Mobile-Optimized View Controls */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4"
           >
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <input
                   type="checkbox"
                   checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
                   onChange={(e) => handleSelectAll(e.target.checked)}
                   className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                 />
-                <Label className="text-sm text-slate-600 font-medium">
+                <Label className="text-xs sm:text-sm text-slate-600 font-medium">
                   Select All ({filteredProducts.length})
                 </Label>
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
-              <Label className="text-sm text-slate-600 font-medium">View:</Label>
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+              <Label className="text-xs sm:text-sm text-slate-600 font-medium">View:</Label>
               <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
                 <Button
                   variant={viewMode === 'grid' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('grid')}
-                  className={`h-9 w-9 p-0 ${viewMode === 'grid' ? 'bg-white shadow-sm' : 'hover:bg-white/50'}`}
+                  className={`h-8 w-8 sm:h-9 sm:w-9 p-0 ${viewMode === 'grid' ? 'bg-white shadow-sm' : 'hover:bg-white/50'}`}
                 >
-                  <Grid className="w-4 h-4" />
+                  <Grid className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
                 <Button
                   variant={viewMode === 'list' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('list')}
-                  className={`h-9 w-9 p-0 ${viewMode === 'list' ? 'bg-white shadow-sm' : 'hover:bg-white/50'}`}
+                  className={`h-8 w-8 sm:h-9 sm:w-9 p-0 ${viewMode === 'list' ? 'bg-white shadow-sm' : 'hover:bg-white/50'}`}
                 >
-                  <List className="w-4 h-4" />
+                  <List className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
               </div>
             </div>
           </motion.div>
 
-          {/* Enhanced Products Display */}
+          {/* Mobile-Optimized Products Display */}
           <AnimatePresence mode="wait">
             {filteredProducts.length === 0 ? (
               <motion.div
@@ -661,14 +668,14 @@ function ProductsPage() {
                 exit={{ opacity: 0, y: -20 }}
               >
                 <Card className="border-slate-200 bg-white/80 backdrop-blur-sm">
-                  <CardContent className="pt-12 pb-12">
-                    <div className="text-center space-y-6">
-                      <div className="mx-auto w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center">
-                        <Package className="w-10 h-10 text-slate-400" />
+                  <CardContent className="pt-8 sm:pt-12 pb-8 sm:pb-12">
+                    <div className="text-center space-y-4 sm:space-y-6">
+                      <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 bg-slate-100 rounded-full flex items-center justify-center">
+                        <Package className="w-8 h-8 sm:w-10 sm:h-10 text-slate-400" />
                       </div>
                       <div className="space-y-2">
-                        <h3 className="text-xl font-semibold text-slate-700">No products found</h3>
-                        <p className="text-slate-500 max-w-md mx-auto">
+                        <h3 className="text-lg sm:text-xl font-semibold text-slate-700">No products found</h3>
+                        <p className="text-slate-500 max-w-md mx-auto text-sm sm:text-base px-4">
                           {search || category !== 'all' || brand !== 'all' 
                             ? 'Try adjusting your filters or search terms to find what you\'re looking for'
                             : 'Get started by creating your first product to build your catalog'
@@ -678,10 +685,11 @@ function ProductsPage() {
                       {!search && category === 'all' && brand === 'all' && (
                         <Button 
                           onClick={() => router.push('/admin/create')} 
-                          className="mt-6 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                          className="mt-4 sm:mt-6 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
                         >
                           <Plus className="w-4 h-4 mr-2" />
-                          Create Your First Product
+                          <span className="hidden xs:inline">Create Your First Product</span>
+                          <span className="xs:hidden">Create Product</span>
                         </Button>
                       )}
                     </div>
@@ -694,7 +702,7 @@ function ProductsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6' : 'space-y-3'}
+                className={viewMode === 'grid' ? 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-6' : 'space-y-3 sm:space-y-4'}
               >
                 {filteredProducts.map((product, index) => (
                   <motion.div
@@ -703,77 +711,158 @@ function ProductsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05, duration: 0.2 }}
                     whileHover={{ y: -2, scale: 1.01 }}
+                    className={viewMode === 'list' ? 'w-full' : ''}
                   >
                     {viewMode === 'grid' ? (
-                      // Grid View (existing card design)
+                      // Mobile-Optimized Grid View
                       <Card
-                        className={`group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full border border-gray-100 hover:border-gray-200 relative min-h-[200px] cursor-pointer ${
+                        className={`group card-interactive h-full overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-2xl flex flex-col relative min-h-[160px] sm:min-h-[180px] cursor-pointer rounded-xl w-full transition-all duration-300 hover:scale-[1.02] touch-manipulation ${
                           selectedProducts.includes(product.id) ? 'ring-2 ring-emerald-500 shadow-lg' : ''
                         }`}
                       >
-                        <div className="relative overflow-hidden">
+                        <div className="relative overflow-hidden w-full">
                           <Link 
                             href={`/products/${product.id}`} 
-                            className="block focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-t-xl"
+                            className="focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-t-xl flex-1 flex flex-col w-full"
                             aria-labelledby={`product-${product.id}`}
                           >
                             <div className="relative aspect-[4/3] w-full bg-gray-50 overflow-hidden">
                               <img
                                 src={getImageUrl(product.images?.[0]?.image_url) || '/placeholder.png'}
                                 alt={product.name}
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
                                 onError={(e) => {
                                   e.currentTarget.src = '/placeholder.png';
                                 }}
                                 loading="lazy"
                               />
+                              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300" />
                             </div>
                           </Link>
 
-                          {/* Product badges - Top Left Corner */}
-                          <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+                          {/* Mobile-Optimized Product badges */}
+                          <div className="absolute top-1 sm:top-2 left-1 sm:left-2 flex flex-col gap-1 z-10">
                             {product.is_featured && (
-                              <Badge className="bg-purple-600 text-white border-0 shadow-sm text-xs px-2 py-1">
-                                <Sparkles className="w-2.5 h-2.5 mr-1" />
-                                Featured
+                              <Badge className="bg-purple-600 text-white border-0 shadow-sm text-xs px-1.5 sm:px-2 py-0.5 sm:py-1">
+                                <Sparkles className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
+                                <span className="hidden xs:inline">Featured</span>
+                                <span className="xs:hidden">★</span>
                               </Badge>
                             )}
                             {product.is_new && (
-                              <Badge className="bg-green-600 text-white border-0 shadow-sm text-xs px-2 py-1">
-                                <Zap className="w-2.5 h-2.5 mr-1" />
-                                New
+                              <Badge className="bg-green-600 text-white border-0 shadow-sm text-xs px-1.5 sm:px-2 py-0.5 sm:py-1">
+                                <Star className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
+                                <span className="hidden xs:inline">New</span>
+                                <span className="xs:hidden">N</span>
                               </Badge>
                             )}
                             {product.is_sale && (
-                              <Badge className="bg-red-600 text-white border-0 shadow-sm text-xs px-2 py-1">
-                                <Tag className="w-2.5 h-2.5 mr-1" />
-                                Sale
+                              <Badge className="bg-red-500 text-white border-0 shadow-sm text-xs px-1.5 sm:px-2 py-0.5 sm:py-1">
+                                <TrendingUp className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
+                                <span className="hidden xs:inline">Sale</span>
+                                <span className="xs:hidden">S</span>
                               </Badge>
                             )}
                           </div>
 
-                          {/* Stock status - Top Right Corner */}
-                          <div className="absolute top-2 right-2 z-10">
+                          {/* Mobile-Optimized Stock status */}
+                          <div className="absolute top-1 sm:top-2 right-1 sm:right-2 z-10">
                             {product.stock === 0 ? (
-                              <Badge className="bg-red-600 text-white border-0 shadow-sm text-xs px-2 py-1">
-                                <X className="w-2.5 h-2.5 mr-1" />
-                                Out of Stock
+                              <Badge className="bg-red-600 text-white border-0 shadow-sm text-xs px-1.5 sm:px-2 py-0.5 sm:py-1">
+                                <X className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
+                                <span className="hidden xs:inline">Out of Stock</span>
+                                <span className="xs:hidden">0</span>
                               </Badge>
                             ) : product.stock < 10 ? (
-                              <Badge className="bg-orange-600 text-white border-0 shadow-sm text-xs px-2 py-1">
-                                <AlertTriangle className="w-2.5 h-2.5 mr-1" />
-                                Low Stock
+                              <Badge className="bg-orange-600 text-white border-0 shadow-sm text-xs px-1.5 sm:px-2 py-0.5 sm:py-1">
+                                <AlertTriangle className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
+                                <span className="hidden xs:inline">Low Stock</span>
+                                <span className="xs:hidden">L</span>
                               </Badge>
                             ) : (
-                              <Badge className="bg-green-600 text-white border-0 shadow-sm text-xs px-2 py-1">
-                                <Check className="w-2.5 h-2.5 mr-1" />
-                                In Stock
+                              <Badge className="bg-green-600 text-white border-0 shadow-sm text-xs px-1.5 sm:px-2 py-0.5 sm:py-1">
+                                <Check className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
+                                <span className="hidden xs:inline">In Stock</span>
+                                <span className="xs:hidden">✓</span>
                               </Badge>
                             )}
                           </div>
 
-                          {/* Selection checkbox - Bottom Left Corner */}
-                          <div className="absolute bottom-2 left-2 z-10">
+                          {/* Mobile-Optimized Hover Actions */}
+                          <div className="absolute bottom-2 sm:bottom-4 left-1/2 transform -translate-x-1/2 transition-all duration-300 hidden md:flex items-center gap-1 sm:gap-2 z-20 opacity-0 group-hover:opacity-100">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl min-h-[32px] sm:min-h-[40px] min-w-[32px] sm:min-w-[40px] transition-all duration-200 border-emerald-200 text-emerald-700 hover:border-emerald-300"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleEdit(product)
+                              }}
+                              aria-label={`Edit ${product.name}`}
+                            >
+                              <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </Button>
+
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl min-h-[32px] sm:min-h-[40px] min-w-[32px] sm:min-w-[40px] transition-all duration-200 border-red-200 text-red-600 hover:border-red-300 hover:text-red-700"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleDelete(product)
+                              }}
+                              aria-label={`Delete ${product.name}`}
+                            >
+                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </Button>
+                          </div>
+
+                          {/* Mobile Touch Actions - Always Visible on Mobile */}
+                          <div className="absolute bottom-2 right-2 z-20 md:hidden">
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="rounded-full bg-white/90 backdrop-blur-sm shadow-md min-h-[32px] min-w-[32px] p-0 border-emerald-200 text-emerald-700 hover:border-emerald-300"
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  handleEdit(product)
+                                }}
+                                aria-label={`Edit ${product.name}`}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="rounded-full bg-white/90 backdrop-blur-sm shadow-md min-h-[32px] min-w-[32px] p-0 border-red-200 text-red-600 hover:border-red-300"
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  handleDelete(product)
+                                }}
+                                aria-label={`Delete ${product.name}`}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Selection checkbox - Mobile */}
+                          <div className="absolute bottom-2 left-2 z-10 md:hidden">
+                            <input
+                              type="checkbox"
+                              checked={selectedProducts.includes(product.id)}
+                              onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
+                              className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 bg-white/90 backdrop-blur-sm"
+                            />
+                          </div>
+
+                          {/* Selection checkbox - Desktop */}
+                          <div className="absolute bottom-2 left-2 z-10 hidden md:block">
                             <input
                               type="checkbox"
                               checked={selectedProducts.includes(product.id)}
@@ -783,93 +872,90 @@ function ProductsPage() {
                           </div>
                         </div>
 
-                        <div className="p-4 flex-1 flex flex-col">
-                          <div className="flex-1">
-                            <h3 id={`product-${product.id}`} className="font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors duration-200 line-clamp-2 mb-2">
-                              {product.name}
-                            </h3>
-                            <p className="text-sm text-slate-600 mb-3 line-clamp-2">
-                              {product.description}
-                            </p>
-                            <div className="flex items-center justify-between text-sm text-slate-500 mb-3">
-                              <span className="font-medium text-emerald-600">
+                        <div className="p-2 sm:p-3 lg:p-4 flex flex-col flex-grow w-full">
+                          {/* Category and Brand - hidden on mobile */}
+                          <div className="items-center justify-between mb-1 sm:mb-2 hidden sm:flex w-full">
+                            <div className="text-xs text-gray-500 font-medium truncate">{product.category}</div>
+                            <div className="text-xs font-semibold text-green-600 truncate">{product.brand}</div>
+                          </div>
+                          
+                          <h3 
+                            id={`product-${product.id}`} 
+                            className="text-xs sm:text-sm lg:text-base font-semibold text-gray-800 mb-1 sm:mb-2 group-hover:text-green-600 transition-colors duration-200 line-clamp-2 leading-tight product-card-title w-full"
+                          >
+                            {product.name}
+                          </h3>
+
+                          {/* Price and Stock Information */}
+                          <div className="flex items-center justify-between mb-1 sm:mb-2 w-full">
+                            <div className="flex items-center min-w-0 flex-1">
+                              <span className="text-xs sm:text-sm lg:text-base font-bold text-gray-800 truncate">
                                 KES {product.price?.toFixed(2)}
                               </span>
-                              <span className="text-xs">
-                                Stock: {product.stock}
+                              {product.original_price && (
+                                <span className="ml-1 text-xs text-gray-500 line-through flex-shrink-0">
+                                  KES {product.original_price?.toFixed(2)}
+                                </span>
+                              )}
+                            </div>
+                            
+                            <span className="text-xs text-gray-500 flex-shrink-0">
+                              Stock: {product.stock}
+                            </span>
+                          </div>
+
+                          {/* Rating */}
+                          {product.rating > 0 && (
+                            <div className="flex items-center mb-2 sm:mb-3 w-full">
+                              <div className="flex items-center">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-3.5 lg:h-3.5 ${
+                                      i < Math.floor(product.rating) 
+                                        ? "text-yellow-400 fill-current" 
+                                        : "text-gray-300"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                              <span className="ml-1 sm:ml-2 text-xs text-gray-600 truncate">
+                                ({product.review_count})
                               </span>
                             </div>
-                          </div>
-
-                          {/* Price and Admin Actions */}
-                          <div className="mt-auto">
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center gap-2">
-                                {product.category && (
-                                  <Badge variant="secondary" className="text-xs">
-                                    {product.category}
-                                  </Badge>
-                                )}
-                                {product.brand && (
-                                  <Badge variant="outline" className="text-xs">
-                                    {product.brand}
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Admin Action Buttons - Always Visible */}
-                            <div className="flex items-center gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEdit(product)}
-                                className="flex-1 h-8 text-xs"
-                              >
-                                <Edit className="w-3 h-3 mr-1" />
-                                Edit
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDelete(product)}
-                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </div>
+                          )}
                         </div>
                       </Card>
                     ) : (
-                      // List View
-                      <Card className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-gray-200">
-                        <div className="flex items-center p-4">
-                          <div className="flex items-center gap-4 flex-1">
+                      // Mobile-Optimized List View
+                      <Card className="group card-interactive bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden">
+                        <div className="flex items-center p-3 sm:p-4">
+                          <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
                             <input
                               type="checkbox"
                               checked={selectedProducts.includes(product.id)}
                               onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
-                              className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                              className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 flex-shrink-0"
                             />
-                            <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                            <div className="relative w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                               <img
                                 src={getImageUrl(product.images?.[0]?.image_url) || '/placeholder.png'}
                                 alt={product.name}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
                                 onError={(e) => {
                                   e.currentTarget.src = '/placeholder.png';
                                 }}
                               />
+                              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors duration-200 truncate">
+                              <h3 className="font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors duration-200 truncate text-sm sm:text-base">
                                 {product.name}
                               </h3>
-                              <p className="text-sm text-slate-600 truncate">
+                              <p className="text-xs sm:text-sm text-slate-600 truncate">
                                 {product.description}
                               </p>
-                              <div className="flex items-center gap-2 mt-1">
+                              <div className="flex items-center gap-1 sm:gap-2 mt-1 flex-wrap">
                                 {product.category && (
                                   <Badge variant="secondary" className="text-xs">
                                     {product.category}
@@ -882,39 +968,53 @@ function ProductsPage() {
                                 )}
                                 {product.is_featured && (
                                   <Badge className="bg-purple-600 text-white border-0 text-xs">
-                                    <Sparkles className="w-2.5 h-2.5 mr-1" />
-                                    Featured
+                                    <Sparkles className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
+                                    <span className="hidden xs:inline">Featured</span>
+                                    <span className="xs:hidden">★</span>
+                                  </Badge>
+                                )}
+                                {product.is_new && (
+                                  <Badge className="bg-green-600 text-white border-0 text-xs">
+                                    <Star className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
+                                    <span className="hidden xs:inline">New</span>
+                                    <span className="xs:hidden">N</span>
+                                  </Badge>
+                                )}
+                                {product.is_sale && (
+                                  <Badge className="bg-red-500 text-white border-0 text-xs">
+                                    <TrendingUp className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
+                                    <span className="hidden xs:inline">Sale</span>
+                                    <span className="xs:hidden">S</span>
                                   </Badge>
                                 )}
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
                             <div className="text-right">
-                              <div className="font-semibold text-emerald-600">
+                              <div className="font-semibold text-emerald-600 text-sm sm:text-base">
                                 KES {product.price?.toFixed(2)}
                               </div>
-                              <div className="text-sm text-slate-500">
+                              <div className="text-xs sm:text-sm text-slate-500">
                                 Stock: {product.stock}
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 sm:gap-2">
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleEdit(product)}
-                                className="h-8 text-xs"
+                                className="h-7 w-7 sm:h-8 sm:w-8 p-0 border-emerald-200 text-emerald-700 hover:border-emerald-300 hover:text-emerald-800"
                               >
-                                <Edit className="w-3 h-3 mr-1" />
-                                Edit
+                                <Edit className="w-3 h-3 sm:w-3 sm:h-3" />
                               </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleDelete(product)}
-                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300"
                               >
-                                <Trash2 className="w-3 h-3" />
+                                <Trash2 className="w-3 h-3 sm:w-3 sm:h-3" />
                               </Button>
                             </div>
                           </div>
