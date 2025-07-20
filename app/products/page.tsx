@@ -404,34 +404,34 @@ export default function ProductsPage() {
         }
       `}</style>
       
-      {/* Enhanced Hero Section with Modern Design */}
-      <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
+      {/* Compact Hero Section - Products Page Style */}
+      <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden rounded-2xl mx-4 mt-4 mb-6">
         {/* Animated Background Pattern */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse"></div>
           <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(34,197,94,0.1),transparent_50%)]"></div>
         </div>
         
-        <div className="relative container mx-auto px-4 py-12 sm:py-16 lg:py-20">
+        <div className="relative container mx-auto px-4 py-8 sm:py-10 lg:py-12">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-center max-w-5xl mx-auto"
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="text-center max-w-4xl mx-auto"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mb-6"
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="mb-4"
             >
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 mb-6">
-                <Sparkles className="h-4 w-4 text-green-400" />
-                <span className="text-sm font-medium">Premium Collection</span>
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1.5 mb-4">
+                <Sparkles className="h-3.5 w-3.5 text-green-400" />
+                <span className="text-xs font-medium">Premium Collection</span>
               </div>
             </motion.div>
             
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold mb-6 tracking-tight leading-tight">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 tracking-tight leading-tight">
               <span className="bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
                 Premium Kitchenware
               </span>
@@ -440,29 +440,28 @@ export default function ProductsPage() {
             </h1>
             
             <motion.p 
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="text-lg sm:text-xl text-slate-200 mb-8 max-w-3xl mx-auto leading-relaxed px-4"
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-sm sm:text-base text-slate-200 mb-6 max-w-2xl mx-auto leading-relaxed px-4"
             >
               Discover handcrafted kitchen essentials that transform your cooking experience. 
-              From professional-grade cookware to elegant serving pieces, every item is designed 
-              with precision and style.
+              From professional-grade cookware to elegant serving pieces.
             </motion.p>
             
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              <div className="flex items-center gap-6 text-sm text-slate-300">
-                <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-green-400" />
+              <div className="flex items-center gap-4 text-xs sm:text-sm text-slate-300">
+                <div className="flex items-center gap-1.5">
+                  <Star className="h-3.5 w-3.5 text-green-400" />
                   <span>Premium Quality</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-green-400" />
+                <div className="flex items-center gap-1.5">
+                  <TrendingUp className="h-3.5 w-3.5 text-green-400" />
                   <span>Best Sellers</span>
                 </div>
               </div>
@@ -918,7 +917,7 @@ export default function ProductsPage() {
                 >
                   <div className={`
                     ${viewMode === 'grid' 
-                      ? 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-8' 
+                      ? 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-5' 
                       : 'space-y-6 sm:space-y-8'
                     }
                   `}>

@@ -298,7 +298,7 @@ export default function Header() {
                     target="_blank" 
                     rel="noopener noreferrer" 
                     aria-label="Facebook" 
-                      className="text-white hover:text-blue-300 transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center bg-white/10 hover:bg-white/20 backdrop-blur-sm"
+                      className="text-white hover:text-blue-300 transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
                       <Facebook className="h-4 w-4" />
                   </Link>
@@ -314,7 +314,7 @@ export default function Header() {
                     target="_blank" 
                     rel="noopener noreferrer" 
                     aria-label="Instagram" 
-                      className="text-white hover:text-pink-300 transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center bg-white/10 hover:bg-white/20 backdrop-blur-sm"
+                      className="text-white hover:text-pink-300 transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
                       <Instagram className="h-4 w-4" />
                   </Link>
@@ -330,7 +330,7 @@ export default function Header() {
                     target="_blank" 
                     rel="noopener noreferrer" 
                     aria-label="Twitter" 
-                      className="text-white hover:text-blue-300 transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center bg-white/10 hover:bg-white/20 backdrop-blur-sm"
+                      className="text-white hover:text-blue-300 transition-colors duration-200 hover:scale-110 transform p-2 -m-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
                       <Twitter className="h-4 w-4" />
                   </Link>
@@ -346,14 +346,28 @@ export default function Header() {
       {/* Main Header - Modern Design */}
       <header
         className={cn(
-          "sticky top-0 z-50 w-full transition-all duration-500 bg-white/95 backdrop-blur-md border-b border-gray-100/50",
+          "sticky top-0 z-50 w-full transition-all duration-500 bg-white/95 backdrop-blur-md",
           isScrolled ? "shadow-xl py-2" : "py-4",
         )}
         style={{ 
-          boxShadow: isScrolled ? '0 4px 20px 0 rgba(0,0,0,0.08)' : undefined,
-          background: isScrolled ? 'rgba(255, 255, 255, 0.98)' : 'rgba(255, 255, 255, 0.95)'
+          boxShadow: isScrolled 
+            ? '0 6px 25px 0 rgba(0,0,0,0.12), 0 4px 12px 0 rgba(15, 23, 42, 0.15)' 
+            : '0 4px 18px 0 rgba(15, 23, 42, 0.12)',
+          background: isScrolled ? 'rgba(255, 255, 255, 0.98)' : 'rgba(255, 255, 255, 0.95)',
+          backgroundImage: isScrolled 
+            ? 'linear-gradient(to bottom, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.95))' 
+            : 'linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9))'
         }}
       >
+        {/* Enhanced shadow effect for depth */}
+        <div 
+          className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-slate-300/40 to-transparent"
+          style={{
+            background: isScrolled 
+              ? 'linear-gradient(90deg, transparent 0%, rgba(203, 213, 225, 0.3) 50%, transparent 100%)'
+              : 'linear-gradient(90deg, transparent 0%, rgba(203, 213, 225, 0.25) 50%, transparent 100%)'
+          }}
+        />
         <div className="container-responsive">
           <div className="flex items-center justify-between">
             {/* Enhanced Logo */}
@@ -642,7 +656,7 @@ export default function Header() {
                       >
                         <Heart className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
                         {wishlistItems.length > 0 && (
-                          <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white shadow-lg animate-pulse">
+                          <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
                             {wishlistItems.length}
                           </Badge>
                         )}
@@ -661,7 +675,7 @@ export default function Header() {
                       >
                         <ShoppingCart className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
                         {cartCount > 0 && (
-                          <Badge className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white shadow-lg animate-bounce">
+                          <Badge className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
                             {cartCount}
                           </Badge>
                         )}
@@ -776,7 +790,7 @@ export default function Header() {
                       <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-orange-100 transition-colors duration-300 relative">
                     <ShoppingCart className="h-5 w-5" />
                     {cartCount > 0 && (
-                          <Badge className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
+                          <Badge className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
                         {cartCount}
                       </Badge>
                     )}
