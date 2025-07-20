@@ -382,6 +382,35 @@ def update_product(id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
+@products_bp.route('/api/products/<int:id>/images', methods=['POST'])
+def add_product_image(id):
+    """Add an image to an existing product"""
+    product = Product.query.get_or_404(id)
+    data = request.get_json()
+    
+    # Validate image data
+    is_valid, error_message = validate_image_data(data)
+    if not is_valid:
+        return jsonify({'error': error_message}), 400
+    
+    try:
+        # Create new product image
+        product_image = ProductImage(
+            product_id=product.id,
+            image_url=data['image_url'],
+            is_primary=data.get('is_primary', False),
+            display_order=data.get('display_order', 0)
+        )
+        
+        db.session.add(product_image)
+        db.session.commit()
+        
+        return jsonify(product_image.to_dict()), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
 @products_bp.route('/api/products/<int:id>', methods=['DELETE'])
 def delete_product(id):
     """Delete a product"""
