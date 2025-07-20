@@ -39,7 +39,10 @@ class Config:
         'https://wega-one.vercel.app',  # Your actual Vercel frontend URL
         'https://wega-kitchenware.vercel.app',  # Alternative Vercel URL
         # Backend URLs for testing
-        'https://wega-backend.onrender.com'  # Your Render backend URL
+        'https://wega-backend.onrender.com',  # Your Render backend URL
+        # Railway URLs (will be added dynamically)
+        'https://*.railway.app',
+        'https://*.up.railway.app'
     ]
     CORS_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
     CORS_ALLOW_HEADERS = ['Content-Type', 'Authorization']
@@ -60,8 +63,13 @@ class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     BASE_URL = os.environ.get('BASE_URL', 'https://wega-backend.onrender.com')
     
-    # Production CORS settings
-    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(',')
+    # Production CORS settings - include Railway domains
+    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(',') + [
+        'https://*.railway.app',
+        'https://*.up.railway.app',
+        'https://wega-one.vercel.app',
+        'https://wega-kitchenware.vercel.app'
+    ]
 
 class TestingConfig(Config):
     """Testing configuration"""

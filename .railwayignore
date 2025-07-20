@@ -1,18 +1,46 @@
-# Ignore frontend files for Railway deployment
+# Ignore frontend completely - be very aggressive
+frontend/
 app/
-node_modules/
-.next/
+components/
+lib/
+utils/
+types/
+hooks/
+contexts/
+middleware.ts
+next.config.mjs
+next.config.js
 package.json
 package-lock.json
 pnpm-lock.yaml
-next.config.mjs
-tailwind.config.ts
-postcss.config.mjs
+yarn.lock
+node_modules/
+.next/
+public/
+src/
+pages/
+styles/
+tailwind.config.js
+postcss.config.js
 tsconfig.json
+.eslintrc.json
+.prettierrc
 next-env.d.ts
 components.json
-public/
-*.tsx
-*.ts
-*.js
-*.jsx 
+
+# Ignore other files
+.git/
+.gitignore
+README.md
+*.md
+.env.local
+.env.example
+.env.production
+.env.development
+
+# Keep only backend files
+!backend/
+!requirements.txt
+!runtime.txt
+!railway.json
+!Dockerfile 
