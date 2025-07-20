@@ -120,34 +120,34 @@ const QuickViewModal = ({
             {/* Product Info */}
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-xs product-category">
                   {product.category}
                 </Badge>
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs product-brand">
                   {product.brand}
                 </Badge>
               </div>
               
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
+              <h3 className="text-xl font-medium text-gray-900 mb-2 product-name">
                 {product.name}
               </h3>
               
-              <p className="text-gray-600 mb-3 line-clamp-2 text-sm">
+              <p className="text-gray-600 mb-3 line-clamp-2 text-sm product-feature leading-relaxed">
                 {product.description}
               </p>
 
               {/* Price */}
               <div className="flex items-baseline gap-2 mb-3">
-                <span className="text-2xl font-bold text-gray-900">
+                <span className="text-2xl font-bold text-green-600 product-price">
                   KES {product.price.toLocaleString()}
                 </span>
                 {product.original_price && (
-                  <span className="text-base text-gray-500 line-through">
+                  <span className="text-base text-gray-500 line-through product-price-original">
                     KES {product.original_price.toLocaleString()}
                   </span>
                 )}
                 {product.original_price && (
-                  <Badge className="bg-red-100 text-red-700 text-xs">
+                  <Badge className="bg-red-100 text-red-700 text-xs badge-premium">
                     {Math.round(((product.original_price - product.price) / product.original_price) * 100)}% OFF
                   </Badge>
                 )}
@@ -155,7 +155,7 @@ const QuickViewModal = ({
 
               {/* Stock Status */}
               <div className="mb-3">
-                <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium product-feature ${
                   product.stock > 0 
                     ? "bg-green-100 text-green-800" 
                     : "bg-red-100 text-red-800"
@@ -167,28 +167,28 @@ const QuickViewModal = ({
               {/* Quantity Selector */}
               {product.stock > 0 && (
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 product-feature">Quantity</label>
                   <div className="flex items-center gap-2">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleQuantityChange(false)}
                       disabled={quantity <= 1}
-                      className="w-8 h-8 p-0"
+                      className="w-8 h-8 p-0 btn-product"
                     >
                       -
                     </Button>
-                    <span className="w-12 text-center text-sm font-medium">{quantity}</span>
+                    <span className="w-12 text-center text-sm font-medium product-feature">{quantity}</span>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleQuantityChange(true)}
                       disabled={quantity >= product.stock}
-                      className="w-8 h-8 p-0"
+                      className="w-8 h-8 p-0 btn-product"
                     >
                       +
                     </Button>
-                    <span className="text-xs text-gray-500 ml-2">
+                    <span className="text-xs text-gray-500 ml-2 product-feature">
                       Max: {product.stock}
                     </span>
                   </div>
@@ -198,11 +198,11 @@ const QuickViewModal = ({
               {/* Features */}
               {product.features && product.features.length > 0 && (
                 <div className="mb-4">
-                  <h4 className="font-semibold text-gray-900 mb-2 text-sm">Key Features</h4>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2 product-feature">Features</h4>
                   <ul className="space-y-1">
-                    {product.features.slice(0, 2).map((feature, index) => (
-                      <li key={index} className="flex items-center gap-2 text-xs text-gray-600">
-                        <div className="w-1 h-1 bg-green-500 rounded-full" />
+                    {product.features.slice(0, 3).map((feature, index) => (
+                      <li key={index} className="flex items-center gap-2 text-sm text-gray-600 product-feature">
+                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0"></div>
                         {feature.feature}
                       </li>
                     ))}
@@ -218,7 +218,7 @@ const QuickViewModal = ({
                 className={`${isInCart 
                   ? 'bg-green-500 hover:bg-green-600 text-white' 
                   : 'bg-green-600 hover:bg-green-700 text-white'
-                }`}
+                } btn-product`}
                 onClick={onToggleCart}
                 disabled={product.stock === 0}
               >
@@ -230,6 +230,7 @@ const QuickViewModal = ({
                 variant="outline"
                 size="md"
                 onClick={onToggleWishlist}
+                className="btn-product"
               >
                 <Heart className={`h-4 w-4 mr-2 ${isWishlisted ? 'fill-current text-red-500' : ''}`} />
                 {isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
@@ -240,7 +241,7 @@ const QuickViewModal = ({
             <div className="mt-3 text-center">
               <Link
                 href={`/products/${product.id}`}
-                className="text-green-600 hover:text-green-700 font-medium text-xs"
+                className="text-green-600 hover:text-green-700 font-medium text-xs product-feature"
                 onClick={onClose}
               >
                 View Full Product Details →
@@ -556,10 +557,10 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
                   {/* Category and Brand - Enhanced Layout */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
                     <div className="flex items-center gap-2">
-                      <div className="text-xs sm:text-sm text-gray-500 font-medium bg-gray-100 px-2 py-1 rounded-full">
+                      <div className="text-xs sm:text-sm text-gray-500 font-medium bg-gray-100 px-2 py-1 rounded-full product-category">
                         {product.category}
                       </div>
-                      <div className="text-xs sm:text-sm font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                      <div className="text-xs sm:text-sm font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full product-brand">
                         {product.brand}
                       </div>
                     </div>
@@ -589,7 +590,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
                   {/* Product Title - Enhanced Typography */}
                   <h3 
                     id={`product-${product.id}`} 
-                    className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 group-hover:text-green-600 transition-colors duration-200 leading-tight product-card-title truncate"
+                    className="text-lg sm:text-xl lg:text-2xl font-medium text-gray-800 transition-colors duration-200 leading-tight product-card-title truncate product-name"
                   >
                     {product.name}
                   </h3>
@@ -597,11 +598,11 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
                   {/* Enhanced Price Display */}
                   <div className="flex items-center gap-3 mb-4">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">
+                      <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600 product-price">
                         KES {product.price.toLocaleString()}
                       </span>
                       {product.original_price && (
-                        <span className="text-sm sm:text-lg text-gray-500 line-through">
+                        <span className="text-sm sm:text-lg text-gray-500 line-through product-price-original">
                           KES {product.original_price.toLocaleString()}
                         </span>
                       )}
@@ -609,7 +610,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
                     
                     {/* Discount Badge */}
                     {product.original_price && (
-                      <div className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full">
+                      <div className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full badge-premium">
                         {Math.round(((product.original_price - product.price) / product.original_price) * 100)}% OFF
                       </div>
                     )}
@@ -620,15 +621,15 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
                     <div className="flex items-center gap-4 text-sm text-gray-600">
                       <div className="flex items-center gap-1">
                         <ShieldCheck className="h-4 w-4 text-green-500" />
-                        <span>Premium Quality</span>
+                        <span className="product-feature">Premium Quality</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Truck className="h-4 w-4 text-blue-500" />
-                        <span>Free Shipping</span>
+                        <span className="product-feature">Free Shipping</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Sparkles className="h-4 w-4 text-purple-500" />
-                        <span>Handcrafted</span>
+                        <span className="product-feature">Handcrafted</span>
                       </div>
                     </div>
                   </div>
@@ -718,25 +719,25 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
           <div className="p-3 sm:p-4 flex flex-col flex-grow w-full">
             {/* Category and Brand - hidden on mobile */}
             <div className="items-center justify-between mb-2 hidden sm:flex w-full">
-              <div className="text-xs text-gray-500 font-medium truncate">{product.category}</div>
-              <div className="text-xs font-semibold text-green-600 truncate">{product.brand}</div>
+              <div className="text-xs text-gray-500 font-medium truncate product-category">{product.category}</div>
+              <div className="text-xs font-semibold text-green-600 truncate product-brand">{product.brand}</div>
             </div>
             
             <h3 
               id={`product-${product.id}`} 
-              className="text-sm sm:text-base font-semibold text-gray-800 mb-2 group-hover:text-green-600 transition-colors duration-200 leading-tight product-card-title w-full truncate"
+              className="text-sm sm:text-base font-medium text-gray-800 mb-2 transition-colors duration-200 leading-tight product-card-title w-full truncate product-name"
             >
               {product.name}
             </h3>
 
             {/* Price and Cart Icon */}
             <div className="flex items-center justify-between mb-2 w-full">
-              <div className="flex items-center min-w-0 flex-1">
-                <span className="text-sm sm:text-base font-bold text-gray-800 truncate">
+              <div className="flex items-center min-w-0 flex-1 gap-1 sm:gap-2">
+                <span className="text-base sm:text-lg font-bold text-green-600 truncate price-current">
                   KES {product.price.toLocaleString()}
                 </span>
                 {product.original_price && (
-                  <span className="hidden sm:inline ml-1 sm:ml-2 text-xs text-gray-500 line-through flex-shrink-0">
+                  <span className="hidden sm:inline text-sm text-gray-500 line-through flex-shrink-0 price-original">
                     KES {product.original_price.toLocaleString()}
                   </span>
                 )}

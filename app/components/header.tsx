@@ -130,9 +130,15 @@ export default function Header() {
 
   // Load recent searches from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('recentSearches')
-    if (saved) {
-      setRecentSearches(JSON.parse(saved))
+    if (typeof window === 'undefined') return
+    
+    try {
+      const saved = localStorage.getItem('recentSearches')
+      if (saved) {
+        setRecentSearches(JSON.parse(saved))
+      }
+    } catch (error) {
+      console.error('Failed to load recent searches from localStorage:', error)
     }
   }, [])
     
@@ -200,7 +206,12 @@ export default function Header() {
       // Save to recent searches
       const newRecent = [searchQuery.trim(), ...recentSearches.filter(s => s !== searchQuery.trim())].slice(0, 5)
       setRecentSearches(newRecent)
-      localStorage.setItem('recentSearches', JSON.stringify(newRecent))
+      
+      try {
+        localStorage.setItem('recentSearches', JSON.stringify(newRecent))
+      } catch (error) {
+        console.error('Failed to save recent searches to localStorage:', error)
+      }
       
       window.location.href = `/products?search=${encodeURIComponent(searchQuery.trim())}`
     }
@@ -211,14 +222,23 @@ export default function Header() {
     // Save to recent searches
     const newRecent = [query, ...recentSearches.filter(s => s !== query)].slice(0, 5)
     setRecentSearches(newRecent)
-    localStorage.setItem('recentSearches', JSON.stringify(newRecent))
+    
+    try {
+      localStorage.setItem('recentSearches', JSON.stringify(newRecent))
+    } catch (error) {
+      console.error('Failed to save recent searches to localStorage:', error)
+    }
     
     window.location.href = `/products?search=${encodeURIComponent(query)}`
   }
 
   const clearRecentSearches = () => {
     setRecentSearches([])
-    localStorage.removeItem('recentSearches')
+    try {
+      localStorage.removeItem('recentSearches')
+    } catch (error) {
+      console.error('Failed to remove recent searches from localStorage:', error)
+    }
   }
 
   const handleNavigationClick = () => {
@@ -395,18 +415,18 @@ export default function Header() {
                 </div>
                 <div className="ml-3">
                 <span className={cn(
-                    "font-bold text-gray-800 transition-all duration-300 hidden sm:block",
+                    "font-bold text-gray-800 transition-all duration-300 hidden sm:block brand-name",
                     isScrolled ? "text-lg" : "text-xl"
                 )}>
                   WEGA Kitchenware
                 </span>
                 <span className={cn(
-                    "font-bold text-gray-800 transition-all duration-300 sm:hidden",
+                    "font-bold text-gray-800 transition-all duration-300 sm:hidden brand-name",
                   isScrolled ? "text-sm" : "text-base"
                 )}>
                   WEGA
                 </span>
-                  <div className="text-xs text-green-600 font-medium hidden sm:block">Premium Kitchen Essentials</div>
+                  <div className="text-xs text-green-600 font-medium hidden sm:block nav-text">Premium Kitchen Essentials</div>
                 </div>
               </Link>
             </motion.div>

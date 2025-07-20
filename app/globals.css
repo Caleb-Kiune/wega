@@ -2,1666 +2,395 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Theme Configuration */
 @layer base {
   :root {
-    /* Base Colors */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    
-    /* Primary Color Palette (Green) */
     --primary: 142.1 76.2% 36.3%;
     --primary-foreground: 355.7 100% 97.3%;
-    --primary-50: 240 5% 96%;
-    --primary-100: 240 4% 95%;
-    --primary-200: 240 4% 90%;
-    --primary-300: 240 4% 83%;
-    --primary-400: 240 4% 64%;
-    --primary-500: 240 4% 46%;
-    --primary-600: 240 4% 38%;
-    --primary-700: 240 4% 30%;
-    --primary-800: 240 4% 25%;
-    --primary-900: 240 4% 20%;
-    --primary-950: 240 4% 10%;
-    
-    /* Secondary Color Palette (Gray) */
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 220.9 39.3% 11%;
-    --secondary-50: 220 14% 96%;
-    --secondary-100: 220 13% 91%;
-    --secondary-200: 220 13% 82%;
-    --secondary-300: 220 13% 69%;
-    --secondary-400: 220 13% 55%;
-    --secondary-500: 220 13% 46%;
-    --secondary-600: 220 13% 37%;
-    --secondary-700: 220 13% 30%;
-    --secondary-800: 220 13% 25%;
-    --secondary-900: 220 13% 20%;
-    --secondary-950: 220 13% 10%;
-    
-    /* Accent Color Palette (Blue) */
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220.9 39.3% 11%;
-    --accent-50: 220 14% 96%;
-    --accent-100: 220 14% 91%;
-    --accent-200: 220 14% 82%;
-    --accent-300: 220 14% 69%;
-    --accent-400: 220 14% 55%;
-    --accent-500: 220 14% 46%;
-    --accent-600: 220 14% 37%;
-    --accent-700: 220 14% 30%;
-    --accent-800: 220 14% 25%;
-    --accent-900: 220 14% 20%;
-    --accent-950: 220 14% 10%;
-    
-    /* Semantic Colors */
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
+    --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 142.1 76.2% 36.3%;
-    
-    /* Design Tokens */
-    --radius: 0.75rem;
-    --radius-sm: 0.5rem;
-    --radius-md: 0.75rem;
-    --radius-lg: 1rem;
-    --radius-xl: 1.5rem;
-    --radius-2xl: 2rem;
-    
-    /* Brand Colors */
-    --brand-green: 142.1 76.2% 36.3%;
-    --brand-gray: 220 14.3% 95.9%;
-    --brand-orange: 24.6 95% 53.1%;
+    --radius: 0.5rem;
   }
 
   .dark {
-    /* Dark Mode Colors */
     --background: 222.2 84% 4.9%;
-    --foreground: 210 20% 98%;
+    --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
-    --card-foreground: 210 20% 98%;
+    --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 20% 98%;
-    
-    /* Primary Color Palette (Green) - Dark */
+    --popover-foreground: 210 40% 98%;
     --primary: 142.1 70.6% 45.3%;
     --primary-foreground: 144.9 80.4% 10%;
-    --primary-50: 240 4% 10%;
-    --primary-100: 240 4% 20%;
-    --primary-200: 240 4% 25%;
-    --primary-300: 240 4% 30%;
-    --primary-400: 240 4% 38%;
-    --primary-500: 240 4% 46%;
-    --primary-600: 240 4% 64%;
-    --primary-700: 240 4% 83%;
-    --primary-800: 240 4% 90%;
-    --primary-900: 240 4% 95%;
-    --primary-950: 240 5% 96%;
-    
-    /* Secondary Color Palette (Gray) - Dark */
     --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 20% 98%;
-    --secondary-50: 220 13% 10%;
-    --secondary-100: 220 13% 20%;
-    --secondary-200: 220 13% 25%;
-    --secondary-300: 220 13% 30%;
-    --secondary-400: 220 13% 37%;
-    --secondary-500: 220 13% 46%;
-    --secondary-600: 220 13% 55%;
-    --secondary-700: 220 13% 69%;
-    --secondary-800: 220 13% 82%;
-    --secondary-900: 220 13% 91%;
-    --secondary-950: 220 14% 96%;
-    
-    /* Accent Color Palette (Blue) - Dark */
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 20% 98%;
-    --accent-50: 220 14% 10%;
-    --accent-100: 220 14% 20%;
-    --accent-200: 220 14% 25%;
-    --accent-300: 220 14% 30%;
-    --accent-400: 220 14% 37%;
-    --accent-500: 220 14% 46%;
-    --accent-600: 220 14% 55%;
-    --accent-700: 220 14% 69%;
-    --accent-800: 220 14% 82%;
-    --accent-900: 220 14% 91%;
-    --accent-950: 220 14% 96%;
-    
-    /* Semantic Colors - Dark */
+    --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
+    --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 142.1 76.2% 36.3%;
-    
-    /* Brand Colors - Dark */
-    --brand-green: 142.1 70.6% 45.3%;
-    --brand-gray: 217.2 32.6% 17.5%;
-    --brand-orange: 24.6 95% 53.1%;
   }
 }
 
-/* Base Styles */
 @layer base {
   * {
     @apply border-border;
   }
   
-  html {
-    scroll-behavior: smooth;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  
   body {
-    @apply bg-background text-foreground font-body;
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
-
-  /* Typography System */
+  
+  /* Enhanced Typography System */
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading font-semibold tracking-tight;
+    font-feature-settings: "liga" 1, "kern" 1;
   }
   
   h1 {
-    @apply text-4xl sm:text-5xl lg:text-6xl xl:text-7xl;
+    @apply text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-display font-bold;
+    letter-spacing: -0.02em;
   }
   
   h2 {
-    @apply text-3xl sm:text-4xl lg:text-5xl;
+    @apply text-3xl sm:text-4xl lg:text-5xl font-display font-bold;
+    letter-spacing: -0.02em;
   }
   
   h3 {
-    @apply text-2xl sm:text-3xl lg:text-4xl;
+    @apply text-2xl sm:text-3xl lg:text-4xl font-display font-semibold;
+    letter-spacing: -0.01em;
   }
   
   h4 {
-    @apply text-xl sm:text-2xl lg:text-3xl;
+    @apply text-xl sm:text-2xl lg:text-3xl font-display font-semibold;
+    letter-spacing: -0.01em;
   }
   
   h5 {
-    @apply text-lg sm:text-xl lg:text-2xl;
+    @apply text-lg sm:text-xl lg:text-2xl font-display font-medium;
+    letter-spacing: -0.01em;
   }
   
   h6 {
-    @apply text-base sm:text-lg lg:text-xl;
+    @apply text-base sm:text-lg lg:text-xl font-display font-medium;
+    letter-spacing: -0.01em;
   }
   
-  p {
-    @apply text-base leading-relaxed;
+  /* Premium Product Titles */
+  .product-title {
+    @apply font-display font-semibold text-gray-900 leading-tight;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: -0.01em;
   }
   
-  main {
-    @apply min-h-screen;
+  /* Hero Text Styling */
+  .hero-title {
+    @apply font-display font-bold text-white leading-tight;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
   
-  section {
-    @apply py-8 sm:py-12 lg:py-16;
+  .hero-subtitle {
+    @apply font-display font-semibold;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: -0.01em;
   }
   
-  :focus-visible {
-    @apply outline-none ring-2 ring-green-500 ring-offset-2;
+  /* Brand Typography */
+  .brand-name {
+    @apply font-display font-bold text-gray-900;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: -0.01em;
   }
   
-  ::selection {
-    @apply bg-green-200 text-green-900;
+  /* Enhanced Product Card Typography */
+  .product-card-title {
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: -0.01em;
   }
   
-  html {
-    @apply scroll-smooth;
+  /* Premium Section Headers */
+  .section-header {
+    @apply font-display font-bold text-gray-900;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: -0.02em;
   }
   
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  /* Enhanced Price Display */
+  .price-display {
+    @apply font-sans font-bold;
+    font-feature-settings: "tnum" 1, "kern" 1;
   }
   
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-/* Component Styles */
-@layer components {
-  .card-base {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden;
+  /* Premium Badge Typography */
+  .badge-premium {
+    @apply font-sans font-semibold;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: 0.02em;
   }
   
-  .card-interactive {
-    @apply card-base transition-all duration-300 hover:shadow-lg hover:border-gray-300 cursor-pointer;
+  /* Product Card Typography Enhancements */
+  .product-category {
+    @apply font-sans font-medium tracking-wide uppercase;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: 0.05em;
   }
   
-  .btn-base {
-    @apply inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  .product-brand {
+    @apply font-sans font-semibold tracking-wide;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: 0.02em;
   }
   
-  .btn-primary {
-    @apply btn-base bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 shadow-sm hover:shadow-md;
+  .product-name {
+    @apply font-sans font-medium text-gray-800;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: -0.01em;
+    line-height: 1.4;
   }
   
-  .btn-secondary {
-    @apply btn-base bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500;
+  .product-feature {
+    @apply font-sans font-normal;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: 0.01em;
   }
   
-  .btn-outline {
-    @apply btn-base border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-gray-500;
+  .price-current {
+    @apply font-sans font-bold;
+    font-feature-settings: "tnum" 1, "kern" 1;
+    letter-spacing: -0.02em;
+    color: #059669;
   }
   
-  .btn-ghost {
-    @apply btn-base text-gray-600 hover:bg-gray-100 focus:ring-gray-500;
+  .price-original {
+    @apply font-sans font-normal;
+    font-feature-settings: "tnum" 1, "kern" 1;
+    letter-spacing: 0.02em;
   }
   
-  .product-card-hover {
-    @apply transition-all duration-300 hover:shadow-lg hover:border-gray-300;
+  .product-price {
+    @apply font-sans font-bold;
+    font-feature-settings: "tnum" 1, "kern" 1;
+    letter-spacing: -0.02em;
+    color: #059669;
   }
   
-  .product-card-hover:hover {
-    @apply transform -translate-y-1 scale-[1.02];
+  .product-price-original {
+    @apply font-sans font-normal;
+    font-feature-settings: "tnum" 1, "kern" 1;
+    letter-spacing: 0.02em;
   }
   
-  .category-card-hover {
-    @apply transition-all duration-300 hover:shadow-md;
+  .btn-product {
+    @apply font-sans font-semibold;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: 0.01em;
   }
   
-  .category-card-hover:hover {
-    @apply transform scale-105;
+  /* Premium Typography Enhancements */
+  .font-display {
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: -0.02em;
   }
   
-  .carousel-container {
-    @apply relative overflow-hidden;
+  .font-heading {
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: -0.01em;
   }
   
-  .carousel-button {
-    @apply absolute top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full p-2 shadow-lg hover:shadow-xl transition-all duration-200 z-10;
+  /* Premium Text Effects */
+  .text-glow {
+    text-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
   }
   
-  .carousel-button-prev {
-    @apply carousel-button left-4;
+  .text-emboss {
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
   }
   
-  .carousel-button-next {
-    @apply carousel-button right-4;
+  .text-soft-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Enhanced Readability */
+  .text-readable {
+    @apply leading-relaxed;
+    font-feature-settings: "liga" 1, "kern" 1;
+  }
+  
+  /* Professional Button Typography */
+  .btn-text {
+    @apply font-sans font-semibold;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: 0.01em;
+  }
+  
+  /* Navigation Typography */
+  .nav-text {
+    @apply font-sans font-medium;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: 0.01em;
+  }
+  
+  /* Footer Typography */
+  .footer-text {
+    @apply font-sans font-normal;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: 0.01em;
+  }
+  
+  /* Form Typography */
+  .form-label {
+    @apply font-sans font-medium;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: 0.01em;
   }
   
   .form-input {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors duration-200 bg-white;
+    @apply font-sans font-normal;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: 0.01em;
   }
   
-  .form-label {
-    @apply block text-sm font-medium text-gray-700 mb-2;
+  /* Accessibility Enhancements */
+  .focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2;
   }
   
-  .badge-base {
+  /* High Contrast Mode Support */
+  @media (prefers-contrast: high) {
+    .text-gray-600 {
+      @apply text-gray-800;
+    }
+    
+    .text-gray-500 {
+      @apply text-gray-700;
+    }
+  }
+  
+  /* Reduced Motion Support */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Enhanced Button Styles */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+    @apply font-semibold tracking-wide;
+    font-feature-settings: "liga" 1, "kern" 1;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+    @apply font-medium tracking-wide;
+    font-feature-settings: "liga" 1, "kern" 1;
+  }
+  
+  /* Enhanced Card Styles */
+  .card-premium {
+    @apply bg-white rounded-xl shadow-soft border border-gray-200;
+    @apply transition-all duration-300 ease-smooth;
+  }
+  
+  .card-premium:hover {
+    @apply shadow-medium transform -translate-y-1;
+  }
+  
+  /* Enhanced Input Styles */
+  .input-premium {
+    @apply bg-white border border-gray-300 rounded-lg px-4 py-3;
+    @apply focus:ring-2 focus:ring-primary focus:border-transparent;
+    @apply transition-all duration-200 ease-smooth;
+    font-feature-settings: "liga" 1, "kern" 1;
+  }
+  
+  /* Enhanced Badge Styles */
+  .badge-premium {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply bg-primary/10 text-primary border border-primary/20;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: 0.02em;
   }
   
-  .badge-primary {
-    @apply badge-base bg-green-100 text-green-800;
+  /* Enhanced Link Styles */
+  .link-premium {
+    @apply text-primary hover:text-primary/80 transition-colors duration-200;
+    @apply font-medium;
+    font-feature-settings: "liga" 1, "kern" 1;
+    letter-spacing: 0.01em;
+  }
+}
+
+@layer utilities {
+  /* Typography Utilities */
+  .text-balance {
+    text-wrap: balance;
   }
   
-  .badge-secondary {
-    @apply badge-base bg-gray-100 text-gray-800;
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  
+  /* Enhanced Spacing Utilities */
+  .space-y-premium > * + * {
+    @apply mt-6;
+  }
+  
+  .space-x-premium > * + * {
+    @apply ml-6;
+  }
+  
+  /* Enhanced Animation Utilities */
+  .animate-smooth {
+    @apply transition-all duration-300 ease-smooth;
+  }
+  
+  .animate-fast {
+    @apply transition-all duration-150 ease-smooth;
+  }
+  
+  /* Enhanced Focus Utilities */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  }
+  
+  /* Enhanced Hover Utilities */
+  .hover-lift {
+    @apply hover:transform hover:-translate-y-1 hover:shadow-medium;
+    @apply transition-all duration-300 ease-smooth;
+  }
+  
+  /* Enhanced Text Utilities */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-primary-600 bg-clip-text text-transparent;
   }
   
   .text-shadow {
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
-  
-  .hover-lift {
-    @apply transition-transform duration-300;
-  }
-  
-  .hover-lift:hover {
-    @apply transform -translate-y-1;
-  }
-  
-  .loading-skeleton {
-    @apply animate-pulse bg-gray-200 rounded;
-  }
-  
-  .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2;
-  }
-  
-  .animate-fade-in {
-    @apply animate-in fade-in duration-500;
-  }
-  
-  .animate-fade-in-up {
-    @apply animate-in fade-in slide-in-from-bottom-4 duration-500;
-  }
-  
-  .animate-scale-in {
-    @apply animate-in zoom-in duration-300;
-  }
-  
-  .animate-slide-in-right {
-    @apply animate-in slide-in-from-right-4 duration-300;
-  }
-  
-  .animate-slide-in-left {
-    @apply animate-in slide-in-from-left-4 duration-300;
-  }
-  
-  .animate-bounce-subtle {
-    animation: bounce-subtle 2s infinite;
-  }
-  
-  .animate-pulse-subtle {
-    animation: pulse-subtle 2s infinite;
-  }
-  
-  .animate-shimmer {
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-  }
-  
-  @keyframes blob {
-    0% {
-      transform: translate(0px, 0px) scale(1);
-    }
-    33% {
-      transform: translate(30px, -50px) scale(1.1);
-    }
-    66% {
-      transform: translate(-20px, 20px) scale(0.9);
-    }
-    100% {
-      transform: translate(0px, 0px) scale(1);
-    }
-  }
-  
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-  
-  @keyframes fade-in-up {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  .animate-blob {
-    animation: blob 7s infinite;
-  }
-  
-  .animation-delay-2000 {
-    animation-delay: 2s;
-  }
-  
-  .animation-delay-4000 {
-    animation-delay: 4s;
-  }
-  
-  /* Mobile-First Responsive Utilities */
-  .container-responsive {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
-  }
-  
-  .section-padding {
-    @apply py-8 sm:py-12 lg:py-16;
-  }
-  
-  .section-padding-sm {
-    @apply py-6 sm:py-8 lg:py-12;
-  }
-  
-  .section-padding-lg {
-    @apply py-12 sm:py-16 lg:py-24;
-  }
-  
-  .text-responsive-xs {
-    @apply text-xs sm:text-sm;
-  }
-  
-  .text-responsive-sm {
-    @apply text-sm sm:text-base;
-  }
-  
-  .text-responsive-base {
-    @apply text-base sm:text-lg;
-  }
-  
-  .text-responsive-lg {
-    @apply text-lg sm:text-xl;
-  }
-  
-  .text-responsive-xl {
-    @apply text-xl sm:text-2xl;
-  }
-  
-  .text-responsive-2xl {
-    @apply text-2xl sm:text-3xl;
-  }
-  
-  .text-responsive-3xl {
-    @apply text-3xl sm:text-4xl;
-  }
-  
-  .text-responsive-4xl {
-    @apply text-4xl sm:text-5xl lg:text-6xl;
-  }
-  
-  .space-responsive {
-    @apply space-y-4 sm:space-y-6 lg:space-y-8;
-  }
-  
-  .space-responsive-sm {
-    @apply space-y-2 sm:space-y-3 lg:space-y-4;
-  }
-  
-  .space-responsive-lg {
-    @apply space-y-6 sm:space-y-8 lg:space-y-12;
-  }
-  
-  .grid-responsive {
-    @apply grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6;
-  }
-  
-  .grid-responsive-sm {
-    @apply grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4;
-  }
-  
-  .grid-responsive-lg {
-    @apply grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8;
-  }
-}
-
-/* Mobile-Specific Enhancements */
-@media (max-width: 1024px) {
-  .carousel-button {
-    @apply w-10 h-10;
-  }
-}
-
-@media (max-width: 768px) {
-  .carousel-button {
-    @apply w-8 h-8;
-  }
-  
-  .btn-base {
-    @apply min-h-[44px] text-sm;
-  }
-  
-  .btn-primary, .btn-outline {
-    @apply px-4 py-2.5;
-  }
-  
-  .view-all-button {
-    @apply w-full sm:w-auto;
-  }
-  
-  .section-header-icon {
-    @apply w-8 h-8;
-  }
-  
-  .section-header-icon svg {
-    @apply w-6 h-6;
-  }
-  
-  .benefit-card-icon {
-    @apply w-12 h-12;
-  }
-  
-  .benefit-card-icon svg {
-    @apply w-8 h-8;
-  }
-  
-  .benefit-card {
-    @apply p-3 sm:p-4 lg:p-8;
-  }
-}
-
-@media (max-width: 640px) {
-  .carousel-button {
-    @apply w-6 h-6;
-  }
-  
-  .section-padding {
-    @apply py-6;
-  }
-  
-  .section-padding-sm {
-    @apply py-4;
-  }
-  
-  .section-padding-lg {
-    @apply py-8;
-  }
-  
-  .btn-base {
-    @apply min-h-[48px] text-sm px-3;
-  }
-  
-  .btn-primary, .btn-outline {
-    @apply px-3 py-2.5;
-  }
-  
-  .view-all-button {
-    @apply w-full text-sm;
-  }
-  
-  .section-header-icon {
-    @apply w-6 h-6;
-  }
-  
-  .section-header-icon svg {
-    @apply w-5 h-5;
-  }
-  
-  .benefit-card-icon {
-    @apply w-10 h-10;
-  }
-  
-  .benefit-card-icon svg {
-    @apply w-6 h-6;
-  }
-  
-  .benefit-card {
-    @apply p-2 sm:p-3;
-  }
-}
-
-/* Enhanced Mobile Touch Targets */
-@layer utilities {
-  .touch-target {
-    @apply min-h-[44px] min-w-[44px];
-  }
-  
-  .touch-target-sm {
-    @apply min-h-[40px] min-w-[40px];
-  }
-  
-  .touch-target-lg {
-    @apply min-h-[48px] min-w-[48px];
-  }
-  
-  .mobile-safe-area {
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  
-  .mobile-scroll-snap {
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .mobile-scroll-snap-item {
-    scroll-snap-align: start;
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-div.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-div.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-div.hide-scrollbar::-webkit-scrollbar-thumb {
-  background: transparent;
-}
-
-/* Mobile Image Optimizations */
-@media (max-width: 768px) {
-  img {
-    @apply max-w-full h-auto;
-  }
-  
-  .product-image-container {
-    @apply relative overflow-hidden rounded-lg;
-    aspect-ratio: 4/3;
-  }
-  
-  .mobile-image-fallback {
-    @apply absolute inset-0 bg-gray-100 flex items-center justify-center;
-    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-  }
-  
-  .mobile-image-fallback.image-loaded {
-    @apply opacity-0 transition-opacity duration-300;
-  }
-  
-  .next-image-wrapper {
-    @apply relative w-full h-full;
-  }
-  
-  .next-image-wrapper img {
-    @apply object-cover transition-opacity duration-300;
-  }
-}
-
-/* Mobile-First Product Grid Enhancements */
-.mobile-product-grid {
-  @apply grid grid-cols-2 gap-3 sm:gap-4;
-}
-
-.mobile-product-card {
-  @apply bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col;
-  min-height: 280px;
-}
-
-.mobile-product-image {
-  @apply relative aspect-square bg-gray-50 overflow-hidden;
-}
-
-.mobile-product-content {
-  @apply p-3 flex flex-col flex-grow;
-}
-
-.mobile-product-title {
-  @apply text-sm font-semibold text-gray-800 mb-2 line-clamp-2;
-}
-
-.mobile-product-price {
-  @apply text-base font-bold text-gray-800 mb-2;
-}
-
-.mobile-product-rating {
-  @apply flex items-center space-x-1 mb-3;
-}
-
-.mobile-product-button {
-  @apply w-full h-11 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors duration-200;
-}
-
-/* Mobile Filter Enhancements */
-.mobile-filter-sheet {
-  @apply w-[85vw] sm:w-[400px] max-h-[90vh] overflow-hidden;
-}
-
-.mobile-filter-header {
-  @apply px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white;
-}
-
-.mobile-filter-content {
-  @apply p-6 overflow-y-auto max-h-[calc(90vh-120px)];
-}
-
-.mobile-filter-actions {
-  @apply p-6 border-t border-gray-100 bg-gray-50;
-}
-
-/* Mobile Sort Menu Enhancements */
-.mobile-sort-menu {
-  @apply absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 z-50;
-}
-
-.mobile-sort-option {
-  @apply w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors;
-}
-
-.mobile-sort-option.active {
-  @apply bg-green-50 text-green-700 font-medium;
-}
-
-/* Mobile Pagination Enhancements */
-.mobile-pagination {
-  @apply flex items-center gap-1 overflow-x-auto pb-2;
-}
-
-.mobile-pagination-button {
-  @apply min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm flex items-center justify-center;
-}
-
-/* Mobile Loading Enhancements */
-.mobile-loading-skeleton {
-  @apply bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden;
-}
-
-.mobile-loading-shimmer {
-  @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent;
-  animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-/* Mobile Accessibility Enhancements */
-@media (prefers-reduced-motion: reduce) {
-  .animate-fade-in,
-  .animate-fade-in-up,
-  .animate-scale-in,
-  .animate-slide-in-right,
-  .animate-slide-in-left,
-  .animate-bounce-subtle,
-  .animate-pulse-subtle,
-  .animate-shimmer {
-    animation: none;
-  }
-}
-
-/* Mobile High Contrast Mode Support */
-@media (prefers-contrast: high) {
-  .mobile-product-card {
-    @apply border-2 border-gray-800;
-  }
-  
-  .mobile-product-button {
-    @apply border-2 border-green-800;
-  }
-}
-
-/* Mobile Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-  .mobile-product-card {
-    @apply bg-gray-900 border-gray-700;
-  }
-  
-  .mobile-product-title {
-    @apply text-gray-100;
-  }
-  
-  .mobile-product-price {
-    @apply text-gray-100;
-  }
-}
-
-/* Featured Products - Ensure only complete cards are visible */
-.featured-products-carousel {
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  touch-action: pan-x;
-  /* Constrained width container */
-  width: 100%;
-  margin: 0;
-  /* Hardware acceleration */
-  transform: translateZ(0);
-  will-change: scroll-position;
-  /* Ensure no partial cards are visible */
-  scroll-padding: 0;
-  /* Prevent partial card visibility */
-  overflow-x: auto;
-  overflow-y: hidden;
-  /* Ensure container fits exactly the number of cards */
-  display: flex;
-  flex-wrap: nowrap;
-  /* Center the container */
-  justify-content: flex-start;
-}
-
-.featured-products-item {
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  touch-action: manipulation;
-  pointer-events: auto;
-  /* Hardware acceleration */
-  transform: translateZ(0);
-  /* Allow cards to size naturally like New Arrivals */
-  flex-shrink: 0;
-  flex-grow: 0;
-  /* Ensure cards are properly sized */
-  box-sizing: border-box;
-  /* Match New Arrivals card sizing */
-  width: auto;
-  min-width: auto;
-}
-
-/* Responsive adjustments for featured products */
-@media (max-width: 768px) {
-  .featured-products-carousel {
-    width: 100%;
-  }
-}
-
-/* PC view - ensure exactly 4 cards are visible */
-@media (min-width: 1024px) {
-  .featured-products-carousel {
-    /* Container width is calculated dynamically */
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-  
-  .featured-products-item {
-    /* Match New Arrivals card sizing on PC */
-    min-width: 250px;
-    flex-shrink: 0;
-    /* Allow cards to grow to match New Arrivals */
-    flex-grow: 0;
-  }
-}
-
-/* Tablet view - ensure exactly 3 cards are visible */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .featured-products-carousel {
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-  
-  .featured-products-item {
-    min-width: 220px;
-    flex-shrink: 0;
-    flex-grow: 0;
-  }
-}
-
-/* Mobile view - ensure exactly 2 cards are visible */
-@media (max-width: 767px) {
-  .featured-products-carousel {
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-  
-  .featured-products-item {
-    min-width: 180px;
-    flex-shrink: 0;
-    flex-grow: 0;
-  }
-}
-
-.slider-nav-button {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  /* Enhanced button interactions */
-  transform: translateZ(0);
-  will-change: transform, opacity;
-  /* Smooth button scaling */
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.slider-nav-button:hover {
-  transform: scale(1.1) translateZ(0);
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-}
-
-.slider-nav-button:active {
-  transform: scale(0.95) translateZ(0);
-  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.slider-gradient-overlay {
-  pointer-events: none;
-  z-index: 10;
-  /* Smooth gradient transitions */
-  transition: opacity 0.3s ease;
-  /* Hardware acceleration for overlays */
-  transform: translateZ(0);
-}
-
-/* Smooth transitions for slider elements */
-.slider-transition {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Enhanced easing for smoother feel */
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Enhanced focus states for accessibility */
-.slider-nav-button:focus-visible {
-  outline: 2px solid hsl(var(--ring));
-  outline-offset: 2px;
-  ring-offset: 2px;
-  /* Smooth focus transitions */
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Smooth scroll snap behavior */
-.featured-slider-item {
-  scroll-snap-align: center;
-  scroll-snap-stop: always;
-}
-
-/* Enhanced touch interactions for mobile */
-@media (hover: none) and (pointer: coarse) {
-  .slider-nav-button {
-    min-height: 56px;
-    min-width: 56px;
-    /* Larger touch targets on mobile */
-  }
-  
-  .featured-slider {
-    /* Enhanced mobile scrolling */
-    -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
-  }
-}
-
-/* Smooth autoplay transitions */
-.featured-products-carousel.autoplay-active {
-  scroll-behavior: smooth;
-}
-
-/* Performance optimizations */
-.featured-products-item {
-  /* Optimize for GPU acceleration */
-  transform: translateZ(0);
-}
-
-/* Responsive slider adjustments - REMOVED MAX-WIDTH RESTRICTIONS */
-/* All breakpoints now use full width for consistent card sizing */
-
-/* REMOVED SLIDER DOTS - No more dots at the bottom */
-/* Featured products now match New Arrivals exactly */
-
-/* Premium Minimalistic Carousel Navigation */
-.carousel-nav-button {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 20;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(229, 231, 235, 0.5);
-  border-radius: 50%;
-  padding: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  min-height: 44px;
-  min-width: 44px;
-  opacity: 0.3;
-}
-
-.carousel-nav-button:hover {
-  opacity: 1;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-  transform: translateY(-50%) scale(1.05);
-}
-
-.carousel-nav-button:disabled {
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* Featured Products Premium Navigation */
-.featured-products-carousel {
-  position: relative;
-}
-
-.featured-products-carousel:hover .group {
-  opacity: 1;
-}
-
-/* Ensure navigation buttons are visible */
-.featured-products-carousel .group {
-  opacity: 0.6;
-  transition: opacity 0.3s ease;
-}
-
-.featured-products-carousel:hover .group {
-  opacity: 1;
-}
-
-/* Gradient overlay for navigation buttons */
-.featured-nav-gradient {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 64px;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.featured-nav-gradient.left {
-  left: 0;
-  background: linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.9), transparent);
-}
-
-.featured-nav-gradient.right {
-  right: 0;
-  background: linear-gradient(to left, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.9), transparent);
-}
-
-/* Premium button styling */
-.featured-nav-button {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(229, 231, 235, 0.8);
-  border-radius: 50%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-}
-
-.featured-nav-button:hover {
-  background: rgba(255, 255, 255, 1);
-  border-color: rgba(229, 231, 235, 1);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-  transform: scale(1.05);
-}
-
-.featured-nav-button:active {
-  transform: scale(0.95);
-}
-
-.featured-nav-button svg {
-  transition: all 0.3s ease;
-  color: rgba(55, 65, 81, 0.8);
-}
-
-.featured-nav-button:hover svg {
-  transform: scale(1.1);
-  color: rgba(55, 65, 81, 1);
-}
-
-/* Responsive carousel navigation */
-@media (max-width: 768px) {
-  .featured-nav-button {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .featured-nav-gradient {
-    width: 48px;
-  }
-}
-
-/* Smooth carousel transitions */
-.carousel-container {
-  overflow: hidden;
-  position: relative;
-}
-
-.carousel-track {
-  display: flex;
-  transition: transform 0.5s ease;
-  will-change: transform;
-}
-
-/* Enhanced gradient overlays */
-.carousel-gradient-overlay {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 48px;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.carousel-gradient-overlay.left {
-  left: 0;
-  background: linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.8), transparent);
-}
-
-.carousel-gradient-overlay.right {
-  right: 0;
-  background: linear-gradient(to left, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.8), transparent);
-}
-
-@media (max-width: 768px) {
-  .carousel-gradient-overlay {
-    width: 32px;
-  }
-}
-
-/* Enhanced text truncation utilities */
-.line-clamp-1 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-}
-
-.line-clamp-2 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-}
-
-/* Product card title optimization for slideshow */
-.product-card-title {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-  word-wrap: break-word;
-  word-break: break-word;
-}
-
-/* Enhanced line-clamp utility that works with product-card-title */
-.line-clamp-1 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  white-space: normal; /* Override nowrap for line-clamp */
-  text-overflow: ellipsis;
-}
-
-.line-clamp-3 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  white-space: normal;
-  text-overflow: ellipsis;
-}
-
-.line-clamp-2 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  white-space: normal;
-  text-overflow: ellipsis;
-}
-
-/* Enhanced slideshow card title styling */
-.featured-products-carousel .product-card-title,
-.product-carousel .product-card-title {
-  font-weight: 600;
-  color: #1f2937; /* text-gray-800 */
-  transition: color 0.2s ease;
-}
-
-.featured-products-carousel .product-card-title:hover,
-.product-carousel .product-card-title:hover {
-  color: #16a34a; /* text-green-600 */
-}
-
-/* Ensure featured products cards match other product sections */
-.featured-products-carousel .card-interactive {
-  height: 100%;
-  min-height: 320px; /* Consistent minimum height */
-  display: flex;
-  flex-direction: column;
-}
-
-.featured-products-item {
-  height: 100%;
-  display: flex;
-}
-
-/* Consistent card sizing across all product sections */
-.product-grid .card-interactive,
-.featured-products-carousel .card-interactive,
-.product-carousel .card-interactive {
-  height: 100%;
-  min-height: 320px;
-  max-height: 400px;
-  width: 100% !important;
-  min-width: 100% !important;
-  max-width: 100% !important;
-}
-
-/* Ensure featured products cards have exact same width */
-.featured-products-item .card-interactive,
-.product-carousel .flex-none .card-interactive {
-  width: 100% !important;
-  min-width: 100% !important;
-  max-width: 100% !important;
-  flex-shrink: 0;
-  flex-grow: 0;
-}
-
-/* Responsive text truncation for different screen sizes */
-@media (max-width: 640px) {
-  .product-card-title {
-    font-size: 0.875rem; /* text-sm */
-    line-height: 1.25rem;
-  }
-}
-
-@media (min-width: 641px) and (max-width: 768px) {
-  .product-card-title {
-    font-size: 1rem; /* text-base */
-    line-height: 1.5rem;
-  }
-}
-
-@media (min-width: 769px) {
-  .product-card-title {
-    font-size: 1.125rem; /* text-lg */
-    line-height: 1.75rem;
-  }
-}
-
-/* New Arrivals Carousel - Match Featured Products styling */
-.new-arrivals-carousel {
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  touch-action: pan-x;
-  /* Constrained width container */
-  width: 100%;
-  margin: 0;
-  /* Hardware acceleration */
-  transform: translateZ(0);
-  will-change: scroll-position;
-  /* Ensure no partial cards are visible */
-  scroll-padding: 0;
-  /* Prevent partial card visibility */
-  overflow-x: auto;
-  overflow-y: hidden;
-  /* Ensure container fits exactly the number of cards */
-  display: flex;
-  flex-wrap: nowrap;
-  /* Center the container */
-  justify-content: flex-start;
-}
-
-.new-arrivals-item {
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  touch-action: manipulation;
-  pointer-events: auto;
-  /* Hardware acceleration */
-  transform: translateZ(0);
-  /* Allow cards to size naturally like Featured Products */
-  flex-shrink: 0;
-  flex-grow: 0;
-  /* Ensure cards are properly sized */
-  box-sizing: border-box;
-  /* Match Featured Products card sizing */
-  width: auto;
-  min-width: auto;
-}
-
-/* Responsive adjustments for new arrivals */
-@media (max-width: 768px) {
-  .new-arrivals-carousel {
-    width: 100%;
-  }
-}
-
-/* PC view - ensure exactly 4 cards are visible */
-@media (min-width: 1024px) {
-  .new-arrivals-carousel {
-    /* Container width is calculated dynamically */
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-  
-  .new-arrivals-item {
-    /* Match Featured Products card sizing on PC */
-    min-width: 250px;
-    flex-shrink: 0;
-    /* Allow cards to grow to match Featured Products */
-    flex-grow: 0;
-  }
-}
-
-/* Tablet view - ensure exactly 3 cards are visible */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .new-arrivals-carousel {
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-  
-  .new-arrivals-item {
-    min-width: 220px;
-    flex-shrink: 0;
-    flex-grow: 0;
-  }
-}
-
-/* Mobile view - ensure exactly 2 cards are visible */
-@media (max-width: 767px) {
-  .new-arrivals-carousel {
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-  
-  .new-arrivals-item {
-    min-width: 180px;
-    flex-shrink: 0;
-    flex-grow: 0;
-  }
-}
-
-/* New Arrivals Navigation Gradient Overlays */
-.new-arrivals-nav-gradient {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 64px;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.new-arrivals-nav-gradient.left {
-  left: 0;
-  background: linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.9), transparent);
-}
-
-.new-arrivals-nav-gradient.right {
-  right: 0;
-  background: linear-gradient(to left, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.9), transparent);
-}
-
-/* Premium button styling for new arrivals */
-.new-arrivals-nav-button {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(229, 231, 235, 0.8);
-  border-radius: 50%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-}
-
-.new-arrivals-nav-button:hover {
-  background: rgba(255, 255, 255, 1);
-  border-color: rgba(229, 231, 235, 1);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-  transform: scale(1.05);
-}
-
-.new-arrivals-nav-button:active {
-  transform: scale(0.95);
-}
-
-.new-arrivals-nav-button svg {
-  transition: all 0.3s ease;
-  color: rgba(55, 65, 81, 0.8);
-}
-
-.new-arrivals-nav-button:hover svg {
-  transform: scale(1.1);
-  color: rgba(55, 65, 81, 1);
-}
-
-/* Responsive carousel navigation for new arrivals */
-@media (max-width: 768px) {
-  .new-arrivals-nav-button {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .new-arrivals-nav-gradient {
-    width: 48px;
-  }
-}
-
-/* Ensure new arrivals cards match other product sections */
-.new-arrivals-carousel .card-interactive {
-  height: 100%;
-  min-height: 320px; /* Consistent minimum height */
-  display: flex;
-  flex-direction: column;
-}
-
-.new-arrivals-item {
-  height: 100%;
-  display: flex;
-}
-
-/* Consistent card sizing across all product sections */
-.new-arrivals-carousel .card-interactive {
-  height: 100%;
-  min-height: 320px;
-  max-height: 400px;
-  width: 100% !important;
-  min-width: 100% !important;
-  max-width: 100% !important;
-}
-
-/* Ensure new arrivals cards have exact same width */
-.new-arrivals-item .card-interactive {
-  width: 100% !important;
-  min-width: 100% !important;
-  max-width: 100% !important;
-  flex-shrink: 0;
-  flex-grow: 0;
-}
-
-/* Special Offers Carousel - Match New Arrivals styling */
-.special-offers-carousel {
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  touch-action: pan-x;
-  /* Constrained width container */
-  width: 100%;
-  margin: 0;
-  /* Hardware acceleration */
-  transform: translateZ(0);
-  will-change: scroll-position;
-  /* Ensure no partial cards are visible */
-  scroll-padding: 0;
-  /* Prevent partial card visibility */
-  overflow-x: auto;
-  overflow-y: hidden;
-  /* Ensure container fits exactly the number of cards */
-  display: flex;
-  flex-wrap: nowrap;
-  /* Center the container */
-  justify-content: flex-start;
-}
-
-.special-offers-item {
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  touch-action: manipulation;
-  pointer-events: auto;
-  /* Hardware acceleration */
-  transform: translateZ(0);
-  /* Allow cards to size naturally like New Arrivals */
-  flex-shrink: 0;
-  flex-grow: 0;
-  /* Ensure cards are properly sized */
-  box-sizing: border-box;
-  /* Match New Arrivals card sizing */
-  width: auto;
-  min-width: auto;
-}
-
-/* Responsive adjustments for special offers */
-@media (max-width: 768px) {
-  .special-offers-carousel {
-    width: 100%;
-  }
-}
-
-/* PC view - ensure exactly 4 cards are visible */
-@media (min-width: 1024px) {
-  .special-offers-carousel {
-    /* Container width is calculated dynamically */
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-  
-  .special-offers-item {
-    /* Match New Arrivals card sizing on PC */
-    min-width: 250px;
-    flex-shrink: 0;
-    /* Allow cards to grow to match New Arrivals */
-    flex-grow: 0;
-  }
-}
-
-/* Tablet view - ensure exactly 3 cards are visible */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .special-offers-carousel {
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-  
-  .special-offers-item {
-    min-width: 220px;
-    flex-shrink: 0;
-    flex-grow: 0;
-  }
-}
-
-/* Mobile view - ensure exactly 2 cards are visible */
-@media (max-width: 767px) {
-  .special-offers-carousel {
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-  
-  .special-offers-item {
-    min-width: 180px;
-    flex-shrink: 0;
-    flex-grow: 0;
-  }
-}
-
-/* Special Offers Navigation Gradient Overlays */
-.special-offers-nav-gradient {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 64px;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.special-offers-nav-gradient.left {
-  left: 0;
-  background: linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.9), transparent);
-}
-
-.special-offers-nav-gradient.right {
-  right: 0;
-  background: linear-gradient(to left, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.9), transparent);
-}
-
-/* Premium button styling for special offers */
-.special-offers-nav-button {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(229, 231, 235, 0.8);
-  border-radius: 50%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-}
-
-.special-offers-nav-button:hover {
-  background: rgba(255, 255, 255, 1);
-  border-color: rgba(229, 231, 235, 1);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-  transform: scale(1.05);
-}
-
-.special-offers-nav-button:active {
-  transform: scale(0.95);
-}
-
-.special-offers-nav-button svg {
-  transition: all 0.3s ease;
-  color: rgba(55, 65, 81, 0.8);
-}
-
-.special-offers-nav-button:hover svg {
-  transform: scale(1.1);
-  color: rgba(55, 65, 81, 1);
-}
-
-/* Responsive carousel navigation for special offers */
-@media (max-width: 768px) {
-  .special-offers-nav-button {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .special-offers-nav-gradient {
-    width: 48px;
-  }
-}
-
-/* Ensure special offers cards match other product sections */
-.special-offers-carousel .card-interactive {
-  height: 100%;
-  min-height: 320px; /* Consistent minimum height */
-  display: flex;
-  flex-direction: column;
-}
-
-.special-offers-item {
-  height: 100%;
-  display: flex;
-}
-
-/* Consistent card sizing across all product sections */
-.special-offers-carousel .card-interactive {
-  height: 100%;
-  min-height: 320px;
-  max-height: 400px;
-  width: 100% !important;
-  min-width: 100% !important;
-  max-width: 100% !important;
-}
-
-/* Ensure special offers cards have exact same width */
-.special-offers-item .card-interactive {
-  width: 100% !important;
-  min-width: 100% !important;
-  max-width: 100% !important;
-  flex-shrink: 0;
-  flex-grow: 0;
 }

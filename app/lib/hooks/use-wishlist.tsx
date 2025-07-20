@@ -22,19 +22,37 @@ const WishlistContext = createContext<WishlistContextType | undefined>(undefined
 
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<WishlistItem[]>([])
+  const [isClient, setIsClient] = useState(false)
 
-  // Load wishlist from localStorage on mount
+  // Set client flag on mount
   useEffect(() => {
-    const savedWishlist = localStorage.getItem("wishlist")
-    if (savedWishlist) {
-      setItems(JSON.parse(savedWishlist))
-    }
+    setIsClient(true)
   }, [])
 
-  // Save wishlist to localStorage whenever it changes
+  // Load wishlist from localStorage on mount (client-side only)
   useEffect(() => {
-    localStorage.setItem("wishlist", JSON.stringify(items))
-  }, [items])
+    if (!isClient) return
+    
+    try {
+      const savedWishlist = localStorage.getItem("wishlist")
+      if (savedWishlist) {
+        setItems(JSON.parse(savedWishlist))
+      }
+    } catch (error) {
+      console.error("Failed to load wishlist from localStorage:", error)
+    }
+  }, [isClient])
+
+  // Save wishlist to localStorage whenever it changes (client-side only)
+  useEffect(() => {
+    if (!isClient) return
+    
+    try {
+      localStorage.setItem("wishlist", JSON.stringify(items))
+    } catch (error) {
+      console.error("Failed to save wishlist to localStorage:", error)
+    }
+  }, [items, isClient])
 
   const addItem = (item: WishlistItem) => {
     setItems((prev) => {

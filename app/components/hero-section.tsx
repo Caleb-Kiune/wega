@@ -188,15 +188,15 @@ export default function HeroSection() {
             </div>
 
             {/* Headline */}
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white leading-tight drop-shadow-2xl">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white leading-tight drop-shadow-2xl hero-title">
               {currentSlideData.title}
-              <span className="block bg-gradient-to-r from-green-300 to-emerald-300 bg-clip-text text-transparent mt-1 drop-shadow-lg">
+              <span className="block bg-gradient-to-r from-green-300 to-emerald-300 bg-clip-text text-transparent mt-1 drop-shadow-lg hero-subtitle">
                 {currentSlideData.subtitle}
               </span>
             </h1>
 
             {/* Description */}
-            <p className="text-sm sm:text-base text-white font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-lg">
+            <p className="text-sm sm:text-base text-white font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-lg text-readable">
               {currentSlideData.description}
             </p>
 

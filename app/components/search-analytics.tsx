@@ -16,27 +16,39 @@ export function useSearchAnalytics() {
     averageResults: 0,
     searchSuccessRate: 0,
   });
+  const [isClient, setIsClient] = useState(false);
+
+  // Set client flag on mount
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const trackSearch = (query: string, resultsCount: number) => {
-    // Store search data in localStorage for analytics
-    const searchHistory = JSON.parse(localStorage.getItem('searchHistory') || '[]');
-    const newSearch = {
-      query,
-      resultsCount,
-      timestamp: Date.now(),
-    };
+    if (!isClient) return;
     
-    searchHistory.push(newSearch);
-    
-    // Keep only last 100 searches
-    if (searchHistory.length > 100) {
-      searchHistory.splice(0, searchHistory.length - 100);
+    try {
+      // Store search data in localStorage for analytics
+      const searchHistory = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+      const newSearch = {
+        query,
+        resultsCount,
+        timestamp: Date.now(),
+      };
+      
+      searchHistory.push(newSearch);
+      
+      // Keep only last 100 searches
+      if (searchHistory.length > 100) {
+        searchHistory.splice(0, searchHistory.length - 100);
+      }
+      
+      localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+      
+      // Update analytics
+      updateAnalytics(searchHistory);
+    } catch (error) {
+      console.error('Failed to track search in localStorage:', error);
     }
-    
-    localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
-    
-    // Update analytics
-    updateAnalytics(searchHistory);
   };
 
   const updateAnalytics = (searchHistory: any[]) => {
@@ -70,10 +82,16 @@ export function useSearchAnalytics() {
   };
 
   useEffect(() => {
-    // Load existing analytics on mount
-    const searchHistory = JSON.parse(localStorage.getItem('searchHistory') || '[]');
-    updateAnalytics(searchHistory);
-  }, []);
+    if (!isClient) return;
+    
+    try {
+      // Load existing analytics on mount
+      const searchHistory = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+      updateAnalytics(searchHistory);
+    } catch (error) {
+      console.error('Failed to load search analytics from localStorage:', error);
+    }
+  }, [isClient]);
 
   return { analytics, trackSearch };
 }
