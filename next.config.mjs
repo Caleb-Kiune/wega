@@ -10,7 +10,8 @@ const nextConfig = {
     domains: [
       'localhost', 
       'hebbkx1anhila5yf.public.blob.vercel-storage.com', 
-      'wega-backend.onrender.com', 
+      'wega-backend.onrender.com',
+      'wega-production.up.railway.app',  // Add Railway domain
       'your-domain.com',
       'res.cloudinary.com'  // Add Cloudinary domain
     ],
@@ -40,6 +41,16 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'wega-backend.onrender.com',
+        pathname: '/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'wega-production.up.railway.app',  // Add Railway domain
+        pathname: '/static/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'wega-production.up.railway.app',  // Add Railway domain
         pathname: '/images/**',
       },
       {
