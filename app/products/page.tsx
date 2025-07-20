@@ -76,12 +76,14 @@ export default function ProductsPage() {
   };
 
   const handlePageChange = (page: number) => {
+    console.log('Page change requested:', { page, currentPage: filters.page, totalPages });
+    
     const updatedFilters = { ...filters, page };
     setFilters(updatedFilters);
     
     // Update URL with new page
     const params = new URLSearchParams();
-    if (page > 1) params.set('page', page.toString());
+    params.set('page', page.toString());
     if (filters.limit !== 24) params.set('limit', filters.limit.toString());
     if (filters.categories?.length) {
       filters.categories.forEach(category => params.append('categories[]', category));
@@ -97,6 +99,7 @@ export default function ProductsPage() {
     if (filters.search) params.set('search', filters.search);
     
     const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+    console.log('Updating URL to:', newUrl);
     router.replace(newUrl, { scroll: false });
   };
 
@@ -957,7 +960,10 @@ export default function ProductsPage() {
                             variant="outline"
                             size="sm"
                             disabled={currentPage === 1}
-                            onClick={() => handlePageChange(1)}
+                            onClick={() => {
+                              console.log('First button clicked, current page:', currentPage);
+                              handlePageChange(1);
+                            }}
                             className="min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-50 transition-all duration-200"
                           >
                             First
@@ -966,7 +972,10 @@ export default function ProductsPage() {
                             variant="outline"
                             size="sm"
                             disabled={currentPage === 1}
-                            onClick={() => handlePageChange(currentPage - 1)}
+                            onClick={() => {
+                              console.log('Prev button clicked, current page:', currentPage);
+                              handlePageChange(currentPage - 1);
+                            }}
                             className="min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-50 transition-all duration-200"
                           >
                             Prev
@@ -990,7 +999,10 @@ export default function ProductsPage() {
                                     <Button
                                       variant={currentPage === page ? 'default' : 'outline'}
                                       size="sm"
-                                      onClick={() => handlePageChange(page)}
+                                      onClick={() => {
+                                        console.log('Page number clicked:', page, 'current page:', currentPage);
+                                        handlePageChange(page);
+                                      }}
                                       className={`min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
                                         currentPage === page 
                                           ? 'bg-green-600 hover:bg-green-700 text-white shadow-md' 
@@ -1008,7 +1020,10 @@ export default function ProductsPage() {
                             variant="outline"
                             size="sm"
                             disabled={currentPage === totalPages}
-                            onClick={() => handlePageChange(currentPage + 1)}
+                            onClick={() => {
+                              console.log('Next button clicked, current page:', currentPage, 'total pages:', totalPages);
+                              handlePageChange(currentPage + 1);
+                            }}
                             className="min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-50 transition-all duration-200"
                           >
                             Next
@@ -1017,7 +1032,10 @@ export default function ProductsPage() {
                             variant="outline"
                             size="sm"
                             disabled={currentPage === totalPages}
-                            onClick={() => handlePageChange(totalPages)}
+                            onClick={() => {
+                              console.log('Last button clicked, current page:', currentPage, 'total pages:', totalPages);
+                              handlePageChange(totalPages);
+                            }}
                             className="min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-50 transition-all duration-200"
                           >
                             Last

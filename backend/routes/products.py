@@ -148,13 +148,15 @@ def get_products():
     
     # Use limit if provided, otherwise use pagination
     if limit:
-        products = query.limit(limit).all()
+        # Calculate offset based on page
+        offset = (page - 1) * limit
+        products = query.offset(offset).limit(limit).all()
         total = query.count()
         return jsonify({
             'products': [product_list_dict(product) for product in products],
             'total': total,
             'pages': (total + limit - 1) // limit,
-            'current_page': 1
+            'current_page': page
         })
     else:
         # Paginate results

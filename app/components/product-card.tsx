@@ -736,7 +736,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
                   KES {product.price.toLocaleString()}
                 </span>
                 {product.original_price && (
-                  <span className="ml-1 sm:ml-2 text-xs text-gray-500 line-through flex-shrink-0">
+                  <span className="hidden sm:inline ml-1 sm:ml-2 text-xs text-gray-500 line-through flex-shrink-0">
                     KES {product.original_price.toLocaleString()}
                   </span>
                 )}
