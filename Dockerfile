@@ -20,7 +20,7 @@ ENV PYTHONPATH=/app
 ENV PORT=5000
 
 # Create a startup script
-RUN echo '#!/bin/bash\ncd /app\npython run.py' > /app/start.sh
+RUN echo '#!/bin/bash\ncd /app\npython test_app.py' > /app/start.sh
 RUN chmod +x /app/start.sh
 
 # Run the application
