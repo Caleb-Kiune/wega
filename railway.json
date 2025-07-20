@@ -4,11 +4,10 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "cd backend && gunicorn -w 4 -b 0.0.0.0:$PORT run:app",
+    "startCommand": "cd backend && python run.py",
     "healthcheckPath": "/",
     "healthcheckTimeout": 100,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
-  },
-  "buildCommand": "cd backend && pip install -r requirements.txt"
+  }
 } 
