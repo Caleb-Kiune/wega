@@ -71,7 +71,7 @@ class ProductionConfig(Config):
     else:
         SQLALCHEMY_DATABASE_URI = DATABASE_URL
     
-    BASE_URL = os.environ.get('BASE_URL', 'https://wega-backend.onrender.com')
+    BASE_URL = os.environ.get('BASE_URL', 'https://wega-production.up.railway.app')
     
     # Production CORS settings - include Railway domains
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(',') + [
