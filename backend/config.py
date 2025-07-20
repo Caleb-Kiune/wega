@@ -1,7 +1,9 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+# Only load .env file in development
+if os.environ.get('FLASK_ENV') != 'production' and not os.environ.get('DATABASE_URL'):
+    load_dotenv()
 
 class Config:
     """Base configuration class"""
@@ -38,8 +40,6 @@ class Config:
         # Production URLs
         'https://wega-one.vercel.app',  # Your actual Vercel frontend URL
         'https://wega-kitchenware.vercel.app',  # Alternative Vercel URL
-        # Backend URLs for testing
-        'https://wega-backend.onrender.com',  # Your Render backend URL
         # Railway URLs (will be added dynamically)
         'https://*.railway.app',
         'https://*.up.railway.app'

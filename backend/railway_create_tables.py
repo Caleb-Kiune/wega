@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
 """
-Create Database Tables Script
-Directly creates database tables without using Flask-Migrate
+Railway Create Tables Script
+Creates database tables directly on Railway PostgreSQL
 """
 
 import os
 import sys
 from app_factory import create_app
 
-def create_database_tables():
-    """Create database tables directly"""
+def create_railway_tables():
+    """Create database tables on Railway"""
     
-    print("🔧 Creating Database Tables")
-    print("=" * 40)
+    print("🔧 Creating Railway Database Tables")
+    print("=" * 50)
     
-    # Create the app
+    # Create the app with production config
     app = create_app('production')
     
     with app.app_context():
         try:
-            print("🔄 Creating database tables...")
+            print("🔄 Creating database tables on Railway...")
             
             # Import all models to ensure they're registered
             from models import db
@@ -33,10 +33,15 @@ def create_database_tables():
             from models.user import User
             from models.product_image import ProductImage
             
+            # Drop all tables first (in case they exist)
+            print("🔄 Dropping existing tables...")
+            db.drop_all()
+            
             # Create all tables
+            print("🔄 Creating new tables...")
             db.create_all()
             
-            print("✅ Database tables created successfully!")
+            print("✅ Database tables created successfully on Railway!")
             print("📊 Tables created:")
             
             # List all tables
@@ -61,4 +66,4 @@ def create_database_tables():
             return False
 
 if __name__ == "__main__":
-    create_database_tables() 
+    create_railway_tables() 

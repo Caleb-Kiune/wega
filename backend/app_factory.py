@@ -7,6 +7,14 @@ import os
 
 def create_app(config_name='default'):
     """Application factory function"""
+    
+    # Use production config if DATABASE_URL is set and is PostgreSQL (Railway deployment)
+    if os.environ.get('DATABASE_URL') and 'postgresql' in os.environ.get('DATABASE_URL', ''):
+        config_name = 'production'
+        print(f"🔄 Using production config (PostgreSQL DATABASE_URL detected)")
+    else:
+        print(f"🔄 Using config: {config_name}")
+    
     # Use custom instance path to force use of main database file
     instance_path = os.path.abspath(os.path.dirname(__file__))
     app = Flask(__name__, static_folder='static', instance_path=instance_path)
@@ -90,5 +98,32 @@ def create_app(config_name='default'):
             "message": "An error occurred while processing your request"
         }
         return jsonify(response), getattr(error, 'code', 500)
+    
+    # Run migrations ONLY for PostgreSQL in production
+    if config_name == 'production' and 'postgresql' in os.environ.get('DATABASE_URL', ''):
+        print(f"🔄 Running PostgreSQL migrations...")
+        with app.app_context():
+            try:
+                print("🔄 Starting database migration...")
+                from flask_migrate import upgrade
+                upgrade()
+                print("✅ Database migrations completed successfully")
+            except Exception as e:
+                print(f"❌ Migration failed with error: {e}")
+                print(f"❌ Error type: {type(e).__name__}")
+                print(f"❌ Error details: {str(e)}")
+                
+                # Try to get more specific error information
+                try:
+                    import traceback
+                    print(f"❌ Full traceback:")
+                    traceback.print_exc()
+                except:
+                    pass
+                
+                print("⚠️  Application will continue without database tables")
+                print("⚠️  API endpoints requiring database will fail")
+    else:
+        print(f"⚠️  Migration skipped - config: {config_name}, DATABASE_URL: {os.environ.get('DATABASE_URL', 'Not set')[:50]}...")
     
     return app 

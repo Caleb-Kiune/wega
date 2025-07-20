@@ -230,3 +230,64 @@ def get_admin_stats():
             'error': 'Failed to get admin stats',
             'message': str(e)
         }), 500 
+
+@admin_bp.route('/health', methods=['GET'])
+def health():
+    """Admin health check"""
+    return jsonify({
+        'status': 'healthy',
+        'message': 'Admin endpoints are working'
+    })
+
+@admin_bp.route('/create-tables', methods=['POST'])
+def create_tables():
+    """Create database tables"""
+    try:
+        print("🔄 Creating database tables via API...")
+        
+        # Drop all tables first (in case they exist)
+        print("🔄 Dropping existing tables...")
+        db.drop_all()
+        
+        # Create all tables
+        print("🔄 Creating new tables...")
+        db.create_all()
+        
+        print("✅ Database tables created successfully!")
+        
+        # List all tables
+        inspector = db.inspect(db.engine)
+        tables = inspector.get_table_names()
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Database tables created successfully',
+            'tables': tables
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ Failed to create tables: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to create tables: {str(e)}',
+            'error_type': type(e).__name__
+        }), 500
+
+@admin_bp.route('/tables', methods=['GET'])
+def list_tables():
+    """List all database tables"""
+    try:
+        inspector = db.inspect(db.engine)
+        tables = inspector.get_table_names()
+        
+        return jsonify({
+            'status': 'success',
+            'tables': tables,
+            'count': len(tables)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to list tables: {str(e)}'
+        }), 500 

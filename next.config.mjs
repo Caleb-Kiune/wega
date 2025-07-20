@@ -1,75 +1,59 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
     domains: [
-      'localhost', 
-      'hebbkx1anhila5yf.public.blob.vercel-storage.com', 
-      'wega-backend.onrender.com',
-      'wega-production.up.railway.app',  // Add Railway domain
-      'your-domain.com',
-      'res.cloudinary.com'  // Add Cloudinary domain
+      'localhost',
+      'wega-production.up.railway.app',
+      'wega-one.vercel.app',
+      'wega-kitchenware.vercel.app',
+      'res.cloudinary.com',
     ],
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '5000',
-        pathname: '/static/**',
-      },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '5000',
-        pathname: '/images/**',
+        protocol: 'https',
+        hostname: 'wega-production.up.railway.app',
+        port: '',
+        pathname: '/static/uploads/**',
       },
       {
         protocol: 'https',
-        hostname: 'hebbkx1anhila5yf.public.blob.vercel-storage.com',
+        hostname: 'wega-one.vercel.app',
+        port: '',
         pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'wega-backend.onrender.com',
-        pathname: '/static/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'wega-backend.onrender.com',
-        pathname: '/images/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'wega-production.up.railway.app',  // Add Railway domain
-        pathname: '/static/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'wega-production.up.railway.app',  // Add Railway domain
-        pathname: '/images/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'your-domain.com',
-        pathname: '/static/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'your-domain.com',
-        pathname: '/images/**',
+        hostname: 'wega-kitchenware.vercel.app',
+        port: '',
+        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
+        port: '',
         pathname: '/**',
       },
     ],
   },
-}
+  experimental: {
+    serverComponentsExternalPackages: ['sharp'],
+  },
+  webpack: (config) => {
+    config.externals = [...config.externals, 'sharp'];
+    return config;
+  },
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' },
+        ],
+      },
+    ];
+  },
+};
 
-export default nextConfig
+module.exports = nextConfig;
