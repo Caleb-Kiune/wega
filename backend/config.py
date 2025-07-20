@@ -17,6 +17,11 @@ class Config:
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
     MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
     
+    # Cloudinary configuration
+    CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', 'dy082ykuf')
+    CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '467453488849521')
+    CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', 'hcevXMTHU3PiVjxCmRLbcqYzFNw')
+    
     # CORS configuration
     CORS_ORIGINS = [
         'http://localhost:3000',

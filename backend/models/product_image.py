@@ -7,6 +7,7 @@ class ProductImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
     image_url = db.Column(db.String(255), nullable=False)
+    public_id = db.Column(db.String(255), nullable=True)  # Cloudinary public_id
     is_primary = db.Column(db.Boolean, nullable=True)
     display_order = db.Column(db.Integer, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
@@ -30,6 +31,7 @@ class ProductImage(db.Model):
             'id': self.id,
             'product_id': self.product_id,
             'image_url': image_url,
+            'public_id': self.public_id,
             'is_primary': self.is_primary,
             'display_order': self.display_order,
             'created_at': self.created_at.isoformat() if self.created_at else None
