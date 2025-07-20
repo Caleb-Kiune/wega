@@ -17,6 +17,11 @@ EXPOSE 5000
 # Set environment variables
 ENV FLASK_ENV=production
 ENV PYTHONPATH=/app
+ENV PORT=5000
+
+# Create a startup script
+RUN echo '#!/bin/bash\ncd /app\npython run.py' > /app/start.sh
+RUN chmod +x /app/start.sh
 
 # Run the application
-CMD ["python", "run.py"] 
+CMD ["/app/start.sh"] 

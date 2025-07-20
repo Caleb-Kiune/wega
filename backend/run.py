@@ -24,8 +24,13 @@ if env == 'production':
 
 if __name__ == '__main__':
     # Run the application
+    port = int(os.environ.get('PORT', 5000))
+    print(f"🚀 Starting Flask app on port {port}")
+    print(f"🌍 Environment: {env}")
+    print(f"🔗 Database URL: {os.environ.get('DATABASE_URL', 'Not set')}")
+    
     app.run(
         host='0.0.0.0',
-        port=int(os.environ.get('PORT', 5000)),
-        debug=app.config.get('DEBUG', True)
+        port=port,
+        debug=app.config.get('DEBUG', False)
     ) 

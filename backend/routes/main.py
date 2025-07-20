@@ -19,6 +19,14 @@ def index():
         }
     })
 
+@main_bp.route('/health')
+def health():
+    """Health check endpoint"""
+    return jsonify({
+        'status': 'healthy',
+        'message': 'Wega Kitchenware API is running'
+    })
+
 @main_bp.route('/static/<path:filename>')
 def serve_static(filename):
     """Serve static files"""
