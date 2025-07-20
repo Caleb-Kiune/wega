@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: wega-backend
+    env: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && python run.py
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: CLOUDINARY_CLOUD_NAME
+        value: dy082ykuf
+      - key: CLOUDINARY_API_KEY
+        value: 467453488849521
+      - key: CLOUDINARY_API_SECRET
+        value: hcevXMTHU3PiVjxCmRLbcqYzFNw
+      - key: CORS_ORIGINS
+        value: https://wega-kitchenware.vercel.app,https://wega-one.vercel.app 
