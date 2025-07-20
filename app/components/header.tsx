@@ -49,43 +49,6 @@ interface Product {
   }>;
 }
 
-const searchProducts = (products: Product[], query: string): Product[] => {
-  if (!query.trim()) return []
-  
-  const searchTerm = query.toLowerCase()
-  const searchWords = searchTerm.split(' ').filter(word => word.length > 0)
-  
-  return products.filter(product => {
-    const productName = product.name.toLowerCase()
-    const productCategory = product.category?.toLowerCase() || ''
-    const productDescription = product.description?.toLowerCase() || ''
-    
-    // Check if any search word matches the product name
-    const nameMatch = searchWords.some(word => 
-      productName.includes(word) ||
-      productName.split(' ').some(nameWord => nameWord.startsWith(word))
-    )
-    
-    // Check if any search word matches the category
-    const categoryMatch = searchWords.some(word => 
-      productCategory.includes(word)
-    )
-    
-    // Check if any search word matches the description
-    const descriptionMatch = searchWords.some(word => 
-      productDescription.includes(word)
-    )
-    
-    // Check if the full search term matches anywhere
-    const fullMatch = productName.includes(searchTerm) || 
-                     productCategory.includes(searchTerm) ||
-                     productDescription.includes(searchTerm)
-    
-    return nameMatch || categoryMatch || descriptionMatch || fullMatch
-  }).slice(0, 6)
-}
-
-
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -94,7 +57,6 @@ export default function Header() {
   const [searchResults, setSearchResults] = useState<Product[]>([])
   const [showResults, setShowResults] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
-  const [products, setProducts] = useState<Product[]>([])
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
   const searchRef = useRef<HTMLDivElement>(null)
@@ -110,22 +72,6 @@ export default function Header() {
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  // Load products for search
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const response = await fetch('/api/products?limit=100')
-        if (response.ok) {
-          const data = await response.json()
-          setProducts(data.products || [])
-        }
-      } catch (error) {
-        console.error('Failed to load products for search:', error)
-      }
-    }
-    loadProducts()
   }, [])
 
   // Load recent searches from localStorage
@@ -160,14 +106,28 @@ export default function Header() {
       }
 
       setIsSearching(true)
-      const results = searchProducts(products, searchQuery)
-      setSearchResults(results)
+      
+      try {
+        // Make API call to search the full database
+        const response = await fetch(`/api/products?search=${encodeURIComponent(searchQuery.trim())}&limit=6`)
+        if (response.ok) {
+          const data = await response.json()
+          setSearchResults(data.products || [])
+        } else {
+          console.error('Search API call failed')
+          setSearchResults([])
+        }
+      } catch (error) {
+        console.error('Search API call error:', error)
+        setSearchResults([])
+      }
+      
       setIsSearching(false)
     }
 
     const timeoutId = setTimeout(performSearch, 300)
     return () => clearTimeout(timeoutId)
-  }, [searchQuery, products])
+  }, [searchQuery])
 
   // Enhanced clear search function
   const clearSearch = () => {
