@@ -60,7 +60,17 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    
+    # Database configuration with proper fallback
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    if not DATABASE_URL:
+        print("⚠️  WARNING: DATABASE_URL not set in production!")
+        print("   Please set DATABASE_URL environment variable in Railway")
+        # Use SQLite as fallback for now (not recommended for production)
+        SQLALCHEMY_DATABASE_URI = 'sqlite:///app.db'
+    else:
+        SQLALCHEMY_DATABASE_URI = DATABASE_URL
+    
     BASE_URL = os.environ.get('BASE_URL', 'https://wega-backend.onrender.com')
     
     # Production CORS settings - include Railway domains

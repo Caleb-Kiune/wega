@@ -23,11 +23,22 @@ def index():
 
 @main_bp.route('/health')
 def health():
-    """Health check endpoint"""
-    return jsonify({
-        'status': 'healthy',
-        'message': 'Wega Kitchenware API is running'
-    })
+    """Health check endpoint - no database required"""
+    try:
+        # Basic health check without database
+        return jsonify({
+            'status': 'healthy',
+            'message': 'Wega Kitchenware API is running',
+            'environment': current_app.config.get('ENV', 'unknown'),
+            'debug': current_app.config.get('DEBUG', False),
+            'database_configured': bool(current_app.config.get('SQLALCHEMY_DATABASE_URI'))
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'message': f'Health check failed: {str(e)}',
+            'environment': current_app.config.get('ENV', 'unknown')
+        }), 500
 
 @main_bp.route('/usage')
 def usage():
@@ -47,7 +58,8 @@ def usage():
             },
             'environment': {
                 'flask_env': current_app.config.get('ENV', 'unknown'),
-                'debug': current_app.config.get('DEBUG', False)
+                'debug': current_app.config.get('DEBUG', False),
+                'database_configured': bool(current_app.config.get('SQLALCHEMY_DATABASE_URI'))
             },
             'free_tier_limits': {
                 'railway_credit': '$5/month',

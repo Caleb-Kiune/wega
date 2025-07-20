@@ -14,6 +14,16 @@ def create_app(config_name='default'):
     # Load configuration
     app.config.from_object(config[config_name])
     
+    # Check if database URI is set
+    if not app.config.get('SQLALCHEMY_DATABASE_URI'):
+        print("❌ ERROR: SQLALCHEMY_DATABASE_URI not configured!")
+        print("   Please set DATABASE_URL environment variable")
+        print("   Current environment:", os.environ.get('FLASK_ENV', 'unknown'))
+        print("   Available environment variables:", list(os.environ.keys()))
+        raise RuntimeError("SQLALCHEMY_DATABASE_URI not configured")
+    
+    print(f"✅ Database URI configured: {app.config['SQLALCHEMY_DATABASE_URI'][:50]}...")
+    
     # Initialize extensions
     db.init_app(app)
     migrate = Migrate(app, db)
