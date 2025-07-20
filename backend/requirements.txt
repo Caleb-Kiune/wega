@@ -26,4 +26,7 @@ coverage==7.3.2
 # Production (optional)
 gunicorn==21.2.0
 
+# System monitoring for free tier tracking
+psutil==5.9.5
+
 PyJWT==2.8.0 

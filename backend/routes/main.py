@@ -15,7 +15,9 @@ def index():
             'cart': '/api/cart',
             'orders': '/api/orders',
             'delivery': '/api/delivery-locations',
-            'upload': '/api/upload'
+            'upload': '/api/upload',
+            'health': '/health',
+            'usage': '/usage'
         }
     })
 
@@ -26,6 +28,38 @@ def health():
         'status': 'healthy',
         'message': 'Wega Kitchenware API is running'
     })
+
+@main_bp.route('/usage')
+def usage():
+    """Usage monitoring endpoint for free tier tracking"""
+    try:
+        # Get basic system info
+        import psutil
+        memory_info = psutil.virtual_memory()
+        disk_info = psutil.disk_usage('/')
+        
+        return jsonify({
+            'status': 'success',
+            'system': {
+                'memory_percent': memory_info.percent,
+                'disk_percent': disk_info.percent,
+                'cpu_count': psutil.cpu_count()
+            },
+            'environment': {
+                'flask_env': current_app.config.get('ENV', 'unknown'),
+                'debug': current_app.config.get('DEBUG', False)
+            },
+            'free_tier_limits': {
+                'railway_credit': '$5/month',
+                'cloudinary_storage': '25 GB',
+                'cloudinary_bandwidth': '25 GB/month'
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Could not get usage info: {str(e)}'
+        }), 500
 
 @main_bp.route('/static/<path:filename>')
 def serve_static(filename):

@@ -1,13 +1,14 @@
-# Use Python 3.11 slim image
+# Use Python 3.11 slim image for smaller size
 FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies in one layer to reduce image size
 RUN apt-get update && apt-get install -y \
     gcc \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 # Copy requirements first for better caching
 COPY backend/requirements.txt .
@@ -25,5 +26,5 @@ ENV PYTHONPATH=/app
 # Expose port
 EXPOSE 5000
 
-# Start the application with Gunicorn
-CMD gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 
+# Start the application with Gunicorn (optimized for free tier)
+CMD gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 
