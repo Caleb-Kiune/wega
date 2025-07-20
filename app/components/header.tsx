@@ -251,7 +251,7 @@ export default function Header() {
 
   const navigation = [
     { name: "Home", href: "/", icon: Home },
-    { name: "Products", href: "/products?limit=100", icon: ShoppingBag },
+    { name: "Products", href: "/products", icon: ShoppingBag },
   ]
 
   const trustSignals = [
@@ -636,7 +636,7 @@ export default function Header() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Link
-                        href="/products?limit=100"
+                        href="/products"
                         aria-label="Products"
                         className="text-gray-600 hover:text-green-600 p-3 rounded-xl hover:bg-green-50 transition-all duration-300 focus-visible:ring-4 focus-visible:ring-green-200 min-h-[48px] min-w-[48px] flex items-center justify-center group"
                       >

@@ -40,6 +40,20 @@ export default function ProductsPage() {
     search: searchParams.get('search') || undefined,
   });
 
+  // Debug logging for initial load
+  useEffect(() => {
+    console.log('Products page loaded with initial filters:', {
+      page: filters.page,
+      limit: filters.limit,
+      search: filters.search,
+      categories: filters.categories,
+      brands: filters.brands,
+      is_featured: filters.is_featured,
+      is_new: filters.is_new,
+      is_sale: filters.is_sale
+    });
+  }, []);
+
   // Handle search parameter changes from URL
   useEffect(() => {
     const urlSearch = searchParams.get('search');
