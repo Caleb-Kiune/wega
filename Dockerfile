@@ -27,4 +27,5 @@ ENV PYTHONPATH=/app
 EXPOSE 5000
 
 # Start the application with Gunicorn (optimized for free tier)
-CMD gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 
+# Use shell form so $PORT is expanded by the shell and can be overridden by Railway
+CMD gunicorn --bind 0.0.0.0:$PORT wsgi:app 
