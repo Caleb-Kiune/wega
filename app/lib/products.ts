@@ -107,3 +107,17 @@ export async function getBrands(): Promise<{ brands: Array<{ id: number; name: s
     throw error;
   }
 }
+
+export function getImageUrl(path: string): string {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  return `https://wega-production.up.railway.app/static/uploads/${path}`;
+}
+
+export const productsApi = {
+  getProducts,
+  getProduct,
+  getCategories,
+  getBrands,
+  getImageUrl,
+};
