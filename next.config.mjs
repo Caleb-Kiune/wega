@@ -36,8 +36,9 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverComponentsExternalPackages: ['sharp'],
+    // serverComponentsExternalPackages: ['sharp'], // Removed as per Next.js 15.2.4 migration
   },
+  serverExternalPackages: ['sharp'],
   webpack: (config) => {
     config.externals = [...config.externals, 'sharp'];
     return config;
