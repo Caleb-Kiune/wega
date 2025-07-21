@@ -7,20 +7,27 @@ interface PageProps {
   params: { id: string };
 }
 
-// This is a server component and can be async in the Next.js App Router
-const OrderDetailsPage = async ({ params }: PageProps) => {
+// Helper function to fetch order data on the server
+async function getOrder(orderId: number) {
+  // Fetch the order data from your API (ensure the result is serializable)
+  return ordersApi.getById(orderId);
+}
+
+// This is a server component (no 'use client' directive)
+// It receives params from the Next.js router
+export default async function OrderDetailsPage({ params }: PageProps) {
   // Validate that params.id is a valid integer string
   const orderId = Number(params.id);
   if (isNaN(orderId)) {
-    // You can customize this error UI as needed
+    // Render a simple error UI if the ID is invalid
     return <div>Invalid order ID.</div>;
   }
 
-  // Fetch the order data from your API (make sure the result is serializable)
-  const order = await ordersApi.getById(orderId);
+  // Fetch order data using a helper function (keeps the component clean)
+  const order = await getOrder(orderId);
 
-  // Suspense fallback only works if OrderDetailsClient or its children use suspense/lazy features
-  // Otherwise, the fallback will never be shown
+  // Suspense is only needed if OrderDetailsClient or its children use suspense/lazy features
+  // If not, you can remove Suspense. If you want to keep it for future-proofing, that's fine.
   return (
     <Suspense fallback={
       <div className="container mx-auto px-4 py-8">
@@ -33,6 +40,4 @@ const OrderDetailsPage = async ({ params }: PageProps) => {
       <OrderDetailsClient initialOrder={order} />
     </Suspense>
   );
-};
-
-export default OrderDetailsPage; 
+} 
