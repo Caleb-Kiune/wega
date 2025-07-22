@@ -2,6 +2,7 @@
 nixPkgs = ["python311", "python311Packages.pip"]
 
 [phases.build]
+env = { FLASK_APP = "run:app" }
 cmds = ["python -m flask db upgrade"]
 
 [start]
