@@ -7,7 +7,10 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ['localhost', 'hebbkx1anhila5yf.public.blob.vercel-storage.com', 'wega-backend.onrender.com', 'your-domain.com'],
+    domains: [
+      'wega-production-28c0.up.railway.app',
+      'res.cloudinary.com',
+    ],
     remotePatterns: [
       {
         protocol: 'http',

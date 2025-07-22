@@ -245,10 +245,15 @@ def create_product():
                 is_valid, error_message = validate_image_data(image_data)
                 if not is_valid:
                     return jsonify({'error': error_message}), 400
-                
+
+                image_url = image_data['image_url']
+                # Enforce Cloudinary URL
+                if not image_url.startswith('https://res.cloudinary.com/'):
+                    return jsonify({'error': 'All product images must be uploaded to Cloudinary.'}), 400
+
                 product_image = ProductImage(
                     product_id=product.id,
-                    image_url=image_data['image_url'],
+                    image_url=image_url,
                     is_primary=image_data.get('is_primary', i == 0),  # First image is primary by default
                     display_order=image_data.get('display_order', i)
                 )
@@ -329,9 +334,14 @@ def update_product(id):
                 if not is_valid:
                     return jsonify({'error': error_message}), 400
                 
+                image_url = image_data['image_url']
+                # Enforce Cloudinary URL
+                if not image_url.startswith('https://res.cloudinary.com/'):
+                    return jsonify({'error': 'All product images must be uploaded to Cloudinary.'}), 400
+
                 product_image = ProductImage(
                     product_id=product.id,
-                    image_url=image_data['image_url'],
+                    image_url=image_url,
                     is_primary=image_data.get('is_primary', i == 0),
                     display_order=image_data.get('display_order', i)
                 )

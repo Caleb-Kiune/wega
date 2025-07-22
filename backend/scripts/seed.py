@@ -1,7 +1,12 @@
-from app import app, db
-from models import Category, Brand, Product, ProductImage, ProductSpecification, ProductFeature, Review, DeliveryLocation, Order, OrderItem
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from app_factory import create_app
+from models import db, Category, Brand, Product, ProductImage, ProductSpecification, ProductFeature, Review, DeliveryLocation, Order, OrderItem
 from datetime import datetime, timedelta
 import random
+
+app = create_app('production')
 
 def seed_database():
     with app.app_context():
