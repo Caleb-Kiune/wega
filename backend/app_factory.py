@@ -16,7 +16,7 @@ def create_app(config_name='default'):
     
     # Initialize extensions
     db.init_app(app)
-    migrate = Migrate(app, db)
+    # migrate = Migrate(app, db)  # Removed, now handled in run.py
     
     # Configure CORS
     if app.config['DEBUG']:

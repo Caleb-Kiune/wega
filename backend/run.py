@@ -4,12 +4,17 @@ Main application entry point for Wega Kitchenware Backend
 """
 import os
 from app_factory import create_app
+from models import db
+from flask_migrate import Migrate
 
 # Get environment from environment variable
 env = os.environ.get('FLASK_ENV', 'development')
 
 # Create the application
 app = create_app(env)
+
+# Register Flask-Migrate with the Flask CLI
+migrate = Migrate(app, db)
 
 # Auto-run migrations in production
 if env == 'production':
