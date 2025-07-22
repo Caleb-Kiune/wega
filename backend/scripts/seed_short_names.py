@@ -3,28 +3,45 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app_factory import create_app
-from models import db, Product, ProductImage, Category, Brand, ProductFeature, ProductSpecification
+from models import db, Product, ProductImage, Category, Brand, ProductFeature, ProductSpecification, Review
 from datetime import datetime
 import random
 
-def get_upload_images():
-    """Get list of available images from uploads folder"""
-    uploads_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'uploads')
-    if not os.path.exists(uploads_dir):
-        return []
-    
-    image_extensions = {'.jpg', '.jpeg', '.png', '.webp'}
-    images = []
-    
-    for filename in os.listdir(uploads_dir):
-        if any(filename.lower().endswith(ext) for ext in image_extensions):
-            images.append(filename)
-    
-    return images
+# List of Cloudinary URLs from the previous upload
+CLOUDINARY_IMAGE_URLS = [
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193414/hc32rvpjeztlnxudk9id.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193416/i4u9p1hnkvt2vewnruaz.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193419/gvgmz0czmqjru8t3feuw.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193421/juxj8aehrtuvj7dsf0yf.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193423/pg3mvq3npknngip8iiwg.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193426/cwmjp37gm7hs7vxbes1d.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193427/xy5cofxxiroxqg2t17oj.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193429/kigy2pajny2iao3mwu3i.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193431/oteqzjkayfso0sxtk7vl.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193432/dye9zs2q1jedbp7srgtq.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193433/fbqjaci1gm5358gzrxny.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193436/vba7iycgkbcxnoxlq0fk.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193438/yoqadnaykrjs80q9h3gu.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193440/wycic9jovwiedef553aj.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193444/zqxsrgj6m77ws73srlrg.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193445/k757fugdgwvjguotglcs.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193447/mncg6ddkvd3uqsczb2qp.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193449/wdlfaub6znymitkcdkmx.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193450/sftjawnlqbo9iu5kfavr.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193452/vmubz4gj59f5zqrrusyt.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193454/b1xo2khnpxlexun2vcvy.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193456/vvqi6zl00vxltkwiupl7.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193457/eibzdn31odtz6j9fvqqt.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193458/gs9ughb8ideu0dlwlcql.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193460/npd9wwblxqdt1cojzlmx.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193461/ddky4ccpwhadyvtdah8a.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193463/sd2h1bjfe1dsc4wricsq.jpg",
+    "https://res.cloudinary.com/dy082ykuf/image/upload/v1753193465/gr5d2njzi6zvd8ypjc2t.jpg"
+]
 
 def seed_short_names():
     """Seed database with products that have short, impactful names"""
-    app = create_app('development')
+    app = create_app('production')
     
     with app.app_context():
         print("🗑️  Clearing existing data...")
@@ -33,19 +50,12 @@ def seed_short_names():
         ProductFeature.query.delete()
         ProductSpecification.query.delete()
         ProductImage.query.delete()
+        Review.query.delete()  # Delete reviews before products
         Product.query.delete()
         Category.query.delete()
         Brand.query.delete()
         
         print("✅ Database cleared")
-        
-        # Get available images
-        available_images = get_upload_images()
-        print(f"📸 Found {len(available_images)} images")
-        
-        if not available_images:
-            print("❌ No images found! Please add some images to static/uploads/")
-            return
         
         # Create categories
         categories_data = [
@@ -84,7 +94,7 @@ def seed_short_names():
         print(f"✅ Created {len(categories)} categories and {len(brands)} brands")
         
         # SHORT PRODUCT NAMES - Perfect for product cards!
-        products_data = [
+        base_products_data = [
             # Cookware (Short, impactful names)
             {
                 'name': 'Frying Pan',
@@ -361,6 +371,18 @@ def seed_short_names():
                 'is_featured': False
             }
         ]
+        # Generate 100 products by duplicating and randomizing base templates
+        products_data = []
+        for i in range(100):
+            base = random.choice(base_products_data)
+            product = base.copy()
+            product['name'] = f"{base['name']} {i+1}"
+            product['price'] = random.randint(2999, 19999)
+            product['original_price'] = product['price'] + random.randint(1000, 5000)
+            product['is_featured'] = random.choice([True, False])
+            product['is_sale'] = random.choice([True, False])
+            # Optionally randomize features/specs
+            products_data.append(product)
         
         # Create products
         print("🛍️  Creating products with short names...")
@@ -405,8 +427,8 @@ def seed_short_names():
                 db.session.add(product_spec)
             
             # Add random images (1-2 images per product)
-            num_images = random.randint(1, min(2, len(available_images)))
-            selected_images = random.sample(available_images, num_images)
+            num_images = random.randint(1, min(2, len(CLOUDINARY_IMAGE_URLS)))
+            selected_images = random.sample(CLOUDINARY_IMAGE_URLS, num_images)
             
             for i, image_url in enumerate(selected_images):
                 product_image = ProductImage(
