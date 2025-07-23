@@ -243,19 +243,11 @@ export default function Header() {
   return (
     <>
       {/* Enhanced Top Bar with Trust Signals */}
-      <div className="bg-gradient-to-r from-green-600 via-green-500 to-emerald-600 text-white py-2 px-4">
+      <div className="bg-gradient-to-r from-green-600 via-green-500 to-emerald-600 text-white py-1 sm:py-2 px-2 sm:px-4">
         <div className="container-responsive">
           <div className="flex flex-col sm:flex-row justify-between items-center">
             {/* Contact Info */}
           <div className="flex items-center justify-center mb-2 sm:mb-0">
-            <Phone className="h-4 w-4 mr-2" />
-            <a 
-              href="tel:0769899432" 
-                className="underline hover:text-green-200 focus-visible:ring-2 focus-visible:ring-white transition-colors p-2 -m-2 rounded-lg font-medium" 
-              aria-label="Call us: 0769899432"
-            >
-              0769899432
-            </a>
           </div>
 
             {/* Trust Signals */}
@@ -362,11 +354,11 @@ export default function Header() {
                 <Image
                   src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/wega%20kitchenware%20website..jpg-WrrItNFb2yW5TLOQ4Ax5GY0Sv0YPew.jpeg"
                   alt="WEGA Kitchenware Logo"
-                    width={120}
-                    height={60}
+                    width={100}
+                    height={50}
                   className={cn(
-                      "w-auto transition-all duration-300 drop-shadow-sm",
-                      isScrolled ? "h-8" : "h-10"
+                      "w-auto transition-all duration-300 drop-shadow-sm h-8 sm:h-10",
+                      isScrolled ? "h-7 sm:h-8" : "h-8 sm:h-10"
                   )}
                   priority
                 />
@@ -606,7 +598,7 @@ export default function Header() {
                         aria-label="Home"
                         className="text-gray-600 hover:text-green-600 p-3 rounded-xl hover:bg-green-50 transition-all duration-300 focus-visible:ring-4 focus-visible:ring-green-200 min-h-[48px] min-w-[48px] flex items-center justify-center group"
                       >
-                        <Home className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+                        <Home className="h-5 w-5 sm:h-6 sm:w-6 group-hover:scale-110 transition-transform duration-200" />
                       </Link>
                     </TooltipTrigger>
                     <TooltipContent>Home</TooltipContent>

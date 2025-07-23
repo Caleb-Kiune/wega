@@ -176,33 +176,33 @@ export default function HeroSection() {
       </div>
 
       {/* Content Container with Smooth Transitions (no panel/card) */}
-      <div className="relative z-10 flex items-center justify-center w-full px-4 py-8 sm:py-10 lg:py-12">
+      <div className="relative z-10 flex items-center justify-center w-full px-4 py-6 sm:py-10 lg:py-12">
         <div className={`flex flex-col items-center gap-6 transition-all duration-800 ease-in-out ${
           isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
         }`}>
           {/* Badge - white text, theme green star */}
-          <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-4 py-1.5 text-xs font-semibold shadow text-white">
+          <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-4 py-1.5 text-xs font-semibold shadow text-white mb-2">
             <Star className="h-3.5 w-3.5 text-emerald-400" />
             <span>{currentSlideData.badge}</span>
           </div>
 
-          {/* Headline - larger, bolder, stronger shadow */}
-          <h1 className="text-4xl sm:text-5xl font-extrabold mb-2 tracking-tight leading-tight text-white text-shadow-strong text-center">
+          {/* Headline - slightly smaller on mobile */}
+          <h1 className="text-3xl sm:text-5xl font-extrabold mb-3 tracking-tight leading-tight text-white text-shadow-strong text-center">
             {currentSlideData.title}
-            <span className="block bg-gradient-to-r from-emerald-200 to-green-300 bg-clip-text text-transparent mt-2 text-3xl sm:text-4xl font-bold text-shadow-strong">
+            <span className="block bg-gradient-to-r from-emerald-200 to-green-300 bg-clip-text text-transparent mt-2 text-2xl sm:text-4xl font-bold text-shadow-strong">
               {currentSlideData.subtitle}
             </span>
           </h1>
 
           {/* Description - improved spacing and shadow */}
-          <p className="text-base sm:text-lg text-slate-200 mb-4 max-w-2xl mx-auto leading-relaxed px-4 text-shadow-strong text-center">
+          <p className="text-base sm:text-lg text-slate-200 max-w-2xl mx-auto leading-relaxed px-4 text-shadow-strong text-center mb-4">
             {currentSlideData.description}
           </p>
 
           {/* CTA Button - brighter, larger, rounded, with icon */}
           <Link
             href={currentSlideData.ctaLink}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-full px-10 py-4 shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-lg mt-2"
+            className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-full px-10 py-4 shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-lg mt-4 mb-2"
           >
             {currentSlideData.ctaText}
             <ArrowRight className="h-5 w-5" />
