@@ -344,6 +344,15 @@
     font-feature-settings: "liga" 1, "kern" 1;
     letter-spacing: 0.01em;
   }
+  .card-interactive {
+    @apply rounded-2xl shadow-lg transition-all duration-300 ease-in-out hover:shadow-2xl;
+  }
+  .section-padding {
+    @apply py-12 sm:py-16 lg:py-20;
+  }
+  .section-padding-lg {
+    @apply py-20 sm:py-28 lg:py-32;
+  }
 }
 
 @layer utilities {
@@ -392,5 +401,17 @@
   
   .text-shadow {
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .hide-scrollbar {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/Webkit */
+  }
+
+  .text-shadow-strong {
+    text-shadow: 0 4px 24px rgba(0,0,0,0.7), 0 1.5px 0 rgba(0,0,0,0.5);
   }
 }

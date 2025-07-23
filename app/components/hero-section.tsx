@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Truck, Shield, Award, ChevronLeft, ChevronRight } from "lucide-react"
+import { ArrowRight, Truck, Shield, Award, ChevronLeft, ChevronRight, Star } from "lucide-react"
 
 interface Slide {
   id: number
@@ -21,47 +21,47 @@ interface Slide {
 const slides: Slide[] = [
   {
     id: 1,
-    image: "/images/homeessentials1.jpeg",
-    alt: "Premium kitchenware collection",
-    title: "Transform Your Kitchen",
-    subtitle: "Premium Kitchenware",
-    description: "Discover our curated collection of high-quality cookware, utensils, and appliances.",
+    image: "/images/hero1.jpg",
+    alt: "Modern pans and pots on white tile",
+    title: "Cook with Confidence",
+    subtitle: "Premium Non-Stick Cookware",
+    description: "Upgrade your kitchen with our best-selling non-stick pans and pots.",
     ctaText: "Shop Now",
     ctaLink: "/products",
-    badge: "Kenya's #1 Kitchenware"
+    badge: "Best Seller"
   },
   {
     id: 2,
-    image: "/images/homeessentials2.jpeg",
-    alt: "Modern kitchen appliances",
-    title: "Modern Appliances",
-    subtitle: "Contemporary Kitchens",
-    description: "Upgrade your cooking experience with modern, efficient kitchen appliances.",
-    ctaText: "Explore Appliances",
-    ctaLink: "/products?categories[]=appliances",
-    badge: "Free Delivery"
+    image: "/images/hero2.jpg",
+    alt: "Rustic kitchen counter with jars and utensils",
+    title: "Timeless Kitchen Essentials",
+    subtitle: "Classic & Rustic",
+    description: "Discover kitchenware that brings warmth and tradition to your home.",
+    ctaText: "Explore Collection",
+    ctaLink: "/products",
+    badge: "New Arrival"
   },
   {
     id: 3,
-    image: "/images/homeessentials3.jpeg",
-    alt: "Essential kitchen tools",
-    title: "Essential Tools",
-    subtitle: "Every Chef",
-    description: "Professional tools and utensils that make cooking effortless and enjoyable.",
-    ctaText: "Shop Essentials",
+    image: "/images/hero3.jpg",
+    alt: "Top view of utensils on wooden board",
+    title: "Crafted for Every Chef",
+    subtitle: "Tools of the Trade",
+    description: "Find the perfect utensils for every recipe and every cook.",
+    ctaText: "Browse Utensils",
     ctaLink: "/products?categories[]=utensils",
-    badge: "Quality Guaranteed"
+    badge: "Chef's Choice"
   },
   {
     id: 4,
-    image: "/images/homeessentials4.jpeg",
-    alt: "Kitchen storage solutions",
-    title: "Organize with Style",
-    subtitle: "Storage Solutions",
-    description: "Keep your kitchen organized with premium storage containers and solutions.",
-    ctaText: "Organize Now",
-    ctaLink: "/products?categories[]=storage",
-    badge: "Premium Brands"
+    image: "/images/hero4.jpg",
+    alt: "Modern kitchen with blue cookware",
+    title: "Inspire Your Cooking",
+    subtitle: "Modern Kitchenware",
+    description: "Brighten your kitchen with our colorful, modern cookware sets.",
+    ctaText: "See What's New",
+    ctaLink: "/products?is_new=true",
+    badge: "Fresh Picks"
   }
 ]
 
@@ -143,7 +143,7 @@ export default function HeroSection() {
 
   return (
     <section 
-      className="relative h-[120px] sm:h-[140px] md:h-[160px] lg:h-[180px] overflow-hidden rounded-2xl mx-4 mt-4 mb-6"
+      className="relative overflow-hidden rounded-2xl mx-4 mt-4 mb-6"
       aria-label="Hero carousel"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -171,63 +171,52 @@ export default function HeroSection() {
             />
           </div>
         ))}
-        {/* Lighter overlay for better visibility */}
-        <div className="absolute inset-0 bg-black/40 rounded-2xl" />
+        {/* Stronger Overlay for better readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/40 rounded-2xl" />
       </div>
 
-      {/* Content Container with Smooth Transitions */}
-      <div className="relative z-10 flex items-center justify-center h-full w-full px-4">
-        <div className="max-w-4xl w-full text-center">
-          <div className={`flex flex-col items-center gap-3 transition-all duration-800 ease-in-out ${
-            isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
-          }`}>
-            {/* Badge */}
-            <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-3 py-1 text-white text-xs font-semibold shadow-lg">
-              <Award className="h-3.5 w-3.5 text-green-300" />
-              <span className="text-white font-semibold">{currentSlideData.badge}</span>
-            </div>
-
-            {/* Headline */}
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white leading-tight drop-shadow-2xl hero-title">
-              {currentSlideData.title}
-              <span className="block bg-gradient-to-r from-green-300 to-emerald-300 bg-clip-text text-transparent mt-1 drop-shadow-lg hero-subtitle">
-                {currentSlideData.subtitle}
-              </span>
-            </h1>
-
-            {/* Description */}
-            <p className="text-sm sm:text-base text-white font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-lg text-readable">
-              {currentSlideData.description}
-            </p>
-
-            {/* CTA Button */}
-            <div className="mt-4">
-              <Button 
-                asChild 
-                className="group bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-2.5 px-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 text-sm font-semibold border-0"
-              >
-                <Link href={currentSlideData.ctaLink} className="flex items-center">
-                  {currentSlideData.ctaText}
-                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
-                </Link>
-              </Button>
-            </div>
-
-            {/* Trust Indicators */}
-            <div className="flex gap-3 mt-3">
-              <TrustIndicator icon={Truck} text="Free Delivery" />
-              <TrustIndicator icon={Shield} text="Quality Guaranteed" />
-              <TrustIndicator icon={Award} text="Premium Brands" />
-            </div>
+      {/* Content Container with Smooth Transitions (no panel/card) */}
+      <div className="relative z-10 flex items-center justify-center w-full px-4 py-8 sm:py-10 lg:py-12">
+        <div className={`flex flex-col items-center gap-6 transition-all duration-800 ease-in-out ${
+          isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
+        }`}>
+          {/* Badge - white text, theme green star */}
+          <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-4 py-1.5 text-xs font-semibold shadow text-white">
+            <Star className="h-3.5 w-3.5 text-emerald-400" />
+            <span>{currentSlideData.badge}</span>
           </div>
+
+          {/* Headline - larger, bolder, stronger shadow */}
+          <h1 className="text-4xl sm:text-5xl font-extrabold mb-2 tracking-tight leading-tight text-white text-shadow-strong text-center">
+            {currentSlideData.title}
+            <span className="block bg-gradient-to-r from-emerald-200 to-green-300 bg-clip-text text-transparent mt-2 text-3xl sm:text-4xl font-bold text-shadow-strong">
+              {currentSlideData.subtitle}
+            </span>
+          </h1>
+
+          {/* Description - improved spacing and shadow */}
+          <p className="text-base sm:text-lg text-slate-200 mb-4 max-w-2xl mx-auto leading-relaxed px-4 text-shadow-strong text-center">
+            {currentSlideData.description}
+          </p>
+
+          {/* CTA Button - brighter, larger, rounded, with icon */}
+          <Link
+            href={currentSlideData.ctaLink}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-full px-10 py-4 shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-lg mt-2"
+          >
+            {currentSlideData.ctaText}
+            <ArrowRight className="h-5 w-5" />
+          </Link>
         </div>
       </div>
+      {/* Remove SlideIndicator dots */}
 
       {/* Navigation Arrows */}
       <NavigationArrow direction="prev" onClick={prevSlide} />
       <NavigationArrow direction="next" onClick={nextSlide} />
 
-      {/* Slide Indicators */}
+      {/* Remove Slide Indicators (progress dots) */}
+      {/*
       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
         {slides.map((_, index) => (
           <SlideIndicator 
@@ -238,6 +227,7 @@ export default function HeroSection() {
           />
         ))}
       </div>
+      */}
 
       <style jsx>{`
         @keyframes fadeIn {

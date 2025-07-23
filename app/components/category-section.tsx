@@ -20,7 +20,7 @@ const categories: CategoryCard[] = [
   {
     name: "Cookware",
     description: "Pots, pans, and cooking essentials",
-    image: "/images/kitchenware1.jpeg",
+    image: "/images/hero1.jpg",
     href: "/products?categories[]=cookware",
     icon: CookingPot,
     bgColor: "bg-amber-100",
@@ -31,7 +31,7 @@ const categories: CategoryCard[] = [
   {
     name: "Utensils",
     description: "Essential kitchen tools and utensils",
-    image: "/images/homeessentials1.jpeg",
+    image: "/images/hero3.jpg",
     href: "/products?categories[]=utensils",
     icon: Utensils,
     bgColor: "bg-indigo-100",
@@ -42,7 +42,7 @@ const categories: CategoryCard[] = [
   {
     name: "Appliances",
     description: "Modern kitchen appliances and gadgets",
-    image: "/images/appliances1.jpeg",
+    image: "/images/hero4.jpg",
     href: "/products?categories[]=appliances",
     icon: Zap,
     bgColor: "bg-emerald-100",
@@ -53,7 +53,7 @@ const categories: CategoryCard[] = [
   {
     name: "Storage",
     description: "Food storage containers and organizers",
-    image: "/images/homeessentials2.jpeg",
+    image: "/images/hero2.jpg",
     href: "/products?categories[]=storage",
     icon: Container,
     bgColor: "bg-purple-100",
@@ -143,7 +143,7 @@ export default function CategorySection() {
         <div className="text-center mt-12">
           <Link
             href="/products"
-            className="btn-outline inline-flex items-center text-responsive-base px-10 py-5 shadow-lg hover:shadow-xl"
+            className="inline-flex items-center text-responsive-base px-10 py-5 rounded-2xl bg-gradient-to-r from-slate-200 to-slate-400 text-slate-800 shadow-lg hover:shadow-xl hover:from-slate-300 hover:to-slate-500 transition-all duration-300 border-2 border-slate-300"
           >
             View All Categories
             <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform duration-300" />

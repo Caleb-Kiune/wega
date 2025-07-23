@@ -9,7 +9,7 @@ let products = [
     price: 2499,
     category: "Cookware",
     stock: 50,
-    image: "/images/kitchenware1.jpeg",
+    image: "/images/hero1.jpg",
   },
   {
     id: "2",
@@ -18,7 +18,7 @@ let products = [
     price: 5999,
     category: "Cookware",
     stock: 30,
-    image: "/images/appliances1.jpeg",
+    image: "/images/hero4.jpg",
   },
 ]
 
