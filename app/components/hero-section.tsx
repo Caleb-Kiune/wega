@@ -37,9 +37,9 @@ const slides: Slide[] = [
     title: "Timeless Kitchen Essentials",
     subtitle: "Classic & Rustic",
     description: "Discover kitchenware that brings warmth and tradition to your home.",
-    ctaText: "Explore Collection",
-    ctaLink: "/products",
-    badge: "New Arrival"
+    ctaText: "View all featured products",
+    ctaLink: "/products?is_featured=true",
+    badge: "Featured"
   },
   {
     id: 3,
@@ -48,9 +48,9 @@ const slides: Slide[] = [
     title: "Crafted for Every Chef",
     subtitle: "Tools of the Trade",
     description: "Find the perfect utensils for every recipe and every cook.",
-    ctaText: "Browse Utensils",
-    ctaLink: "/products?categories[]=utensils",
-    badge: "Chef's Choice"
+    ctaText: "View all new arrivals",
+    ctaLink: "/products?is_new=true",
+    badge: "New Arrivals"
   },
   {
     id: 4,
@@ -59,9 +59,9 @@ const slides: Slide[] = [
     title: "Inspire Your Cooking",
     subtitle: "Modern Kitchenware",
     description: "Brighten your kitchen with our colorful, modern cookware sets.",
-    ctaText: "See What's New",
-    ctaLink: "/products?is_new=true",
-    badge: "Fresh Picks"
+    ctaText: "View all special offers",
+    ctaLink: "/products?is_sale=true",
+    badge: "Special Offers"
   }
 ]
 

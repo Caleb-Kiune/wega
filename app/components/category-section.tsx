@@ -66,7 +66,7 @@ const categories: CategoryCard[] = [
 export default function CategorySection() {
   return (
     <section className="section-padding" style={{background: 'linear-gradient(135deg, #94a3b8, #64748b, #475569)'}}>
-      <div className="container-responsive">
+      <div className="container-responsive px-4 sm:px-8">
         {/* Section Header */}
         <div className="text-center mb-12 sm:mb-16 lg:mb-20">
           <div className="flex items-center justify-center gap-3 mb-4">
