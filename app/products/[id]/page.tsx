@@ -7,7 +7,7 @@ import Link from "next/link"
 import { Minus, Plus, Truck, ShieldCheck, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import ProductCarousel from "@/components/product-carousel"
+import RelatedProductsCarousel from "@/components/related-products-carousel"
 import AddToCartButton from "@/components/add-to-cart-button"
 import WhatsAppOrderButton from "@/components/whatsapp-order-button"
 import { useToast } from "@/lib/hooks/use-toast"
@@ -266,7 +266,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 <TabsTrigger value="description" className="text-xs sm:text-sm flex-1">Description</TabsTrigger>
                 <TabsTrigger value="specifications" className="text-xs sm:text-sm flex-1">Specifications</TabsTrigger>
                 <TabsTrigger value="features" className="text-xs sm:text-sm flex-1">Features</TabsTrigger>
-                <TabsTrigger value="reviews" className="text-xs sm:text-sm flex-1">Reviews</TabsTrigger>
               </TabsList>
               
               <TabsContent value="description" className="space-y-4">
@@ -304,34 +303,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   <p className="text-sm sm:text-base text-gray-500">No features available.</p>
                 )}
               </TabsContent>
-              
-              <TabsContent value="reviews" className="space-y-4">
-                {product.reviews && product.reviews.length > 0 ? (
-                  <div className="space-y-4">
-                    {product.reviews.map((review: any, index: number) => (
-                      <div key={index} className="border-b pb-4">
-                        <div className="flex items-center mb-2">
-                          <div className="flex text-yellow-400">
-                            {[...Array(5)].map((_, i) => (
-                              <svg
-                                key={i}
-                                className={`h-4 w-4 ${i < review.rating ? "fill-current" : "fill-gray-300"}`}
-                                viewBox="0 0 20 20"
-                              >
-                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                              </svg>
-                            ))}
-                          </div>
-                          <span className="ml-2 text-sm sm:text-base font-medium">{review.user_name}</span>
-                        </div>
-                        <p className="text-sm sm:text-base text-gray-600">{review.comment}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm sm:text-base text-gray-500">No reviews yet.</p>
-                )}
-              </TabsContent>
             </Tabs>
           </div>
         </div>
@@ -339,7 +310,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         {/* Related Products */}
         <div className="mt-8 sm:mt-12">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Related Products</h2>
-          <ProductCarousel category={product.category} excludeProductId={product.id} />
+          <RelatedProductsCarousel category={product.category} excludeProductId={product.id} />
         </div>
       </div>
     </div>
