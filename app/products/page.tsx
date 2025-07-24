@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useProducts } from '@/lib/hooks/use-products';
 import ProductFilters from '@/components/ProductFilters';
 import ProductCard from '@/components/product-card';
@@ -116,6 +116,16 @@ export default function ProductsPage() {
     console.log('Updating URL to:', newUrl);
     router.replace(newUrl, { scroll: false });
   };
+
+  // Add ref for main content after hero
+  const mainContentRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to just below the hero section when page changes
+  useEffect(() => {
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [filters.page]);
 
   const handleClearSearch = () => {
     const updatedFilters = { ...filters, search: undefined, page: 1 };
@@ -488,7 +498,7 @@ export default function ProductsPage() {
       </div>
 
       {/* Enhanced Main Content */}
-      <div className="container mx-auto px-4 py-8 sm:py-12 lg:py-16">
+      <div ref={mainContentRef} className="container mx-auto px-4 py-8 sm:py-12 lg:py-16">
         <div className="flex flex-col gap-8 lg:gap-12">
           {/* Products Section with Side-by-Side Layout */}
           <div className="flex-1">

@@ -202,7 +202,7 @@ export default function HeroSection() {
           {/* CTA Button - brighter, larger, rounded, with icon */}
           <Link
             href={currentSlideData.ctaLink}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-full px-10 py-4 shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-lg mt-4 mb-2"
+            className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-full px-6 sm:px-10 py-3 sm:py-4 shadow-lg transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 text-base sm:text-lg mt-4 mb-2 min-w-0"
           >
             {currentSlideData.ctaText}
             <ArrowRight className="h-5 w-5" />
