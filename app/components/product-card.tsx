@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ShoppingCart, Heart, Eye, Star, Sparkles, TrendingUp, ExternalLink, ShieldCheck, Truck, X } from "lucide-react"
+import { ShoppingCart, Heart, Eye, Star, Sparkles, TrendingUp, ExternalLink, ShieldCheck, Truck, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useCart } from "@/lib/hooks/use-cart"
@@ -13,6 +13,7 @@ import { getImageUrl } from "@/lib/products"
 import WhatsAppOrderButton from "@/components/whatsapp-order-button"
 
 import { toast } from "sonner"
+import { motion, AnimatePresence } from "framer-motion"
 
 interface ProductCardProps {
   product: Product
@@ -260,6 +261,8 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
   const [showQuickView, setShowQuickView] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [quantity, setQuantity] = useState(1)
+  const [showQuantitySelector, setShowQuantitySelector] = useState(false);
+  const [mobileQuantity, setMobileQuantity] = useState(1);
 
   // Check if item is in cart
   const isInCart = cart?.items?.some(item => item.product_id === product.id) || false
@@ -707,59 +710,41 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
             <ProductBadges />
             <HoverActions />
             
-            {/* Mobile Wishlist Button */}
-            <div className="absolute top-2 right-2 z-20 md:hidden">
-              <WishlistButton />
-            </div>
+            {/* Top-right wishlist button removed for desktop; only show wishlist at bottom center */}
           </div>
 
           <div className="p-3 sm:p-4 flex flex-col flex-grow w-full">
-            {/* Category and Brand - hidden on mobile */}
-            <div className="items-center justify-between mb-2 hidden sm:flex w-full">
-              <div className="text-xs text-gray-500 font-medium truncate product-category">{product.category}</div>
-              <div className="text-xs font-semibold text-green-600 truncate product-brand">{product.brand}</div>
-            </div>
-            
+            {/* Category, Name, Price - Compact Vertical Spacing (Mobile & Desktop) */}
+            <div className="text-xs font-medium text-gray-400 mb-1 truncate">{product.category}</div>
             <h3 
               id={`product-${product.id}`} 
-              className="text-sm sm:text-base font-medium text-gray-800 mb-2 transition-colors duration-200 leading-tight product-card-title w-full truncate product-name"
+              className="text-base font-semibold text-gray-800 mb-1 leading-tight truncate product-card-title product-name"
             >
               {product.name}
             </h3>
-
-            {/* Price and Cart Icon */}
-            <div className="flex items-center justify-between mb-2 w-full">
-              <div className="flex items-center min-w-0 flex-1 gap-1 sm:gap-2">
-                <span className="text-base sm:text-lg font-bold text-green-600 truncate price-current">
+            <div className="flex items-center justify-between w-full">
+              <div className="flex flex-col flex-1">
+                <span className="text-sm font-bold text-green-600 truncate price-current">
                   KES {product.price.toLocaleString()}
                 </span>
                 {product.original_price && (
-                  <span className="hidden sm:inline text-sm text-gray-500 line-through flex-shrink-0 price-original">
+                  <span className="text-xs text-gray-400 line-through mt-0.5 price-original">
                     KES {product.original_price.toLocaleString()}
                   </span>
                 )}
               </div>
-              
-              {/* Cart Icon Button - Mobile Only */}
+              {/* Plus Icon Button - Mobile Only */}
               <Button
                 size="sm"
-                className={`md:hidden rounded-full shadow-lg min-h-[36px] min-w-[36px] transition-all duration-200 hover:scale-110 border-0 flex-shrink-0 ${
-                  isInCart
-                    ? '!bg-green-500 !text-white shadow-lg'
-                    : 'bg-white/95 hover:bg-white text-gray-700 shadow-md'
-                }`}
+                className="md:hidden rounded-full bg-green-600 text-white shadow-lg min-h-[44px] min-w-[44px] flex-shrink-0 transition-all duration-200 hover:bg-green-700 focus:ring-2 focus:ring-green-400 focus:outline-none"
                 onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  if (isInCart) {
-                    handleToggleCart()
-                  } else {
-                    handleAddToCartWithUndo()
-                  }
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowQuantitySelector(true);
                 }}
-                aria-label={isInCart ? `Remove ${product.name} from cart` : `Add ${product.name} to cart`}
+                aria-label={`Add ${product.name} to cart`}
               >
-                <ShoppingCart className={`h-4 w-4 ${isInCart ? 'fill-current' : ''}`} />
+                <Plus className="h-5 w-5" />
               </Button>
             </div>
 
@@ -801,6 +786,96 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
         quantity={quantity}
         setQuantity={setQuantity}
       />
+      {/* Quantity Selector Popover for Mobile */}
+      <AnimatePresence>
+      {showQuantitySelector && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 md:hidden"
+          role="dialog"
+          aria-modal="true"
+          tabIndex={-1}
+          onClick={() => setShowQuantitySelector(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="bg-white rounded-xl shadow-2xl border border-gray-100 p-6 flex flex-col items-center min-w-[220px] relative animate-fade-in focus:outline-none"
+            tabIndex={0}
+            onClick={e => e.stopPropagation()}
+            onKeyDown={e => {
+              if (e.key === 'Escape') setShowQuantitySelector(false);
+            }}
+          >
+            {/* Focus trap: invisible input at start and end */}
+            <input className="absolute opacity-0 w-0 h-0" tabIndex={0} aria-hidden="true" onFocus={() => document.getElementById('modal-close-btn')?.focus()} />
+            {/* Close button */}
+            <button id="modal-close-btn" className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 focus:ring-2 focus:ring-green-400 focus:outline-none" onClick={() => setShowQuantitySelector(false)} aria-label="Close quantity selector">
+              <X className="h-5 w-5" />
+            </button>
+            {/* Divider (top) */}
+            <div className="w-full border-t border-gray-100 mb-4" />
+            {/* Quantity selector */}
+            <div className="flex items-center gap-4 mb-4">
+              <Button size="icon" variant="outline" className="rounded-full focus:ring-2 focus:ring-green-400 focus:outline-none active:scale-95 transition-transform" onClick={() => setMobileQuantity(q => Math.max(1, q - 1))} aria-label="Decrease quantity">
+                <span className="text-2xl font-bold">-</span>
+              </Button>
+              <span className="text-xl font-bold w-8 text-center">{mobileQuantity}</span>
+              <Button size="icon" variant="outline" className="rounded-full focus:ring-2 focus:ring-green-400 focus:outline-none active:scale-95 transition-transform" onClick={() => setMobileQuantity(q => Math.min(product.stock, q + 1))} aria-label="Increase quantity">
+                <span className="text-2xl font-bold">+</span>
+              </Button>
+            </div>
+            {/* Divider */}
+            <div className="w-full border-t border-gray-100 mb-4" />
+            {/* Add to Cart button */}
+            <Button
+              className="w-full bg-green-600 text-white hover:bg-green-700 font-semibold rounded-lg min-h-[44px] mb-2 focus:ring-2 focus:ring-green-400 focus:outline-none active:scale-95 transition-transform"
+              onClick={async () => {
+                await addToCart({
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  image: getImageUrl(primaryImage) || "/placeholder.svg",
+                  quantity: mobileQuantity
+                });
+                setShowQuantitySelector(false);
+                setMobileQuantity(1);
+                toast.success(`${product.name} has been added to your cart.`);
+              }}
+              aria-label={`Add ${product.name} (quantity ${mobileQuantity}) to cart`}
+            >
+              Add to Cart
+            </Button>
+           {/* Add to Wishlist button */}
+           <Button
+             className={`w-full bg-white text-gray-800 hover:bg-gray-100 font-semibold rounded-lg min-h-[44px] border border-gray-200 flex items-center justify-center focus:ring-2 focus:ring-green-400 focus:outline-none active:scale-95 transition-transform ${isWishlisted ? 'border-green-500 text-green-600' : ''}`}
+             onClick={() => {
+               if (isWishlisted) {
+                 removeItem(String(product.id));
+                 toast.success(`${product.name} has been removed from your wishlist.`);
+               } else {
+                 addItem({
+                   id: String(product.id),
+                   name: product.name,
+                   price: product.price,
+                   image: getImageUrl(primaryImage) || "/placeholder.svg",
+                   category: product.category,
+                 });
+                 toast.success(`${product.name} has been added to your wishlist.`);
+               }
+             }}
+             aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+           >
+             <Heart className={`h-5 w-5 mr-2 ${isWishlisted ? 'text-green-500 fill-current' : 'text-gray-400'}`} />
+             {isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+           </Button>
+           {/* Focus trap: invisible input at end */}
+           <input className="absolute opacity-0 w-0 h-0" tabIndex={0} aria-hidden="true" onFocus={() => document.getElementById('modal-close-btn')?.focus()} />
+          </motion.div>
+        </div>
+      )}
+      </AnimatePresence>
     </>
   )
 } 

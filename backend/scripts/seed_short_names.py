@@ -40,22 +40,21 @@ CLOUDINARY_IMAGE_URLS = [
 ]
 
 def seed_short_names():
-    """Seed database with products that have short, impactful names"""
+    import os
+    print("Using DATABASE_URL:", os.environ.get("DATABASE_URL"))
     app = create_app('production')
     
     with app.app_context():
-        print("🗑️  Clearing existing data...")
-        
-        # Clear existing data
-        ProductFeature.query.delete()
-        ProductSpecification.query.delete()
-        ProductImage.query.delete()
-        Review.query.delete()  # Delete reviews before products
-        Product.query.delete()
-        Category.query.delete()
-        Brand.query.delete()
-        
-        print("✅ Database cleared")
+        print("🛑 Truncating all tables with CASCADE...")
+        db.session.execute('TRUNCATE TABLE product_features CASCADE')
+        db.session.execute('TRUNCATE TABLE product_specifications CASCADE')
+        db.session.execute('TRUNCATE TABLE product_images CASCADE')
+        db.session.execute('TRUNCATE TABLE reviews CASCADE')
+        db.session.execute('TRUNCATE TABLE products CASCADE')
+        db.session.execute('TRUNCATE TABLE categories CASCADE')
+        db.session.execute('TRUNCATE TABLE brands CASCADE')
+        db.session.commit()
+        print("✅ All relevant tables truncated.")
         
         # Create categories
         categories_data = [
@@ -91,323 +90,210 @@ def seed_short_names():
             brands[brand_data['name']] = brand
         
         db.session.commit()
-        print(f"✅ Created {len(categories)} categories and {len(brands)} brands")
-        
-        # SHORT PRODUCT NAMES - Perfect for product cards!
-        base_products_data = [
-            # Cookware (Short, impactful names)
-            {
-                'name': 'Frying Pan',
-                'category': 'Cookware',
-                'brand': 'Wega',
-                'price': 8999,
-                'original_price': 11999,
-                'description': 'Professional non-stick frying pan with even heat distribution.',
-                'features': ['Non-stick coating', 'Even heat distribution', 'Dishwasher safe'],
-                'specifications': {'Material': 'Stainless Steel', 'Size': '12-inch', 'Weight': '2.5 lbs'},
-                'is_featured': True,
-                'is_sale': True
-            },
-            {
-                'name': 'Dutch Oven',
-                'category': 'Cookware',
-                'brand': 'ChefPro',
-                'price': 24999,
-                'description': 'Cast iron Dutch oven perfect for slow cooking and braising.',
-                'features': ['Cast iron construction', 'Oven safe', 'Retains heat'],
-                'specifications': {'Material': 'Cast Iron', 'Capacity': '6L', 'Weight': '4.2kg'},
-                'is_featured': True,
-                'is_new': True
-            },
-            {
-                'name': 'Saucepan Set',
-                'category': 'Cookware',
-                'brand': 'HomeStyle',
-                'price': 15999,
-                'original_price': 19999,
-                'description': 'Set of 3 saucepans with glass lids for versatile cooking.',
-                'features': ['Glass lids', 'Induction compatible', 'Stackable design'],
-                'specifications': {'Material': 'Aluminum', 'Set': '3 pieces', 'Sizes': '1.5, 2, 3L'},
-                'is_sale': True
-            },
-            {
-                'name': 'Stock Pot',
-                'category': 'Cookware',
-                'brand': 'Wega',
-                'price': 12999,
-                'description': 'Large stock pot for soups, stews, and pasta.',
-                'features': ['Large capacity', 'Heavy bottom', 'Easy to clean'],
-                'specifications': {'Material': 'Stainless Steel', 'Capacity': '8L', 'Weight': '3.5kg'},
-                'is_featured': False
-            },
-            {
-                'name': 'Wok Pan',
-                'category': 'Cookware',
-                'brand': 'Culinary',
-                'price': 7999,
-                'description': 'Traditional wok for stir-frying and Asian cooking.',
-                'features': ['Carbon steel', 'Seasoned finish', 'High heat cooking'],
-                'specifications': {'Material': 'Carbon Steel', 'Size': '14-inch', 'Weight': '2.8kg'},
-                'is_new': True
-            },
-            
+
+        # --- PRODUCT GENERATION LOGIC ---
+        NATIONALITIES = ["American", "French", "Italian", "German", "Japanese", "Brazilian", None, None, None]  # More None for variety
+        BRAND_NAMES = ["Wega", "ChefPro", "HomeStyle", "Culinary", "KitchenMaster"]
+        PRODUCT_TYPES = [
+            # Cookware
+            ("Frying Pan", "Cookware", "A premium non-stick frying pan for everyday cooking."),
+            ("Dutch Oven", "Cookware", "Heavy-duty Dutch oven for slow-cooked meals."),
+            ("Saucepan", "Cookware", "Versatile saucepan for sauces and soups."),
+            ("Stock Pot", "Cookware", "Large stock pot for stews and pasta."),
+            ("Wok", "Cookware", "Traditional wok for stir-frying."),
+            ("Tagine Pot", "Cookware", "Clay tagine for Moroccan dishes."),
             # Bakeware
-            {
-                'name': 'Baking Sheet',
-                'category': 'Bakeware',
-                'brand': 'HomeStyle',
-                'price': 3999,
-                'description': 'Heavy-duty baking sheet for cookies and pastries.',
-                'features': ['Non-stick surface', 'Heavy gauge', 'Even baking'],
-                'specifications': {'Material': 'Aluminum', 'Size': '13x18-inch', 'Weight': '1.2kg'},
-                'is_featured': False
-            },
-            {
-                'name': 'Cake Pan Set',
-                'category': 'Bakeware',
-                'brand': 'ChefPro',
-                'price': 8999,
-                'original_price': 11999,
-                'description': 'Set of 3 round cake pans for perfect baking.',
-                'features': ['Non-stick coating', 'Even heat', 'Stackable'],
-                'specifications': {'Material': 'Aluminum', 'Set': '3 pieces', 'Sizes': '6, 8, 9-inch'},
-                'is_sale': True
-            },
-            {
-                'name': 'Muffin Tin',
-                'category': 'Bakeware',
-                'brand': 'Wega',
-                'price': 2999,
-                'description': '12-cup muffin tin for perfect muffins and cupcakes.',
-                'features': ['Non-stick coating', 'Easy release', 'Even baking'],
-                'specifications': {'Material': 'Aluminum', 'Cups': '12', 'Size': 'Standard'},
-                'is_new': True
-            },
-            {
-                'name': 'Bread Pan',
-                'category': 'Bakeware',
-                'brand': 'Culinary',
-                'price': 1999,
-                'description': 'Loaf pan for homemade bread and meatloaf.',
-                'features': ['Non-stick surface', 'Heavy gauge', 'Perfect shape'],
-                'specifications': {'Material': 'Aluminum', 'Size': '9x5-inch', 'Weight': '0.8kg'},
-                'is_featured': False
-            },
-            
+            ("Baking Sheet", "Bakeware", "Non-stick baking sheet for cookies and pastries."),
+            ("Cake Pan", "Bakeware", "Round cake pan for perfect cakes."),
+            ("Muffin Tin", "Bakeware", "12-cup muffin tin for muffins and cupcakes."),
+            ("Bread Pan", "Bakeware", "Loaf pan for bread and meatloaf."),
             # Cutlery
-            {
-                'name': 'Chef Knife',
-                'category': 'Cutlery',
-                'brand': 'ChefPro',
-                'price': 15999,
-                'description': 'Professional chef knife for precise cutting.',
-                'features': ['High-carbon steel', 'Ergonomic handle', 'Razor sharp'],
-                'specifications': {'Material': 'High-Carbon Steel', 'Length': '8-inch', 'Weight': '0.3kg'},
-                'is_featured': True,
-                'is_new': True
-            },
-            {
-                'name': 'Knife Set',
-                'category': 'Cutlery',
-                'brand': 'Wega',
-                'price': 29999,
-                'original_price': 39999,
-                'description': 'Complete knife set with block for every cutting need.',
-                'features': ['Stainless steel', 'Wooden block', 'Sharpener included'],
-                'specifications': {'Material': 'Stainless Steel', 'Set': '8 pieces', 'Block': 'Bamboo'},
-                'is_sale': True
-            },
-            {
-                'name': 'Paring Knife',
-                'category': 'Cutlery',
-                'brand': 'HomeStyle',
-                'price': 3999,
-                'description': 'Small paring knife for detailed cutting tasks.',
-                'features': ['Precision blade', 'Comfortable grip', 'Versatile use'],
-                'specifications': {'Material': 'Stainless Steel', 'Length': '3.5-inch', 'Weight': '0.1kg'},
-                'is_featured': False
-            },
-            
+            ("Chef Knife", "Cutlery", "Professional chef knife for precise cutting."),
+            ("Knife Set", "Cutlery", "Complete knife set for all kitchen needs."),
+            ("Paring Knife", "Cutlery", "Small paring knife for detailed work."),
+            ("Bread Knife", "Cutlery", "Serrated bread knife for easy slicing."),
             # Storage
-            {
-                'name': 'Food Containers',
-                'category': 'Storage',
-                'brand': 'HomeStyle',
-                'price': 5999,
-                'description': 'Set of airtight containers for food storage.',
-                'features': ['Airtight seal', 'Stackable', 'Microwave safe'],
-                'specifications': {'Material': 'Plastic', 'Set': '6 pieces', 'Sizes': 'Various'},
-                'is_new': True
-            },
-            {
-                'name': 'Glass Jars',
-                'category': 'Storage',
-                'brand': 'Culinary',
-                'price': 3999,
-                'description': 'Set of glass storage jars with lids.',
-                'features': ['Glass construction', 'Airtight lids', 'Clear visibility'],
-                'specifications': {'Material': 'Glass', 'Set': '4 pieces', 'Capacity': '1L each'},
-                'is_featured': False
-            },
-            
+            ("Food Containers", "Storage", "Airtight containers for food storage."),
+            ("Glass Jars", "Storage", "Glass jars for dry goods and spices."),
+            ("Lunch Box", "Storage", "Insulated lunch box for meals on the go."),
             # Appliances
-            {
-                'name': 'Blender',
-                'category': 'Appliances',
-                'brand': 'KitchenMaster',
-                'price': 19999,
-                'original_price': 24999,
-                'description': 'High-speed blender for smoothies and purees.',
-                'features': ['1000W motor', '6 speeds', 'Glass jar'],
-                'specifications': {'Power': '1000W', 'Capacity': '1.5L', 'Material': 'Stainless Steel'},
-                'is_sale': True,
-                'is_featured': True
-            },
-            {
-                'name': 'Coffee Maker',
-                'category': 'Appliances',
-                'brand': 'Wega',
-                'price': 15999,
-                'description': 'Programmable coffee maker for perfect brew.',
-                'features': ['Programmable', 'Auto-shutoff', '12-cup capacity'],
-                'specifications': {'Capacity': '12 cups', 'Timer': '24-hour', 'Material': 'Stainless Steel'},
-                'is_new': True
-            },
-            {
-                'name': 'Toaster',
-                'category': 'Appliances',
-                'brand': 'HomeStyle',
-                'price': 8999,
-                'description': '2-slice toaster with multiple settings.',
-                'features': ['6 settings', 'Auto-eject', 'Crumb tray'],
-                'specifications': {'Slots': '2', 'Settings': '6', 'Material': 'Stainless Steel'},
-                'is_featured': False
-            },
-            {
-                'name': 'Mixer',
-                'category': 'Appliances',
-                'brand': 'ChefPro',
-                'price': 39999,
-                'description': 'Stand mixer for baking and mixing.',
-                'features': ['5-quart bowl', '10 speeds', 'Attachments included'],
-                'specifications': {'Power': '325W', 'Bowl': '5-quart', 'Attachments': '3 included'},
-                'is_featured': True
-            },
-            
+            ("Blender", "Appliances", "High-speed blender for smoothies and purees."),
+            ("Coffee Maker", "Appliances", "Programmable coffee maker for fresh coffee."),
+            ("Toaster", "Appliances", "2-slice toaster with browning control."),
+            ("Mixer", "Appliances", "Stand mixer for baking and mixing."),
+            ("Rice Cooker", "Appliances", "Automatic rice cooker for perfect rice."),
+            ("Electric Kettle", "Appliances", "Fast-boil electric kettle."),
             # Utensils
-            {
-                'name': 'Spatula Set',
-                'category': 'Utensils',
-                'brand': 'Culinary',
-                'price': 2999,
-                'description': 'Set of silicone spatulas for cooking and baking.',
-                'features': ['Silicone heads', 'Heat resistant', 'Non-stick safe'],
-                'specifications': {'Material': 'Silicone', 'Set': '3 pieces', 'Heat': 'Up to 450°F'},
-                'is_new': True
-            },
-            {
-                'name': 'Whisk',
-                'category': 'Utensils',
-                'brand': 'HomeStyle',
-                'price': 1999,
-                'description': 'Stainless steel whisk for mixing and beating.',
-                'features': ['Stainless steel', 'Comfortable handle', 'Versatile use'],
-                'specifications': {'Material': 'Stainless Steel', 'Length': '12-inch', 'Weight': '0.2kg'},
-                'is_featured': False
-            },
-            {
-                'name': 'Tongs',
-                'category': 'Utensils',
-                'brand': 'Wega',
-                'price': 1499,
-                'description': 'Kitchen tongs for safe food handling.',
-                'features': ['Stainless steel', 'Locking mechanism', 'Non-slip grip'],
-                'specifications': {'Material': 'Stainless Steel', 'Length': '12-inch', 'Weight': '0.3kg'},
-                'is_new': True
-            },
-            
+            ("Spatula Set", "Utensils", "Set of silicone spatulas for cooking and baking."),
+            ("Whisk", "Utensils", "Stainless steel whisk for mixing."),
+            ("Tongs", "Utensils", "Kitchen tongs for safe food handling."),
+            ("Ladle", "Utensils", "Soup ladle for serving."),
+            ("Peeler", "Utensils", "Sharp peeler for fruits and vegetables."),
             # Serveware
-            {
-                'name': 'Serving Bowl',
-                'category': 'Serveware',
-                'brand': 'Culinary',
-                'price': 4999,
-                'description': 'Large serving bowl for salads and pasta.',
-                'features': ['Ceramic construction', 'Microwave safe', 'Dishwasher safe'],
-                'specifications': {'Material': 'Ceramic', 'Capacity': '2L', 'Diameter': '12-inch'},
-                'is_featured': False
-            },
-            {
-                'name': 'Platter Set',
-                'category': 'Serveware',
-                'brand': 'HomeStyle',
-                'price': 7999,
-                'original_price': 9999,
-                'description': 'Set of 3 serving platters for elegant presentation.',
-                'features': ['Ceramic construction', 'Elegant design', 'Versatile use'],
-                'specifications': {'Material': 'Ceramic', 'Set': '3 pieces', 'Sizes': 'Various'},
-                'is_sale': True
-            },
-            
+            ("Serving Bowl", "Serveware", "Large serving bowl for salads and pasta."),
+            ("Platter Set", "Serveware", "Set of serving platters for presentation."),
+            ("Salad Plate", "Serveware", "Ceramic salad plate."),
             # Coffee & Tea
-            {
-                'name': 'Tea Kettle',
-                'category': 'Coffee & Tea',
-                'brand': 'Wega',
-                'price': 6999,
-                'description': 'Stainless steel tea kettle for boiling water.',
-                'features': ['Stainless steel', 'Whistling spout', 'Heat resistant handle'],
-                'specifications': {'Material': 'Stainless Steel', 'Capacity': '2L', 'Weight': '1.2kg'},
-                'is_new': True
-            },
-            {
-                'name': 'Coffee Grinder',
-                'category': 'Coffee & Tea',
-                'brand': 'KitchenMaster',
-                'price': 12999,
-                'description': 'Electric coffee grinder for fresh ground coffee.',
-                'features': ['Adjustable grind', 'Stainless steel blades', 'Compact design'],
-                'specifications': {'Power': '150W', 'Capacity': '60g', 'Material': 'Stainless Steel'},
-                'is_featured': False
-            }
+            ("Tea Kettle", "Coffee & Tea", "Stainless steel tea kettle for boiling water."),
+            ("Coffee Grinder", "Coffee & Tea", "Electric coffee grinder for fresh grounds."),
+            ("French Press", "Coffee & Tea", "Glass French press for rich coffee."),
         ]
-        # Generate 100 products by duplicating and randomizing base templates
+
+        FEATURES_POOL = {
+            "Frying Pan": ["Non-stick coating", "Even heat distribution", "Dishwasher safe", "Oven safe handle"],
+            "Dutch Oven": ["Cast iron", "Oven safe", "Retains heat", "Enamel coating"],
+            "Saucepan": ["Glass lid", "Induction compatible", "Pour spout", "Ergonomic handle"],
+            "Stock Pot": ["Large capacity", "Heavy bottom", "Easy to clean", "Stainless steel"],
+            "Wok": ["Carbon steel", "Seasoned finish", "High heat cooking", "Flat bottom"],
+            "Tagine Pot": ["Clay construction", "Conical lid", "Moisture retention", "Handmade"],
+            "Baking Sheet": ["Non-stick surface", "Heavy gauge", "Even baking", "Warp resistant"],
+            "Cake Pan": ["Non-stick coating", "Even heat", "Stackable", "Removable bottom"],
+            "Muffin Tin": ["Easy release", "Even baking", "Non-stick", "12 cups"],
+            "Bread Pan": ["Perfect shape", "Non-stick", "Heavy gauge", "Easy clean"],
+            "Chef Knife": ["High-carbon steel", "Ergonomic handle", "Razor sharp", "Full tang"],
+            "Knife Set": ["Stainless steel", "Wooden block", "Sharpener included", "8 pieces"],
+            "Paring Knife": ["Precision blade", "Comfortable grip", "Versatile use", "Lightweight"],
+            "Bread Knife": ["Serrated edge", "Long blade", "Comfort grip", "Stainless steel"],
+            "Food Containers": ["Airtight seal", "Stackable", "Microwave safe", "BPA free"],
+            "Glass Jars": ["Airtight lids", "Clear visibility", "Glass construction", "Reusable"],
+            "Lunch Box": ["Insulated", "Leak-proof", "Multiple compartments", "Microwave safe"],
+            "Blender": ["1000W motor", "6 speeds", "Glass jar", "Pulse function"],
+            "Coffee Maker": ["Programmable", "Auto-shutoff", "12-cup capacity", "Reusable filter"],
+            "Toaster": ["6 settings", "Auto-eject", "Crumb tray", "Wide slots"],
+            "Mixer": ["5-quart bowl", "10 speeds", "Attachments included", "Tilt-head design"],
+            "Rice Cooker": ["Automatic shutoff", "Non-stick bowl", "Steamer tray", "Keep warm"],
+            "Electric Kettle": ["Fast boil", "Auto shutoff", "Cordless", "1.7L capacity"],
+            "Spatula Set": ["Silicone heads", "Heat resistant", "Non-stick safe", "Dishwasher safe"],
+            "Whisk": ["Stainless steel", "Comfortable handle", "Versatile use", "Balloon shape"],
+            "Tongs": ["Locking mechanism", "Non-slip grip", "Stainless steel", "Dishwasher safe"],
+            "Ladle": ["Deep bowl", "Heat resistant", "Ergonomic handle", "Dishwasher safe"],
+            "Peeler": ["Sharp blade", "Comfort grip", "Dishwasher safe", "Swivel head"],
+            "Serving Bowl": ["Ceramic", "Microwave safe", "Dishwasher safe", "Large capacity"],
+            "Platter Set": ["Ceramic", "Elegant design", "Versatile use", "3 pieces"],
+            "Salad Plate": ["Ceramic", "Dishwasher safe", "Microwave safe", "8-inch diameter"],
+            "Tea Kettle": ["Whistling spout", "Heat resistant handle", "Stainless steel", "2L capacity"],
+            "Coffee Grinder": ["Adjustable grind", "Stainless steel blades", "Compact design", "Easy clean"],
+            "French Press": ["Glass carafe", "Stainless steel plunger", "Easy pour", "Dishwasher safe"],
+        }
+
+        SPECS_POOL = {
+            "Frying Pan": {"Material": "Stainless Steel", "Size": "12-inch", "Weight": "2.5 lbs"},
+            "Dutch Oven": {"Material": "Cast Iron", "Capacity": "6L", "Weight": "4.2kg"},
+            "Saucepan": {"Material": "Aluminum", "Capacity": "2L", "Weight": "1.1kg"},
+            "Stock Pot": {"Material": "Stainless Steel", "Capacity": "8L", "Weight": "3.5kg"},
+            "Wok": {"Material": "Carbon Steel", "Size": "14-inch", "Weight": "2.8kg"},
+            "Tagine Pot": {"Material": "Clay", "Capacity": "3L", "Weight": "2.2kg"},
+            "Baking Sheet": {"Material": "Aluminum", "Size": "13x18-inch", "Weight": "1.2kg"},
+            "Cake Pan": {"Material": "Aluminum", "Size": "9-inch", "Weight": "0.7kg"},
+            "Muffin Tin": {"Material": "Aluminum", "Cups": "12", "Size": "Standard"},
+            "Bread Pan": {"Material": "Aluminum", "Size": "9x5-inch", "Weight": "0.8kg"},
+            "Chef Knife": {"Material": "High-Carbon Steel", "Length": "8-inch", "Weight": "0.3kg"},
+            "Knife Set": {"Material": "Stainless Steel", "Set": "8 pieces", "Block": "Bamboo"},
+            "Paring Knife": {"Material": "Stainless Steel", "Length": "3.5-inch", "Weight": "0.1kg"},
+            "Bread Knife": {"Material": "Stainless Steel", "Length": "10-inch", "Weight": "0.2kg"},
+            "Food Containers": {"Material": "Plastic", "Set": "6 pieces", "Sizes": "Various"},
+            "Glass Jars": {"Material": "Glass", "Set": "4 pieces", "Capacity": "1L each"},
+            "Lunch Box": {"Material": "Plastic", "Capacity": "1.2L", "Insulated": "Yes"},
+            "Blender": {"Power": "1000W", "Capacity": "1.5L", "Material": "Stainless Steel"},
+            "Coffee Maker": {"Capacity": "12 cups", "Timer": "24-hour", "Material": "Stainless Steel"},
+            "Toaster": {"Slots": "2", "Settings": "6", "Material": "Stainless Steel"},
+            "Mixer": {"Power": "325W", "Bowl": "5-quart", "Attachments": "3 included"},
+            "Rice Cooker": {"Power": "700W", "Capacity": "1.8L", "Non-stick": "Yes"},
+            "Electric Kettle": {"Power": "1500W", "Capacity": "1.7L", "Material": "Stainless Steel"},
+            "Spatula Set": {"Material": "Silicone", "Set": "3 pieces", "Heat": "Up to 450°F"},
+            "Whisk": {"Material": "Stainless Steel", "Length": "12-inch", "Weight": "0.2kg"},
+            "Tongs": {"Material": "Stainless Steel", "Length": "12-inch", "Weight": "0.3kg"},
+            "Ladle": {"Material": "Nylon", "Length": "13-inch", "Weight": "0.2kg"},
+            "Peeler": {"Material": "Stainless Steel", "Length": "6-inch", "Weight": "0.05kg"},
+            "Serving Bowl": {"Material": "Ceramic", "Capacity": "2L", "Diameter": "12-inch"},
+            "Platter Set": {"Material": "Ceramic", "Set": "3 pieces", "Sizes": "Various"},
+            "Salad Plate": {"Material": "Ceramic", "Diameter": "8-inch", "Weight": "0.4kg"},
+            "Tea Kettle": {"Material": "Stainless Steel", "Capacity": "2L", "Weight": "1.2kg"},
+            "Coffee Grinder": {"Power": "150W", "Capacity": "60g", "Material": "Stainless Steel"},
+            "French Press": {"Material": "Glass", "Capacity": "1L", "Plunger": "Stainless Steel"},
+        }
+
+        BADGES = ["is_featured", "is_sale", "is_new", None, None, None, None]  # More None for variety
+
         products_data = []
         for i in range(100):
-            base = random.choice(base_products_data)
-            product = base.copy()
-            product['name'] = f"{base['name']} {i+1}"
-            product['price'] = random.randint(2999, 19999)
-            product['original_price'] = product['price'] + random.randint(1000, 5000)
-            product['is_featured'] = random.choice([True, False])
-            product['is_sale'] = random.choice([True, False])
-            # Optionally randomize features/specs
-            products_data.append(product)
+            # Select product type and nationality
+            prod_type, category, base_desc = random.choice(PRODUCT_TYPES)
+            nationality = random.choice(NATIONALITIES)
+            brand = random.choice(BRAND_NAMES)
+            # Name construction
+            name_parts = []
+            if random.random() < 0.5 and nationality:  # 50% chance to use nationality
+                name_parts.append(nationality)
+            if random.random() < 0.3:
+                name_parts.append("Premium")
+            name_parts.append(prod_type)
+            if random.random() < 0.3:
+                name_parts.append(brand)
+            name = " ".join(name_parts)
+            # Name length control
+            if len(name) > 28:
+                name = name[:28].rstrip()
+            # Description
+            desc = f"{base_desc}"
+            if nationality:
+                desc = f"{nationality} style. {desc}"
+            if "Premium" in name:
+                desc = f"Premium quality. {desc}"
+            # Features/specs
+            features = random.sample(FEATURES_POOL[prod_type], k=3)
+            specs = SPECS_POOL[prod_type].copy()
+            # Pricing
+            price = random.randint(2999, 29999)
+            if random.random() < 0.6:
+                original_price = price + random.randint(1000, 8000)
+            else:
+                original_price = None
+            # Badges
+            badge = random.choice(BADGES)
+            is_featured = badge == "is_featured"
+            is_sale = badge == "is_sale"
+            is_new = badge == "is_new"
+            # Stock
+            stock = random.choices([0, random.randint(1, 10), random.randint(11, 50), random.randint(51, 200)], weights=[0.1,0.3,0.4,0.2])[0]
+            # Images
+            selected_images = random.sample(CLOUDINARY_IMAGE_URLS, k=3)
+            # Compose product dict
+            products_data.append({
+                'name': name,
+                'category': category,
+                'brand': brand,
+                'price': price,
+                'original_price': original_price,
+                'description': desc,
+                'features': features,
+                'specifications': specs,
+                'is_featured': is_featured,
+                'is_sale': is_sale,
+                'is_new': is_new,
+                'stock': stock,
+                'images': selected_images
+            })
         
         # Create products
-        print("🛍️  Creating products with short names...")
-        
+        print("🛍️  Creating products with short and medium names...")
         for i, product_data in enumerate(products_data):
             print(f"Creating product {i+1}/{len(products_data)}: {product_data['name']}")
-            
-            # Create product
             product = Product(
                 name=product_data['name'],
                 description=product_data['description'],
                 price=product_data['price'],
-                original_price=product_data.get('original_price'),
+                original_price=product_data['original_price'],
                 sku=f"SKU-{random.randint(10000, 99999)}",
-                stock=random.randint(10, 50),
+                stock=product_data['stock'],
                 category_id=categories[product_data['category']].id,
                 brand_id=brands[product_data['brand']].id,
-                is_new=product_data.get('is_new', False),
-                is_sale=product_data.get('is_sale', False),
-                is_featured=product_data.get('is_featured', False)
+                is_new=product_data['is_new'],
+                is_sale=product_data['is_sale'],
+                is_featured=product_data['is_featured']
             )
             db.session.add(product)
             db.session.flush()
-            
-            # Add features
             for i, feature in enumerate(product_data['features']):
                 product_feature = ProductFeature(
                     product_id=product.id,
@@ -415,8 +301,6 @@ def seed_short_names():
                     display_order=i
                 )
                 db.session.add(product_feature)
-            
-            # Add specifications
             for i, (name, value) in enumerate(product_data['specifications'].items()):
                 product_spec = ProductSpecification(
                     product_id=product.id,
@@ -425,12 +309,7 @@ def seed_short_names():
                     display_order=i
                 )
                 db.session.add(product_spec)
-            
-            # Add random images (1-2 images per product)
-            num_images = random.randint(1, min(2, len(CLOUDINARY_IMAGE_URLS)))
-            selected_images = random.sample(CLOUDINARY_IMAGE_URLS, num_images)
-            
-            for i, image_url in enumerate(selected_images):
+            for i, image_url in enumerate(product_data['images']):
                 product_image = ProductImage(
                     product_id=product.id,
                     image_url=image_url,
@@ -438,10 +317,9 @@ def seed_short_names():
                     display_order=i
                 )
                 db.session.add(product_image)
-        
         db.session.commit()
-        print(f"✅ Successfully created {len(products_data)} products with short names!")
-        print("🎉 All product names are now short and impactful for better display!")
+        print(f"✅ Successfully created {len(products_data)} products with short and medium names!")
+        print("🎉 All product names are now varied, realistic, and kitchen-related!")
 
 if __name__ == '__main__':
     seed_short_names() 
