@@ -10,6 +10,7 @@ import { useCart } from "@/lib/hooks/use-cart"
 import { useWishlist } from "@/lib/hooks/use-wishlist"
 import { Product } from "@/lib/types"
 import { getImageUrl } from "@/lib/products"
+import WhatsAppOrderButton from "@/components/whatsapp-order-button"
 
 import { toast } from "sonner"
 
@@ -61,8 +62,8 @@ const QuickViewModal = ({
         onClick={onClose}
       />
       
-      {/* Modal - Made smaller */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden">
+      {/* Modal - Improved sizing and layout */}
+      <div className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-lg font-bold text-gray-900">Quick View</h2>
@@ -77,9 +78,9 @@ const QuickViewModal = ({
         </div>
 
         {/* Content */}
-        <div className="flex flex-col lg:flex-row max-h-[calc(85vh-80px)] overflow-hidden">
+        <div className="flex flex-col lg:flex-row max-h-[calc(85vh-80px)] items-stretch">
           {/* Image Section */}
-          <div className="lg:w-1/2 p-4">
+          <div className="w-full lg:w-72 p-4 flex-shrink-0">
             <div className="relative aspect-square bg-gray-50 rounded-lg overflow-hidden mb-3">
               <Image
                 src={getImageUrl(product.images?.[selectedImageIndex]?.image_url || product.images?.[0]?.image_url)}
@@ -89,7 +90,6 @@ const QuickViewModal = ({
                 priority
               />
             </div>
-            
             {/* Image Thumbnails */}
             {product.images && product.images.length > 1 && (
               <div className="flex gap-2 overflow-x-auto">
@@ -116,9 +116,8 @@ const QuickViewModal = ({
           </div>
 
           {/* Details Section */}
-          <div className="lg:w-1/2 p-4 flex flex-col">
-            {/* Product Info */}
-            <div className="flex-1">
+          <div className="flex-1 p-4 flex flex-col justify-between h-full min-w-0">
+            <div>
               <div className="flex items-center gap-2 mb-2">
                 <Badge variant="secondary" className="text-xs product-category">
                   {product.category}
@@ -127,15 +126,12 @@ const QuickViewModal = ({
                   {product.brand}
                 </Badge>
               </div>
-              
               <h3 className="text-xl font-medium text-gray-900 mb-2 product-name">
                 {product.name}
               </h3>
-              
-              <p className="text-gray-600 mb-3 line-clamp-2 text-sm product-feature leading-relaxed">
+              <p className="text-gray-600 mb-3 text-sm product-feature leading-relaxed line-clamp-2">
                 {product.description}
               </p>
-
               {/* Price */}
               <div className="flex items-baseline gap-2 mb-3">
                 <span className="text-2xl font-bold text-green-600 product-price">
@@ -152,7 +148,6 @@ const QuickViewModal = ({
                   </Badge>
                 )}
               </div>
-
               {/* Stock Status */}
               <div className="mb-3">
                 <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium product-feature ${
@@ -163,89 +158,91 @@ const QuickViewModal = ({
                   {product.stock > 0 ? `In Stock (${product.stock} available)` : "Out of Stock"}
                 </span>
               </div>
-
-              {/* Quantity Selector */}
-              {product.stock > 0 && (
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2 product-feature">Quantity</label>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleQuantityChange(false)}
-                      disabled={quantity <= 1}
-                      className="w-8 h-8 p-0 btn-product"
-                    >
-                      -
-                    </Button>
-                    <span className="w-12 text-center text-sm font-medium product-feature">{quantity}</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleQuantityChange(true)}
-                      disabled={quantity >= product.stock}
-                      className="w-8 h-8 p-0 btn-product"
-                    >
-                      +
-                    </Button>
-                    <span className="text-xs text-gray-500 ml-2 product-feature">
-                      Max: {product.stock}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Features */}
+              {/* Features (show max 2, + more if needed) */}
               {product.features && product.features.length > 0 && (
                 <div className="mb-4">
                   <h4 className="text-sm font-semibold text-gray-900 mb-2 product-feature">Features</h4>
                   <ul className="space-y-1">
-                    {product.features.slice(0, 3).map((feature, index) => (
+                    {product.features.slice(0, 2).map((feature, index) => (
                       <li key={index} className="flex items-center gap-2 text-sm text-gray-600 product-feature">
                         <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0"></div>
                         {feature.feature}
                       </li>
                     ))}
+                    {product.features.length > 2 && (
+                      <li className="text-xs text-gray-500">+ more</li>
+                    )}
                   </ul>
                 </div>
               )}
             </div>
-
-            {/* Actions */}
-            <div className="flex flex-col gap-2 pt-3 border-t">
-              <Button
-                size="md"
-                className={`${isInCart 
-                  ? 'bg-green-500 hover:bg-green-600 text-white' 
-                  : 'bg-green-600 hover:bg-green-700 text-white'
-                } btn-product`}
-                onClick={onToggleCart}
-                disabled={product.stock === 0}
-              >
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                {isInCart ? 'Remove from Cart' : 'Add to Cart'}
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="md"
-                onClick={onToggleWishlist}
-                className="btn-product"
-              >
-                <Heart className={`h-4 w-4 mr-2 ${isWishlisted ? 'fill-current text-red-500' : ''}`} />
-                {isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
-              </Button>
-            </div>
-
-            {/* View Full Details Link */}
-            <div className="mt-3 text-center">
-              <Link
-                href={`/products/${product.id}`}
-                className="text-green-600 hover:text-green-700 font-medium text-xs product-feature"
-                onClick={onClose}
-              >
-                View Full Product Details →
-              </Link>
+            {/* Actions and Full Details Link anchored to bottom */}
+            <div>
+              <div className="flex flex-col gap-2 pt-3 border-t mt-2">
+                {/* Quantity selector and Wishlist side by side */}
+                {product.stock > 0 && (
+                  <div className="flex flex-row gap-2 mb-2 w-full">
+                    <div className="flex items-center gap-2 flex-1">
+                      <label className="block text-sm font-medium text-gray-700 product-feature sr-only mr-2">Qty</label>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleQuantityChange(false)}
+                        disabled={quantity <= 1}
+                        className="w-8 h-8 p-0 btn-product"
+                      >
+                        -
+                      </Button>
+                      <span className="w-10 text-center text-sm font-medium product-feature">{quantity}</span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleQuantityChange(true)}
+                        disabled={quantity >= product.stock}
+                        className="w-8 h-8 p-0 btn-product"
+                      >
+                        +
+                      </Button>
+                      <span className="text-xs text-gray-500 ml-2 product-feature">Max: {product.stock}</span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="md"
+                      onClick={onToggleWishlist}
+                      className="w-12 min-w-[48px] btn-product flex-shrink-0 flex items-center justify-center"
+                    >
+                      <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-current text-red-500' : ''}`} />
+                      <span className="sr-only">{isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}</span>
+                    </Button>
+                  </div>
+                )}
+                {/* Add to Cart and WhatsApp side by side */}
+                <div className="flex flex-col sm:flex-row gap-2 w-full">
+                  <Button
+                    size="md"
+                    className={`w-full sm:w-1/2 ${isInCart 
+                      ? 'bg-green-500 hover:bg-green-600 text-white' 
+                      : 'bg-green-600 hover:bg-green-700 text-white'
+                    } btn-product`}
+                    onClick={onToggleCart}
+                    disabled={product.stock === 0}
+                  >
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    {isInCart ? 'Remove from Cart' : 'Add to Cart'}
+                  </Button>
+                  <WhatsAppOrderButton product={product} quantity={quantity} className="w-full sm:w-1/2" />
+                </div>
+              </div>
+              {/* View Full Details Link */}
+              <div className="mt-3 text-center">
+                <Link
+                  href={`/products/${product.id}`}
+                  className="text-green-600 hover:text-green-700 font-medium text-xs product-feature"
+                  onClick={onClose}
+                >
+                  View Full Product Details →
+                </Link>
+              </div>
             </div>
           </div>
         </div>
