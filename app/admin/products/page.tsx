@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { productsApi, getImageUrl } from '@/lib/products';
+import { productsApi } from '@/lib/products';
 import { Product } from '@/shared/types';
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Grid, List, Search, Filter, Trash2, Edit, Eye, MoreVertical, Package, Plus, Check, X, AlertTriangle, MapPin, Settings, LogOut, BarChart3, TrendingUp, Users, ShoppingCart, ArrowUpRight, ArrowDownRight, Star, Clock, Tag, Zap, Sparkles, ArrowLeft } from 'lucide-react';
+import { Grid, List, Search, Filter, Trash2, Edit, Eye, MoreVertical, Package, Plus, Check, X, AlertTriangle, MapPin, Settings, LogOut, BarChart3, TrendingUp, Users, ShoppingCart, ArrowUpRight, ArrowDownRight, Star, Clock, Tag, Zap, Sparkles, ArrowLeft, MoreHorizontal } from 'lucide-react';
+import AdminProductCard from '@/components/admin-product-card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -78,6 +79,8 @@ function ProductsPage() {
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [selectedProductForAction, setSelectedProductForAction] = useState<Product | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -230,6 +233,30 @@ function ProductsPage() {
       await logout();
     } catch (error) {
       console.error('Logout failed:', error);
+    }
+  };
+
+  const handleOpenActionModal = (product: Product) => {
+    setSelectedProductForAction(product);
+    setShowActionModal(true);
+  };
+
+  const handleCloseActionModal = () => {
+    setShowActionModal(false);
+    setSelectedProductForAction(null);
+  };
+
+  const handleActionEdit = () => {
+    if (selectedProductForAction) {
+      handleEdit(selectedProductForAction);
+      handleCloseActionModal();
+    }
+  };
+
+  const handleActionDelete = () => {
+    if (selectedProductForAction) {
+      handleDelete(selectedProductForAction);
+      handleCloseActionModal();
     }
   };
 
@@ -713,320 +740,93 @@ function ProductsPage() {
                     whileHover={{ y: -2, scale: 1.01 }}
                     className={viewMode === 'list' ? 'w-full' : ''}
                   >
-                    {viewMode === 'grid' ? (
-                      // Mobile-Optimized Grid View
-                      <Card
-                        className={`group card-interactive h-full overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-2xl flex flex-col relative min-h-[160px] sm:min-h-[180px] cursor-pointer rounded-xl w-full transition-all duration-300 hover:scale-[1.02] touch-manipulation ${
-                          selectedProducts.includes(product.id) ? 'ring-2 ring-emerald-500 shadow-lg' : ''
-                        }`}
-                      >
-                        <div className="relative overflow-hidden w-full">
-                          <Link 
-                            href={`/products/${product.id}`} 
-                            className="focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-t-xl flex-1 flex flex-col w-full"
-                            aria-labelledby={`product-${product.id}`}
-                          >
-                            <div className="relative aspect-[4/3] w-full bg-gray-50 overflow-hidden">
-                              <img
-                                src={getImageUrl(product.images?.[0]?.image_url) || '/placeholder.png'}
-                                alt={product.name}
-                                className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
-                                onError={(e) => {
-                                  e.currentTarget.src = '/placeholder.png';
-                                }}
-                                loading="lazy"
-                              />
-                              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300" />
-                            </div>
-                          </Link>
-
-                          {/* Mobile-Optimized Product badges */}
-                          <div className="absolute top-1 sm:top-2 left-1 sm:left-2 flex flex-col gap-1 z-10">
-                            {product.is_featured && (
-                              <Badge className="bg-purple-600 text-white border-0 shadow-sm text-xs px-1.5 sm:px-2 py-0.5 sm:py-1">
-                                <Sparkles className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
-                                <span className="hidden xs:inline">Featured</span>
-                                <span className="xs:hidden">★</span>
-                              </Badge>
-                            )}
-                            {product.is_new && (
-                              <Badge className="bg-green-600 text-white border-0 shadow-sm text-xs px-1.5 sm:px-2 py-0.5 sm:py-1">
-                                <Star className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
-                                <span className="hidden xs:inline">New</span>
-                                <span className="xs:hidden">N</span>
-                              </Badge>
-                            )}
-                            {product.is_sale && (
-                              <Badge className="bg-red-500 text-white border-0 shadow-sm text-xs px-1.5 sm:px-2 py-0.5 sm:py-1">
-                                <TrendingUp className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
-                                <span className="hidden xs:inline">Sale</span>
-                                <span className="xs:hidden">S</span>
-                              </Badge>
-                            )}
-                          </div>
-
-                          {/* Mobile-Optimized Stock status */}
-                          <div className="absolute top-1 sm:top-2 right-1 sm:right-2 z-10">
+                                                                                <div className="relative group">
+                      {/* Stock Status Badge */}
+                      <div className="absolute top-2 right-2 z-10">
                             {product.stock === 0 ? (
-                              <Badge className="bg-red-600 text-white border-0 shadow-sm text-xs px-1.5 sm:px-2 py-0.5 sm:py-1">
-                                <X className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
-                                <span className="hidden xs:inline">Out of Stock</span>
-                                <span className="xs:hidden">0</span>
+                          <Badge className="bg-red-600 text-white border-0 shadow-sm text-xs px-1.5 py-0.5">
+                            <X className="w-2 h-2 mr-1" />
+                            Out of Stock
                               </Badge>
                             ) : product.stock < 10 ? (
-                              <Badge className="bg-orange-600 text-white border-0 shadow-sm text-xs px-1.5 sm:px-2 py-0.5 sm:py-1">
-                                <AlertTriangle className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
-                                <span className="hidden xs:inline">Low Stock</span>
-                                <span className="xs:hidden">L</span>
+                          <Badge className="bg-orange-600 text-white border-0 shadow-sm text-xs px-1.5 py-0.5">
+                            <AlertTriangle className="w-2 h-2 mr-1" />
+                            Low Stock
                               </Badge>
                             ) : (
-                              <Badge className="bg-green-600 text-white border-0 shadow-sm text-xs px-1.5 sm:px-2 py-0.5 sm:py-1">
-                                <Check className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
-                                <span className="hidden xs:inline">In Stock</span>
-                                <span className="xs:hidden">✓</span>
+                          <Badge className="bg-green-600 text-white border-0 shadow-sm text-xs px-1.5 py-0.5">
+                            <Check className="w-2 h-2 mr-1" />
+                            In Stock
                               </Badge>
                             )}
                           </div>
 
-                          {/* Mobile-Optimized Hover Actions */}
-                          <div className="absolute bottom-2 sm:bottom-4 left-1/2 transform -translate-x-1/2 transition-all duration-300 hidden md:flex items-center gap-1 sm:gap-2 z-20 opacity-0 group-hover:opacity-100">
+                      {/* Action Button */}
+                      <div className="absolute bottom-2 right-2 z-20">
                             <Button
                               size="sm"
                               variant="outline"
-                              className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl min-h-[32px] sm:min-h-[40px] min-w-[32px] sm:min-w-[40px] transition-all duration-200 border-emerald-200 text-emerald-700 hover:border-emerald-300"
+                          className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg min-h-[32px] min-w-[32px] p-0 border-slate-200 text-slate-700 hover:border-slate-300"
                               onClick={(e) => {
                                 e.preventDefault()
                                 e.stopPropagation()
-                                handleEdit(product)
-                              }}
-                              aria-label={`Edit ${product.name}`}
-                            >
-                              <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                            </Button>
-
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="rounded-full bg-white/95 backdrop-blur-sm hover:bg-white shadow-lg hover:shadow-xl min-h-[32px] sm:min-h-[40px] min-w-[32px] sm:min-w-[40px] transition-all duration-200 border-red-200 text-red-600 hover:border-red-300 hover:text-red-700"
-                              onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                handleDelete(product)
-                              }}
-                              aria-label={`Delete ${product.name}`}
-                            >
-                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                            handleOpenActionModal(product)
+                          }}
+                          aria-label={`Actions for ${product.name}`}
+                        >
+                          <MoreHorizontal className="h-3 w-3" />
                             </Button>
                           </div>
 
-                          {/* Mobile Touch Actions - Always Visible on Mobile */}
-                          <div className="absolute bottom-2 right-2 z-20 md:hidden">
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="rounded-full bg-white/90 backdrop-blur-sm shadow-md min-h-[32px] min-w-[32px] p-0 border-emerald-200 text-emerald-700 hover:border-emerald-300"
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  handleEdit(product)
-                                }}
-                                aria-label={`Edit ${product.name}`}
-                              >
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="rounded-full bg-white/90 backdrop-blur-sm shadow-md min-h-[32px] min-w-[32px] p-0 border-red-200 text-red-600 hover:border-red-300"
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  handleDelete(product)
-                                }}
-                                aria-label={`Delete ${product.name}`}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-
-                          {/* Selection checkbox - Mobile */}
-                          <div className="absolute bottom-2 left-2 z-10 md:hidden">
-                            <input
-                              type="checkbox"
-                              checked={selectedProducts.includes(product.id)}
-                              onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
-                              className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 bg-white/90 backdrop-blur-sm"
+                      {/* Product Card */}
+                      <AdminProductCard 
+                        product={product} 
+                        viewMode={viewMode}
+                        isSelected={selectedProducts.includes(product.id)}
+                        onSelectionChange={handleSelectProduct}
                             />
                           </div>
-
-                          {/* Selection checkbox - Desktop */}
-                          <div className="absolute bottom-2 left-2 z-10 hidden md:block">
-                            <input
-                              type="checkbox"
-                              checked={selectedProducts.includes(product.id)}
-                              onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
-                              className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 bg-white/90 backdrop-blur-sm"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="p-2 sm:p-3 lg:p-4 flex flex-col flex-grow w-full">
-                          {/* Category and Brand - hidden on mobile */}
-                          <div className="items-center justify-between mb-1 sm:mb-2 hidden sm:flex w-full">
-                            <div className="text-xs text-gray-500 font-medium truncate">{product.category}</div>
-                            <div className="text-xs font-semibold text-green-600 truncate">{product.brand}</div>
-                          </div>
-                          
-                          <h3 
-                            id={`product-${product.id}`} 
-                            className="text-xs sm:text-sm lg:text-base font-semibold text-gray-800 mb-1 sm:mb-2 group-hover:text-green-600 transition-colors duration-200 leading-tight product-card-title w-full truncate"
-                          >
-                            {product.name}
-                          </h3>
-
-                          {/* Price and Stock Information */}
-                          <div className="flex items-center justify-between mb-1 sm:mb-2 w-full">
-                            <div className="flex items-center min-w-0 flex-1">
-                              <span className="text-xs sm:text-sm lg:text-base font-bold text-gray-800 truncate">
-                                KES {product.price?.toFixed(2)}
-                              </span>
-                              {product.original_price && (
-                                <span className="ml-1 text-xs text-gray-500 line-through flex-shrink-0">
-                                  KES {product.original_price?.toFixed(2)}
-                                </span>
-                              )}
-                            </div>
-                            
-                            <span className="text-xs text-gray-500 flex-shrink-0">
-                              Stock: {product.stock}
-                            </span>
-                          </div>
-
-                          {/* Rating */}
-                          {product.rating > 0 && (
-                            <div className="flex items-center mb-2 sm:mb-3 w-full">
-                              <div className="flex items-center">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-3.5 lg:h-3.5 ${
-                                      i < Math.floor(product.rating) 
-                                        ? "text-yellow-400 fill-current" 
-                                        : "text-gray-300"
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                              <span className="ml-1 sm:ml-2 text-xs text-gray-600 truncate">
-                                ({product.review_count})
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </Card>
-                    ) : (
-                      // Mobile-Optimized List View
-                      <Card className="group card-interactive bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden">
-                        <div className="flex items-center p-3 sm:p-4">
-                          <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
-                            <input
-                              type="checkbox"
-                              checked={selectedProducts.includes(product.id)}
-                              onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
-                              className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 flex-shrink-0"
-                            />
-                            <div className="relative w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                              <img
-                                src={getImageUrl(product.images?.[0]?.image_url) || '/placeholder.png'}
-                                alt={product.name}
-                                className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
-                                onError={(e) => {
-                                  e.currentTarget.src = '/placeholder.png';
-                                }}
-                              />
-                              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors duration-200 truncate text-sm sm:text-base">
-                                {product.name}
-                              </h3>
-                              <p className="text-xs sm:text-sm text-slate-600 truncate">
-                                {product.description}
-                              </p>
-                              <div className="flex items-center gap-1 sm:gap-2 mt-1 flex-wrap">
-                                {product.category && (
-                                  <Badge variant="secondary" className="text-xs">
-                                    {product.category}
-                                  </Badge>
-                                )}
-                                {product.brand && (
-                                  <Badge variant="outline" className="text-xs">
-                                    {product.brand}
-                                  </Badge>
-                                )}
-                                {product.is_featured && (
-                                  <Badge className="bg-purple-600 text-white border-0 text-xs">
-                                    <Sparkles className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
-                                    <span className="hidden xs:inline">Featured</span>
-                                    <span className="xs:hidden">★</span>
-                                  </Badge>
-                                )}
-                                {product.is_new && (
-                                  <Badge className="bg-green-600 text-white border-0 text-xs">
-                                    <Star className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
-                                    <span className="hidden xs:inline">New</span>
-                                    <span className="xs:hidden">N</span>
-                                  </Badge>
-                                )}
-                                {product.is_sale && (
-                                  <Badge className="bg-red-500 text-white border-0 text-xs">
-                                    <TrendingUp className="w-2 h-2 sm:w-2.5 sm:h-2.5 mr-1" />
-                                    <span className="hidden xs:inline">Sale</span>
-                                    <span className="xs:hidden">S</span>
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-                            <div className="text-right">
-                              <div className="font-semibold text-emerald-600 text-sm sm:text-base">
-                                KES {product.price?.toFixed(2)}
-                              </div>
-                              <div className="text-xs sm:text-sm text-slate-500">
-                                Stock: {product.stock}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1 sm:gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEdit(product)}
-                                className="h-7 w-7 sm:h-8 sm:w-8 p-0 border-emerald-200 text-emerald-700 hover:border-emerald-300 hover:text-emerald-800"
-                              >
-                                <Edit className="w-3 h-3 sm:w-3 sm:h-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDelete(product)}
-                                className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300"
-                              >
-                                <Trash2 className="w-3 h-3 sm:w-3 sm:h-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                    )}
                   </motion.div>
                 ))}
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
+                        </div>
+
+        {/* Action Modal */}
+        <Dialog open={showActionModal} onOpenChange={setShowActionModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Product Actions</DialogTitle>
+              <DialogDescription>
+                Choose an action for "{selectedProductForAction?.name}"
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-3 py-4">
+                              <Button
+                onClick={handleActionEdit}
+                className="w-full justify-start"
+                                variant="outline"
+                              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Product
+                              </Button>
+                              <Button
+                onClick={handleActionDelete}
+                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                                variant="outline"
+                              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Product
+                              </Button>
+                            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={handleCloseActionModal}>
+                Cancel
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Delete Confirmation Modal */}
         <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>

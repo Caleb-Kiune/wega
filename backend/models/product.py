@@ -32,8 +32,10 @@ class Product(db.Model):
 
     def to_dict(self):
         # Get the primary image URL
-        primary_image = next((img.image_url for img in self.images if img.is_primary), 
-                           self.images[0].image_url if self.images else None)
+        primary_image = None
+        if self.images:
+            primary_image = next((img.image_url for img in self.images if img.is_primary), 
+                               self.images[0].image_url if self.images else None)
         
         # Format image URL using helper function
         from utils.helpers import format_image_url
@@ -47,7 +49,7 @@ class Product(db.Model):
             'price': float(self.price) if self.price else None,
             'original_price': float(self.original_price) if self.original_price else None,
             'image_url': primary_image,
-            'images': [img.to_dict() for img in self.images],
+            'images': [img.to_dict() for img in self.images] if self.images else [],
             'is_new': self.is_new,
             'is_sale': self.is_sale,
             'is_featured': self.is_featured,
@@ -57,7 +59,7 @@ class Product(db.Model):
             'review_count': self.review_count,
             'stock': self.stock,
             'sku': self.sku,
-            'features': [feature.to_dict() for feature in self.features],
-            'specifications': [spec.to_dict() for spec in self.specifications],
-            'reviews': [review.to_dict() for review in self.reviews]
+            'features': [feature.to_dict() for feature in self.features] if self.features else [],
+            'specifications': [spec.to_dict() for spec in self.specifications] if self.specifications else [],
+            'reviews': [review.to_dict() for review in self.reviews] if self.reviews else []
         } 

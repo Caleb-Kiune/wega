@@ -7,7 +7,7 @@ import { format, isValid, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Package, Truck, CheckCircle, XCircle, Search, Filter, Download, Trash2, LogOut, MoreVertical, ArrowLeft, ChevronDown } from 'lucide-react';
+import { Eye, Package, Truck, CheckCircle, XCircle, Search, Filter, Download, Trash2, LogOut, MoreVertical, ArrowLeft, ChevronDown, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import {
@@ -48,6 +48,7 @@ function OrdersPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedOrders, setSelectedOrders] = useState<number[]>([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   useEffect(() => {
@@ -163,6 +164,30 @@ function OrdersPage() {
     } catch (error) {
       console.error('Error deleting orders:', error);
       toast.error('Failed to delete selected orders');
+    }
+  };
+
+  const handleDeleteOrder = (order: Order) => {
+    setOrderToDelete(order);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!orderToDelete) return;
+
+    try {
+      setLoading(true);
+      await ordersApi.delete(orderToDelete.id);
+      await fetchOrders();
+      toast.success('Order deleted successfully');
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete order';
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+      setIsDeleteModalOpen(false);
+      setOrderToDelete(null);
     }
   };
 
@@ -401,6 +426,78 @@ function OrdersPage() {
           </Card>
         </motion.div>
 
+        {/* Bulk Actions Bar */}
+        {selectedOrders.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            exit={{ opacity: 0, y: -10 }}
+            className="mb-4"
+          >
+            <Card className="border-orange-200 bg-orange-50/50">
+              <CardContent className="p-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                      {selectedOrders.length} order{selectedOrders.length !== 1 ? 's' : ''} selected
+                    </Badge>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedOrders([])}
+                      className="h-9 sm:h-10 border-orange-200 text-orange-700 hover:bg-orange-50 w-full sm:w-auto"
+                    >
+                      <X className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                      <span className="hidden xs:inline">Clear Selection</span>
+                      <span className="xs:hidden">Clear</span>
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-9 sm:h-10 w-full sm:w-auto">
+                          <Package className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                          <span className="hidden xs:inline">Update Status</span>
+                          <span className="xs:hidden">Status</span>
+                          <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-32">
+                        <DropdownMenuItem onClick={() => handleBulkStatusChange('processing')}>
+                          <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                          Processing
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleBulkStatusChange('shipped')}>
+                          <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                          Shipped
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleBulkStatusChange('delivered')}>
+                          <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                          Delivered
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleBulkStatusChange('cancelled')} className="text-red-600">
+                          <XCircle className="h-4 w-4 mr-2" />
+                          Cancel
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setIsDeleteModalOpen(true)}
+                      className="h-9 sm:h-10 bg-red-500 hover:bg-red-600 w-full sm:w-auto"
+                    >
+                      <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                      <span className="hidden xs:inline">Delete Selected</span>
+                      <span className="xs:hidden">Delete</span>
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Orders List */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <Card className="border-slate-200 bg-white/90 shadow-md">
@@ -414,6 +511,20 @@ function OrdersPage() {
                 <table className="min-w-full divide-y divide-slate-200 text-sm">
                   <thead className="bg-slate-50 sticky top-0 z-10">
                     <tr>
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                        <input
+                          type="checkbox"
+                          checked={selectedOrders.length === orders.length && orders.length > 0}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedOrders(orders.map(order => order.id));
+                            } else {
+                              setSelectedOrders([]);
+                            }
+                          }}
+                          className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                        />
+                      </th>
                       <th className="px-4 py-3 text-left font-semibold text-slate-700">Order #</th>
                       <th className="px-4 py-3 text-left font-semibold text-slate-700">Customer</th>
                       <th className="px-4 py-3 text-left font-semibold text-slate-700">Date</th>
@@ -435,6 +546,14 @@ function OrdersPage() {
                           transition={{ delay: idx * 0.03 }}
                           className="hover:bg-slate-50 transition-colors duration-200"
                         >
+                          <td className="px-4 py-3">
+                            <input
+                              type="checkbox"
+                              checked={selectedOrders.includes(order.id)}
+                              onChange={(e) => toggleOrderSelection(order.id)}
+                              className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                            />
+                          </td>
                           <td className="px-4 py-3 font-mono font-bold text-emerald-700">#{order.id}</td>
                           <td className="px-4 py-3">{order.first_name} {order.last_name}</td>
                           <td className="px-4 py-3">{format(parseISO(order.created_at), 'MMM d, yyyy')}</td>
@@ -535,7 +654,7 @@ function OrdersPage() {
                                   <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'cancelled')} className="text-red-600">
                                     <XCircle className="h-4 w-4 mr-2" /> Cancel Order
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleBulkDelete()} className="text-red-600">
+                                  <DropdownMenuItem onClick={() => handleDeleteOrder(order)} className="text-red-600">
                                     <Trash2 className="h-4 w-4 mr-2" /> Delete Order
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -564,6 +683,12 @@ function OrdersPage() {
                       {/* Header */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedOrders.includes(order.id)}
+                            onChange={(e) => toggleOrderSelection(order.id)}
+                            className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                          />
                           <span className="font-mono font-bold text-emerald-700">#{order.id}</span>
                           <Badge className={getStatusColor(order.status) + ' px-2 py-1 rounded-full text-xs font-semibold'}>
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
@@ -585,7 +710,7 @@ function OrdersPage() {
                               <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'cancelled')} className="text-red-600">
                                 <XCircle className="h-4 w-4 mr-2" /> Cancel Order
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleBulkDelete()} className="text-red-600">
+                              <DropdownMenuItem onClick={() => handleDeleteOrder(order)} className="text-red-600">
                                 <Trash2 className="h-4 w-4 mr-2" /> Delete Order
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -684,6 +809,38 @@ function OrdersPage() {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Delete Confirmation Modal */}
+        <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {orderToDelete ? 'Delete Order' : 'Delete Selected Orders'}
+              </DialogTitle>
+              <DialogDescription>
+                {orderToDelete 
+                  ? `Are you sure you want to delete order #${orderToDelete.id}? This action cannot be undone.`
+                  : `Are you sure you want to delete ${selectedOrders.length} selected order${selectedOrders.length !== 1 ? 's' : ''}? This action cannot be undone.`
+                }
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setIsDeleteModalOpen(false);
+                setOrderToDelete(null);
+              }}>
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={orderToDelete ? handleConfirmDelete : handleBulkDelete} 
+                disabled={loading}
+              >
+                {loading ? 'Deleting...' : 'Delete'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
