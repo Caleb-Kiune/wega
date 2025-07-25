@@ -1058,11 +1058,11 @@ export default function ProductsPage() {
                       animate={{ opacity: 1, y: 0 }}
                       className="mt-12 sm:mt-16"
                     >
-                      <div className="flex flex-col items-center gap-6 sm:gap-8">
-                        <div className="text-sm text-gray-600 font-medium">
+                      <div className="flex flex-col items-center gap-3 sm:gap-6">
+                        <div className="text-xs sm:text-sm text-gray-600 font-medium">
                           Page {currentPage} of {totalPages}
                         </div>
-                        <nav className="flex items-center gap-3">
+                        <nav className="flex items-center gap-1 sm:gap-3">
                           <Button
                             variant="outline"
                             size="sm"
@@ -1071,7 +1071,7 @@ export default function ProductsPage() {
                               console.log('First button clicked, current page:', currentPage);
                               handlePageChange(1);
                             }}
-                            className="min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-50 transition-all duration-200"
+                            className="min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-lg text-xs font-medium hover:bg-gray-50 transition-all duration-200"
                           >
                             First
                           </Button>
@@ -1083,13 +1083,13 @@ export default function ProductsPage() {
                               console.log('Prev button clicked, current page:', currentPage);
                               handlePageChange(currentPage - 1);
                             }}
-                            className="min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-50 transition-all duration-200"
+                            className="min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-lg text-xs font-medium hover:bg-gray-50 transition-all duration-200"
                           >
                             Prev
                           </Button>
                           
                           {/* Mobile-Optimized Page Numbers */}
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-0.5 sm:gap-1">
                             {Array.from({ length: totalPages }, (_, i) => i + 1)
                               .filter(page => {
                                 return page === 1 || 
@@ -1101,7 +1101,7 @@ export default function ProductsPage() {
                                 return (
                                   <div key={page} className="flex items-center">
                                     {showEllipsis && (
-                                      <span className="px-1 sm:px-2 text-gray-400 text-xs">...</span>
+                                      <span className="px-0.5 sm:px-2 text-gray-400 text-xs">...</span>
                                     )}
                                     <Button
                                       variant={currentPage === page ? 'default' : 'outline'}
@@ -1110,7 +1110,7 @@ export default function ProductsPage() {
                                         console.log('Page number clicked:', page, 'current page:', currentPage);
                                         handlePageChange(page);
                                       }}
-                                      className={`min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
+                                      className={`min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-lg text-xs font-medium transition-all duration-200 ${
                                         currentPage === page 
                                           ? 'bg-green-600 hover:bg-green-700 text-white shadow-md' 
                                           : 'hover:bg-gray-50'
@@ -1131,7 +1131,7 @@ export default function ProductsPage() {
                               console.log('Next button clicked, current page:', currentPage, 'total pages:', totalPages);
                               handlePageChange(currentPage + 1);
                             }}
-                            className="min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-50 transition-all duration-200"
+                            className="min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-lg text-xs font-medium hover:bg-gray-50 transition-all duration-200"
                           >
                             Next
                           </Button>
@@ -1143,7 +1143,7 @@ export default function ProductsPage() {
                               console.log('Last button clicked, current page:', currentPage, 'total pages:', totalPages);
                               handlePageChange(totalPages);
                             }}
-                            className="min-h-[44px] min-w-[44px] rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-50 transition-all duration-200"
+                            className="min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-lg text-xs font-medium hover:bg-gray-50 transition-all duration-200"
                           >
                             Last
                           </Button>
