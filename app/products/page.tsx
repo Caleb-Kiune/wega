@@ -17,6 +17,8 @@ export interface ProductsFilters extends Omit<ProductsParams, 'page' | 'limit'> 
   page: number;
   limit: number;
   search?: string;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
 }
 
 export default function ProductsPage() {
@@ -25,7 +27,15 @@ export default function ProductsPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
   const [showSortMenu, setShowSortMenu] = useState(false);
-  const [sortBy, setSortBy] = useState('featured');
+  const [sortBy, setSortBy] = useState(() => {
+    const urlSortBy = searchParams.get('sort_by');
+    const urlSortOrder = searchParams.get('sort_order');
+    
+    if (urlSortBy === 'price' && urlSortOrder === 'asc') return 'price-low';
+    if (urlSortBy === 'price' && urlSortOrder === 'desc') return 'price-high';
+    if (urlSortBy === 'name' && urlSortOrder === 'asc') return 'name';
+    return 'price-low'; // Default to price low to high
+  });
   
   const [filters, setFilters] = useState<ProductsFilters>({
     page: Number(searchParams.get('page')) || 1,
@@ -38,6 +48,8 @@ export default function ProductsPage() {
     is_new: searchParams.get('is_new') === 'true',
     is_sale: searchParams.get('is_sale') === 'true',
     search: searchParams.get('search') || undefined,
+    sort_by: searchParams.get('sort_by') || undefined,
+    sort_order: (searchParams.get('sort_order') as 'asc' | 'desc' | undefined) || undefined,
   });
 
   // Debug logging for initial load
@@ -84,8 +96,71 @@ export default function ProductsPage() {
     if (updatedFilters.is_new) params.set('is_new', 'true');
     if (updatedFilters.is_sale) params.set('is_sale', 'true');
     if (updatedFilters.search) params.set('search', updatedFilters.search);
+    if (updatedFilters.sort_by) params.set('sort_by', updatedFilters.sort_by);
+    if (updatedFilters.sort_order) params.set('sort_order', updatedFilters.sort_order);
     
     const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+    router.replace(newUrl, { scroll: false });
+  };
+
+  const handleSortChange = (newSortBy: string) => {
+    console.log('Sort change requested:', newSortBy);
+    setSortBy(newSortBy);
+    
+    // Map frontend sort options to backend parameters
+    let sort_by: string | undefined;
+    let sort_order: 'asc' | 'desc' | undefined;
+    
+    switch (newSortBy) {
+      case 'price-low':
+        sort_by = 'price';
+        sort_order = 'asc';
+        break;
+      case 'price-high':
+        sort_by = 'price';
+        sort_order = 'desc';
+        break;
+      case 'name':
+        sort_by = 'name';
+        sort_order = 'asc';
+        break;
+      default:
+        sort_by = 'price';
+        sort_order = 'asc';
+        break;
+    }
+    
+    console.log('Mapped to backend parameters:', { sort_by, sort_order });
+    
+    const updatedFilters = { 
+      ...filters, 
+      sort_by, 
+      sort_order, 
+      page: 1 
+    };
+    setFilters(updatedFilters);
+    
+    // Update URL with new sort parameters
+    const params = new URLSearchParams();
+    if (updatedFilters.page > 1) params.set('page', updatedFilters.page.toString());
+    if (updatedFilters.limit !== 24) params.set('limit', updatedFilters.limit.toString());
+    if (updatedFilters.categories?.length) {
+      updatedFilters.categories.forEach(category => params.append('categories[]', category));
+    }
+    if (updatedFilters.brands?.length) {
+      updatedFilters.brands.forEach(brand => params.append('brands[]', brand));
+    }
+    if (updatedFilters.min_price) params.set('min_price', updatedFilters.min_price.toString());
+    if (updatedFilters.max_price) params.set('max_price', updatedFilters.max_price.toString());
+    if (updatedFilters.is_featured) params.set('is_featured', 'true');
+    if (updatedFilters.is_new) params.set('is_new', 'true');
+    if (updatedFilters.is_sale) params.set('is_sale', 'true');
+    if (updatedFilters.search) params.set('search', updatedFilters.search);
+    if (updatedFilters.sort_by) params.set('sort_by', updatedFilters.sort_by);
+    if (updatedFilters.sort_order) params.set('sort_order', updatedFilters.sort_order);
+    
+    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+    console.log('Updating URL with sort parameters:', newUrl);
     router.replace(newUrl, { scroll: false });
   };
 
@@ -111,6 +186,8 @@ export default function ProductsPage() {
     if (filters.is_new) params.set('is_new', 'true');
     if (filters.is_sale) params.set('is_sale', 'true');
     if (filters.search) params.set('search', filters.search);
+    if (filters.sort_by) params.set('sort_by', filters.sort_by);
+    if (filters.sort_order) params.set('sort_order', filters.sort_order);
     
     const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
     console.log('Updating URL to:', newUrl);
@@ -145,6 +222,8 @@ export default function ProductsPage() {
     if (updatedFilters.is_featured) params.set('is_featured', 'true');
     if (updatedFilters.is_new) params.set('is_new', 'true');
     if (updatedFilters.is_sale) params.set('is_sale', 'true');
+    if (updatedFilters.sort_by) params.set('sort_by', updatedFilters.sort_by);
+    if (updatedFilters.sort_order) params.set('sort_order', updatedFilters.sort_order);
     
     const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
     router.replace(newUrl, { scroll: false });
@@ -171,6 +250,8 @@ export default function ProductsPage() {
     if (updatedFilters.is_new) params.set('is_new', 'true');
     if (updatedFilters.is_sale) params.set('is_sale', 'true');
     if (updatedFilters.search) params.set('search', updatedFilters.search);
+    if (updatedFilters.sort_by) params.set('sort_by', updatedFilters.sort_by);
+    if (updatedFilters.sort_order) params.set('sort_order', updatedFilters.sort_order);
     
     const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
     router.replace(newUrl, { scroll: false });
@@ -567,6 +648,8 @@ export default function ProductsPage() {
                             is_new: undefined,
                             is_sale: undefined,
                             search: undefined,
+                            sort_by: undefined,
+                            sort_order: undefined,
                           })}
                           disabled={loading}
                           className="text-green-500 hover:text-green-700 transition-colors p-0.5 rounded-full hover:bg-green-100 disabled:opacity-50"
@@ -712,6 +795,8 @@ export default function ProductsPage() {
                                   is_new: undefined,
                                   is_sale: undefined,
                                   search: undefined,
+                                  sort_by: undefined,
+                                  sort_order: undefined,
                                 })}
                                 className="text-green-600 hover:text-green-700 hover:bg-green-100 text-sm font-medium"
                               >
@@ -777,8 +862,6 @@ export default function ProductsPage() {
                         >
                           <div className="py-2">
                             {[
-                              { value: 'featured', label: 'Featured', icon: Star },
-                              { value: 'newest', label: 'Newest', icon: Sparkles },
                               { value: 'price-low', label: 'Price: Low to High', icon: TrendingUp },
                               { value: 'price-high', label: 'Price: High to Low', icon: TrendingUp },
                               { value: 'name', label: 'Name: A to Z', icon: List },
@@ -788,7 +871,7 @@ export default function ProductsPage() {
                               <button
                                 key={option.value}
                                 onClick={() => {
-                                  setSortBy(option.value);
+                                  handleSortChange(option.value);
                                   setShowSortMenu(false);
                                 }}
                                   className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors flex items-center gap-3 ${

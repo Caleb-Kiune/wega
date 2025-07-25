@@ -69,6 +69,7 @@ export interface OrdersParams {
   payment_status?: string;
   payment_method?: string;
   page?: number;
+  per_page?: number;
   search?: string;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
@@ -82,6 +83,7 @@ export const ordersApi = {
       if (params?.payment_status) queryParams.append('payment_status', params.payment_status);
       if (params?.payment_method) queryParams.append('payment_method', params.payment_method);
       if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
       if (params?.search) queryParams.append('search', params.search);
       if (params?.sort_by) queryParams.append('sort_by', params.sort_by);
       if (params?.sort_order) queryParams.append('sort_order', params.sort_order);

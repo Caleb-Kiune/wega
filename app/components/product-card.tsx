@@ -44,12 +44,12 @@ const QuickViewModal = ({
   onToggleCart: () => void
   onToggleWishlist: () => void
   quantity: number
-  setQuantity: (quantity: number) => void
+  setQuantity: (quantity: number | ((prev: number) => number)) => void
 }) => {
   if (!isOpen) return null
 
   const handleQuantityChange = (increment: boolean) => {
-    setQuantity((prev) => {
+    setQuantity((prev: number) => {
       const newQuantity = increment ? prev + 1 : prev - 1
       return Math.max(1, Math.min(newQuantity, product.stock))
     })
@@ -208,7 +208,7 @@ const QuickViewModal = ({
                     </div>
                     <Button
                       variant="outline"
-                      size="md"
+                      size="default"
                       onClick={onToggleWishlist}
                       className="w-12 min-w-[48px] btn-product flex-shrink-0 flex items-center justify-center"
                     >
@@ -220,7 +220,7 @@ const QuickViewModal = ({
                 {/* Add to Cart and WhatsApp side by side */}
                 <div className="flex flex-col sm:flex-row gap-2 w-full">
                   <Button
-                    size="md"
+                    size="default"
                     className={`w-full sm:w-1/2 ${isInCart 
                       ? 'bg-green-500 hover:bg-green-600 text-white' 
                       : 'bg-green-600 hover:bg-green-700 text-white'
