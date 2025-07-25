@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useBrands } from '@/lib/hooks/use-brands';
 import { useCategories } from '@/lib/hooks/use-categories';
+import { usePriceRange } from '@/lib/hooks/use-price-range';
+import PriceRangeFilter, { PriceRange } from '@/components/PriceRangeFilter';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { Input } from '@/components/ui/input';
 import { 
   Filter, 
   Loader2, 
@@ -41,44 +41,20 @@ interface ProductFiltersProps {
 export default function ProductFilters({ filters, onFiltersChange, loading }: ProductFiltersProps) {
   const { brands, loading: brandsLoading } = useBrands();
   const { categories, loading: categoriesLoading } = useCategories();
-  const [priceRange, setPriceRange] = useState([0, 50000]);
-  const [priceInputs, setPriceInputs] = useState({ min: '', max: '' });
+  const { priceRange, priceStats, loading: priceRangeLoading } = usePriceRange();
 
-  // Initialize price range from filters
-  useEffect(() => {
-    const min = filters.min_price || 0;
-    const max = filters.max_price || 50000;
-    setPriceRange([min, max]);
-    setPriceInputs({ 
-      min: min > 0 ? min.toString() : '', 
-      max: max < 50000 ? max.toString() : '' 
-    });
-  }, [filters.min_price, filters.max_price]);
+  // Current price range from filters
+  const currentPriceRange: PriceRange | undefined = filters.min_price || filters.max_price ? {
+    min: filters.min_price || priceRange.min,
+    max: filters.max_price || priceRange.max
+  } : undefined;
 
-  const handlePriceRangeChange = (value: number[]) => {
-    setPriceRange(value);
-    setPriceInputs({
-      min: value[0] > 0 ? value[0].toString() : '',
-      max: value[1] < 50000 ? value[1].toString() : ''
-    });
-  };
-
-  const handlePriceInputChange = (type: 'min' | 'max', value: string) => {
-    const numValue = parseInt(value) || 0;
-    setPriceInputs(prev => ({ ...prev, [type]: value }));
-    
-    if (type === 'min') {
-      setPriceRange([numValue, priceRange[1]]);
-    } else {
-      setPriceRange([priceRange[0], numValue]);
-    }
-  };
-
-  const handleApplyPriceFilters = () => {
+  // Handle price range changes
+  const handlePriceRangeChange = (range: PriceRange | null) => {
     onFiltersChange({
       ...filters,
-      min_price: priceRange[0] > 0 ? priceRange[0] : undefined,
-      max_price: priceRange[1] < 50000 ? priceRange[1] : undefined,
+      min_price: range?.min,
+      max_price: range?.max,
       page: 1,
     });
   };
@@ -96,8 +72,6 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
       is_sale: undefined,
       search: undefined,
     });
-    setPriceRange([0, 50000]);
-    setPriceInputs({ min: '', max: '' });
   };
 
   const handleCategoryChange = (categoryName: string, checked: boolean) => {
@@ -158,44 +132,6 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
         {children}
       </div>
     </div>
-  );
-
-  // New Custom Checkbox Component
-  const CustomCheckbox = ({ 
-    label, 
-    checked, 
-    onChange 
-  }: { 
-    label: string; 
-    checked: boolean; 
-    onChange: (checked: boolean) => void;
-  }) => (
-    <button
-      className={cn(
-        "flex items-center justify-between w-full py-3 px-0 text-left transition-colors duration-200",
-        checked 
-          ? "text-gray-900" 
-          : "text-gray-600 hover:text-gray-900"
-      )}
-      onClick={() => onChange(!checked)}
-    >
-      <span className="text-sm">{label}</span>
-      
-      {/* Custom Checkbox */}
-      <div className="relative">
-        <div className={cn(
-          "w-5 h-5 border-2 rounded transition-all duration-200 flex items-center justify-center",
-          checked 
-            ? "bg-black border-black" 
-            : "border-gray-300 bg-white"
-        )}>
-          {/* Checkmark using CSS */}
-          {checked && (
-            <div className="w-2 h-2 bg-white rounded-sm"></div>
-          )}
-        </div>
-      </div>
-    </button>
   );
 
   // Compact Native Checkbox Option
@@ -305,59 +241,26 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
             )}
           </FilterSection>
 
-          {/* Price Range */}
+          {/* Enhanced Price Range Filter */}
           <FilterSection title="Price Range" icon={DollarSign}>
-            <div className="space-y-4">
-              {/* Enhanced Price Inputs */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Min Price</label>
-                  <Input
-                    type="number"
-                    value={priceInputs.min}
-                    onChange={(e) => handlePriceInputChange('min', e.target.value)}
-                    placeholder="0"
-                    className="h-10 text-sm border-gray-200 focus:border-green-500 focus:ring-green-500/20 transition-colors mobile-touch-target mobile-focus"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Max Price</label>
-                  <Input
-                    type="number"
-                    value={priceInputs.max}
-                    onChange={(e) => handlePriceInputChange('max', e.target.value)}
-                    placeholder="50K"
-                    className="h-10 text-sm border-gray-200 focus:border-green-500 focus:ring-green-500/20 transition-colors mobile-touch-target mobile-focus"
-                  />
-                </div>
+            {priceRangeLoading ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
               </div>
-
-              {/* Enhanced Slider */}
-              <div className="space-y-3">
-                <Slider
-                  value={priceRange}
-                  onValueChange={handlePriceRangeChange}
-                  max={50000}
-                  min={0}
-                  step={1000}
-                  className="w-full"
-                />
-                <div className="flex items-center justify-between text-sm text-gray-600 font-medium">
-                  <span>KES {priceRange[0].toLocaleString()}</span>
-                  <span>KES {priceRange[1].toLocaleString()}</span>
-                </div>
-              </div>
-
-              {/* Enhanced Apply Button */}
-              <div className="pt-2">
-                <Button
-                  onClick={handleApplyPriceFilters}
-                  className="w-full h-10 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white text-sm font-semibold rounded-lg transition-all duration-200 shadow-sm mobile-touch-target mobile-focus"
-                >
-                  Apply Price Filter
-                </Button>
-              </div>
-            </div>
+            ) : (
+              <PriceRangeFilter
+                currentRange={currentPriceRange}
+                onRangeChange={handlePriceRangeChange}
+                loading={loading}
+                availablePriceRange={priceRange}
+                autoApply={true}
+                debounceMs={500}
+                showPriceSuggestions={true}
+                showResetButton={true}
+                isModal={true}
+                className="px-0"
+              />
+            )}
           </FilterSection>
         </div>
       </div>

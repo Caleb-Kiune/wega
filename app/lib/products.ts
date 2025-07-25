@@ -176,6 +176,14 @@ export const productsApi = {
       products: data.products.map((product: any) => transformProduct(product))
     };
   },
+
+  getPriceStats: async () => {
+    const response = await fetch(`${API_BASE_URL}/products/price-stats`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch price statistics');
+    }
+    return await response.json();
+  },
   
   getById: async (id: number) => {
     console.log('🔄 API getById - Fetching product ID:', id);

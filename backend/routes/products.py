@@ -1,11 +1,73 @@
 from flask import Blueprint, jsonify, request, current_app
-from sqlalchemy import or_, and_, case
+from sqlalchemy import or_, and_, case, func
 from decimal import Decimal
 from models import db, Product, Category, Brand, ProductImage, ProductSpecification, ProductFeature, Review
 from utils.helpers import validate_product_data, validate_review_data, validate_image_data, validate_specification_data, validate_feature_data, paginate, format_image_url
 from sqlalchemy.orm import joinedload
 
 products_bp = Blueprint('products', __name__)
+
+@products_bp.route('/api/products/price-stats', methods=['GET'])
+def get_price_stats():
+    """Get price statistics for filtering"""
+    try:
+        # Get price statistics
+        stats = db.session.query(
+            func.min(Product.price).label('min_price'),
+            func.max(Product.price).label('max_price'),
+            func.avg(Product.price).label('avg_price'),
+            func.count(Product.id).label('total_products')
+        ).filter(Product.price.isnot(None)).first()
+        
+        if not stats or not stats.min_price:
+            return jsonify({
+                'min_price': 0,
+                'max_price': 50000,
+                'avg_price': 0,
+                'total_products': 0
+            })
+        
+        # Get price distribution for better suggestions
+        price_ranges = [
+            {'label': 'Under KES 5K', 'min': 0, 'max': 5000},
+            {'label': 'KES 5K - 10K', 'min': 5000, 'max': 10000},
+            {'label': 'KES 10K - 20K', 'min': 10000, 'max': 20000},
+            {'label': 'KES 20K - 50K', 'min': 20000, 'max': 50000},
+            {'label': 'Over KES 50K', 'min': 50000, 'max': float('inf')}
+        ]
+        
+        distribution = []
+        for price_range in price_ranges:
+            if price_range['max'] == float('inf'):
+                count = db.session.query(Product).filter(
+                    Product.price >= price_range['min']
+                ).count()
+            else:
+                count = db.session.query(Product).filter(
+                    and_(
+                        Product.price >= price_range['min'],
+                        Product.price < price_range['max']
+                    )
+                ).count()
+            
+            distribution.append({
+                'label': price_range['label'],
+                'min': price_range['min'],
+                'max': price_range['max'] if price_range['max'] != float('inf') else None,
+                'count': count
+            })
+        
+        return jsonify({
+            'min_price': float(stats.min_price),
+            'max_price': float(stats.max_price),
+            'avg_price': float(stats.avg_price),
+            'total_products': stats.total_products,
+            'distribution': distribution
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f"Error getting price stats: {str(e)}")
+        return jsonify({'error': 'Failed to get price statistics'}), 500
 
 @products_bp.route('/api/products', methods=['GET'])
 def get_products():
