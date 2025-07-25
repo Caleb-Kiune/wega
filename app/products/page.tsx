@@ -13,6 +13,38 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 
+// Custom hook for scroll-to-top functionality
+const useScrollToTop = () => {
+  const scrollToTop = () => {
+    // Use requestAnimationFrame for smoother scrolling
+    requestAnimationFrame(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'instant' // Use instant for immediate response
+      });
+    });
+  };
+
+  return scrollToTop;
+};
+
+// Custom hook for scroll-to-products functionality
+const useScrollToProducts = (mainContentRef: React.RefObject<HTMLDivElement>) => {
+  const scrollToProducts = () => {
+    // Use requestAnimationFrame for smoother scrolling
+    requestAnimationFrame(() => {
+      if (mainContentRef.current) {
+        mainContentRef.current.scrollIntoView({
+          behavior: 'instant',
+          block: 'start'
+        });
+      }
+    });
+  };
+
+  return scrollToProducts;
+};
+
 export interface ProductsFilters extends Omit<ProductsParams, 'page' | 'limit'> {
   page: number;
   limit: number;
@@ -24,6 +56,7 @@ export interface ProductsFilters extends Omit<ProductsParams, 'page' | 'limit'> 
 export default function ProductsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const scrollToTop = useScrollToTop();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
   const [showSortMenu, setShowSortMenu] = useState(false);
@@ -194,15 +227,18 @@ export default function ProductsPage() {
     router.replace(newUrl, { scroll: false });
   };
 
+  // New pagination handler with scroll-to-products functionality
+  const handlePaginationClick = (page: number) => {
+    // First scroll to products section immediately
+    scrollToProducts();
+    
+    // Then handle the page change
+    handlePageChange(page);
+  };
+
   // Add ref for main content after hero
   const mainContentRef = useRef<HTMLDivElement>(null);
-
-  // Scroll to just below the hero section when page changes
-  useEffect(() => {
-    if (mainContentRef.current) {
-      mainContentRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [filters.page]);
+  const scrollToProducts = useScrollToProducts(mainContentRef);
 
   const handleClearSearch = () => {
     const updatedFilters = { ...filters, search: undefined, page: 1 };
@@ -1069,7 +1105,7 @@ export default function ProductsPage() {
                             disabled={currentPage === 1}
                             onClick={() => {
                               console.log('First button clicked, current page:', currentPage);
-                              handlePageChange(1);
+                              handlePaginationClick(1);
                             }}
                             className="min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-lg text-xs font-medium hover:bg-gray-50 transition-all duration-200"
                           >
@@ -1081,7 +1117,7 @@ export default function ProductsPage() {
                             disabled={currentPage === 1}
                             onClick={() => {
                               console.log('Prev button clicked, current page:', currentPage);
-                              handlePageChange(currentPage - 1);
+                              handlePaginationClick(currentPage - 1);
                             }}
                             className="min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-lg text-xs font-medium hover:bg-gray-50 transition-all duration-200"
                           >
@@ -1108,7 +1144,7 @@ export default function ProductsPage() {
                                       size="sm"
                                       onClick={() => {
                                         console.log('Page number clicked:', page, 'current page:', currentPage);
-                                        handlePageChange(page);
+                                        handlePaginationClick(page);
                                       }}
                                       className={`min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-lg text-xs font-medium transition-all duration-200 ${
                                         currentPage === page 
@@ -1129,7 +1165,7 @@ export default function ProductsPage() {
                             disabled={currentPage === totalPages}
                             onClick={() => {
                               console.log('Next button clicked, current page:', currentPage, 'total pages:', totalPages);
-                              handlePageChange(currentPage + 1);
+                              handlePaginationClick(currentPage + 1);
                             }}
                             className="min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-lg text-xs font-medium hover:bg-gray-50 transition-all duration-200"
                           >
@@ -1141,7 +1177,7 @@ export default function ProductsPage() {
                             disabled={currentPage === totalPages}
                             onClick={() => {
                               console.log('Last button clicked, current page:', currentPage, 'total pages:', totalPages);
-                              handlePageChange(totalPages);
+                              handlePaginationClick(totalPages);
                             }}
                             className="min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-lg text-xs font-medium hover:bg-gray-50 transition-all duration-200"
                           >
