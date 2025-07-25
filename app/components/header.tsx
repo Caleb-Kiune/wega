@@ -695,7 +695,7 @@ export default function Header() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                                 <Link
-                        href="/account"
+                        href="/admin/login"
                         aria-label="Account"
                         className="text-gray-600 hover:text-green-600 p-3 rounded-xl hover:bg-green-50 transition-all duration-300 focus-visible:ring-4 focus-visible:ring-green-200 min-h-[48px] min-w-[48px] flex items-center justify-center group"
                       >
@@ -774,7 +774,7 @@ export default function Header() {
                 {/* Mobile Account Link */}
                 <div className="border-t border-gray-200 pt-4">
                   <Link
-                    href="/account"
+                    href="/admin/login"
                     onClick={handleNavigationClick}
                       className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-2xl transition-all duration-300 group"
                   >
