@@ -15,9 +15,12 @@ import {
   DollarSign, 
   RotateCcw,
   Check,
-  X
+  X,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export interface ProductsFilters {
   page: number;
@@ -38,10 +41,27 @@ interface ProductFiltersProps {
   loading: boolean;
 }
 
+// Section configuration with default states
+interface FilterSectionConfig {
+  id: string;
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  defaultExpanded: boolean;
+  hasActiveFilters: boolean;
+}
+
 export default function ProductFilters({ filters, onFiltersChange, loading }: ProductFiltersProps) {
   const { brands, loading: brandsLoading } = useBrands();
   const { categories, loading: categoriesLoading } = useCategories();
   const { priceRange, priceStats, loading: priceRangeLoading } = usePriceRange();
+
+  // Collapsible sections state
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    'product-status': true, // Always expanded by default
+    'categories': false,    // Collapsed by default
+    'brands': false,        // Collapsed by default
+    'price-range': true,    // Always expanded by default
+  });
 
   // Current price range from filters
   const currentPriceRange: PriceRange | undefined = filters.min_price || filters.max_price ? {
@@ -111,28 +131,131 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
     return count;
   };
 
+  // Get active filters count for each section
+  const getSectionActiveCount = (sectionId: string): number => {
+    switch (sectionId) {
+      case 'product-status':
+        return [filters.is_featured, filters.is_new, filters.is_sale].filter(Boolean).length;
+      case 'categories':
+        return filters.categories?.length || 0;
+      case 'brands':
+        return filters.brands?.length || 0;
+      case 'price-range':
+        return (filters.min_price || filters.max_price) ? 1 : 0;
+      default:
+        return 0;
+    }
+  };
+
+  // Check if section has active filters
+  const hasActiveFilters = (sectionId: string): boolean => {
+    return getSectionActiveCount(sectionId) > 0;
+  };
+
+  // Toggle section expansion
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
+
+  // Auto-expand sections with active filters
+  useEffect(() => {
+    const newExpandedSections = { ...expandedSections };
+    
+    // Auto-expand sections with active filters
+    if (hasActiveFilters('product-status') && !newExpandedSections['product-status']) {
+      newExpandedSections['product-status'] = true;
+    }
+    if (hasActiveFilters('categories') && !newExpandedSections['categories']) {
+      newExpandedSections['categories'] = true;
+    }
+    if (hasActiveFilters('brands') && !newExpandedSections['brands']) {
+      newExpandedSections['brands'] = true;
+    }
+    if (hasActiveFilters('price-range') && !newExpandedSections['price-range']) {
+      newExpandedSections['price-range'] = true;
+    }
+
+    setExpandedSections(newExpandedSections);
+  }, [filters]);
+
   const activeFiltersCount = getActiveFiltersCount();
 
-  // Compact Filter Section
-  const FilterSection = ({ 
+  // Collapsible Filter Section Component
+  const CollapsibleFilterSection = ({ 
+    id,
     title, 
     children,
-    icon: Icon
+    icon: Icon,
+    defaultExpanded = false
   }: { 
+    id: string;
     title: string; 
     children: React.ReactNode;
     icon?: React.ComponentType<{ className?: string }>;
-  }) => (
-    <div className="border-b border-gray-100 last:border-b-0">
-      <div className="py-4">
-        <div className="flex items-center gap-2 mb-3">
-          {Icon && <Icon className="h-4 w-4 text-gray-500" />}
-          <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">{title}</h3>
-        </div>
-        {children}
+    defaultExpanded?: boolean;
+  }) => {
+    const isExpanded = expandedSections[id];
+    const activeCount = getSectionActiveCount(id);
+    const hasActive = hasActiveFilters(id);
+
+    return (
+      <div className="border-b border-gray-100 last:border-b-0">
+        {/* Section Header - Clickable */}
+        <button
+          onClick={() => toggleSection(id)}
+          className="w-full flex items-center justify-between py-4 px-0 text-left hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-lg"
+          aria-expanded={isExpanded}
+          aria-controls={`filter-section-${id}`}
+        >
+          <div className="flex items-center gap-3">
+            {Icon && <Icon className="h-4 w-4 text-gray-500" />}
+            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+              {title}
+            </h3>
+            {activeCount > 0 && (
+              <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full min-w-[20px]">
+                {activeCount}
+              </span>
+            )}
+          </div>
+          
+          {/* Chevron Icon */}
+          <div className="flex items-center gap-2">
+            {hasActive && (
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            )}
+            <motion.div
+              animate={{ rotate: isExpanded ? 0 : -90 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ChevronDown className="h-4 w-4 text-gray-500" />
+            </motion.div>
+          </div>
+        </button>
+
+        {/* Section Content */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              id={`filter-section-${id}`}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="pb-4">
+                {children}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Compact Native Checkbox Option
   const NativeCheckbox = ({
@@ -177,92 +300,110 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
         </div>
       )}
 
-      {/* Compact Filter Content */}
-      <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 240px)' }}>
-        <div>
-          {/* Product Status */}
-          <FilterSection title="Product Status" icon={Star}>
-            <div className="space-y-1 max-h-32 overflow-y-auto">
-              <NativeCheckbox
-                label="Featured Products"
-                checked={filters.is_featured || false}
-                onChange={(checked) => onFiltersChange({ ...filters, is_featured: checked, page: 1 })}
-              />
-              <NativeCheckbox
-                label="New Arrivals"
-                checked={filters.is_new || false}
-                onChange={(checked) => onFiltersChange({ ...filters, is_new: checked, page: 1 })}
-              />
-              <NativeCheckbox
-                label="On Sale"
-                checked={filters.is_sale || false}
-                onChange={(checked) => onFiltersChange({ ...filters, is_sale: checked, page: 1 })}
-              />
+      {/* Filter Content - Collapsible Sections */}
+      <div>
+        {/* Product Status */}
+        <CollapsibleFilterSection 
+          id="product-status"
+          title="Product Status" 
+          icon={Star}
+          defaultExpanded={true}
+        >
+          <div className="space-y-1">
+            <NativeCheckbox
+              label="Featured Products"
+              checked={filters.is_featured || false}
+              onChange={(checked) => onFiltersChange({ ...filters, is_featured: checked, page: 1 })}
+            />
+            <NativeCheckbox
+              label="New Arrivals"
+              checked={filters.is_new || false}
+              onChange={(checked) => onFiltersChange({ ...filters, is_new: checked, page: 1 })}
+            />
+            <NativeCheckbox
+              label="On Sale"
+              checked={filters.is_sale || false}
+              onChange={(checked) => onFiltersChange({ ...filters, is_sale: checked, page: 1 })}
+            />
+          </div>
+        </CollapsibleFilterSection>
+
+        {/* Categories */}
+        <CollapsibleFilterSection 
+          id="categories"
+          title="Categories" 
+          icon={Tag}
+          defaultExpanded={false}
+        >
+          {categoriesLoading ? (
+            <div className="flex items-center justify-center py-6">
+              <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
             </div>
-          </FilterSection>
+          ) : (
+            <div className="space-y-1">
+              {categories?.map((category) => (
+                <NativeCheckbox
+                  key={category.name}
+                  label={category.name}
+                  checked={filters.categories?.includes(category.name) || false}
+                  onChange={(checked) => handleCategoryChange(category.name, checked)}
+                />
+              ))}
+            </div>
+          )}
+        </CollapsibleFilterSection>
 
-          {/* Categories */}
-          <FilterSection title="Categories" icon={Tag}>
-            {categoriesLoading ? (
-              <div className="flex items-center justify-center py-6">
-                <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
-              </div>
-            ) : (
-              <div className="space-y-1 max-h-32 overflow-y-auto">
-                {categories?.map((category) => (
-                  <NativeCheckbox
-                    key={category.name}
-                    label={category.name}
-                    checked={filters.categories?.includes(category.name) || false}
-                    onChange={(checked) => handleCategoryChange(category.name, checked)}
-                  />
-                ))}
-              </div>
-            )}
-          </FilterSection>
+        {/* Brands */}
+        <CollapsibleFilterSection 
+          id="brands"
+          title="Brands" 
+          icon={Building2}
+          defaultExpanded={false}
+        >
+          {brandsLoading ? (
+            <div className="flex items-center justify-center py-6">
+              <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {brands?.map((brand) => (
+                <NativeCheckbox
+                  key={brand.name}
+                  label={brand.name}
+                  checked={filters.brands?.includes(brand.name) || false}
+                  onChange={(checked) => handleBrandChange(brand.name, checked)}
+                />
+              ))}
+            </div>
+          )}
+        </CollapsibleFilterSection>
 
-          {/* Brands */}
-          <FilterSection title="Brands" icon={Building2}>
-            {brandsLoading ? (
-              <div className="flex items-center justify-center py-6">
-                <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
-              </div>
-            ) : (
-              <div className="space-y-1 max-h-32 overflow-y-auto">
-                {brands?.map((brand) => (
-                  <NativeCheckbox
-                    key={brand.name}
-                    label={brand.name}
-                    checked={filters.brands?.includes(brand.name) || false}
-                    onChange={(checked) => handleBrandChange(brand.name, checked)}
-                  />
-                ))}
-              </div>
-            )}
-          </FilterSection>
-
-          {/* Enhanced Price Range Filter */}
-          <FilterSection title="Price Range" icon={DollarSign}>
-            {priceRangeLoading ? (
-              <div className="flex items-center justify-center py-6">
-                <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
-              </div>
-            ) : (
-              <PriceRangeFilter
-                currentRange={currentPriceRange}
-                onRangeChange={handlePriceRangeChange}
-                loading={loading}
-                availablePriceRange={priceRange}
-                autoApply={true}
-                debounceMs={500}
-                showPriceSuggestions={true}
-                showResetButton={true}
-                isModal={true}
-                className="px-0"
-              />
-            )}
-          </FilterSection>
-        </div>
+        {/* Enhanced Price Range Filter */}
+        <CollapsibleFilterSection 
+          id="price-range"
+          title="Price Range" 
+          icon={DollarSign}
+          defaultExpanded={true}
+        >
+          {priceRangeLoading ? (
+            <div className="flex items-center justify-center py-6">
+              <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+            </div>
+          ) : (
+            <PriceRangeFilter
+              currentRange={currentPriceRange}
+              onRangeChange={handlePriceRangeChange}
+              loading={loading}
+              availablePriceRange={priceRange}
+              autoApply={true}
+              debounceMs={500}
+              showPriceSuggestions={true}
+              showResetButton={true}
+              isModal={true}
+              className="px-0"
+            />
+          )}
+        </CollapsibleFilterSection>
       </div>
     </div>
   );

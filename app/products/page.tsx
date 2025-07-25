@@ -498,7 +498,7 @@ export default function ProductsPage() {
             min-width: 44px !important;
           }
           
-          /* Improved mobile scrolling */
+          /* Improved mobile scrolling - now handled by single container */
           .mobile-scroll-area {
             -webkit-overflow-scrolling: touch !important;
             scroll-behavior: smooth !important;
@@ -744,12 +744,12 @@ export default function ProductsPage() {
                         )}
                       </Button>
                     </SheetTrigger>
-                    <SheetContent side="left" className="w-[85vw] sm:w-[400px] p-0 border-r border-gray-200 bg-white">
+                    <SheetContent side="left" className="w-[85vw] sm:w-[400px] p-0 border-r border-gray-200 bg-white flex flex-col h-full">
                       {/* Hidden SheetTitle for accessibility */}
                       <SheetTitle className="sr-only">Filter Products</SheetTitle>
                       
-                      {/* Enhanced Mobile Header */}
-                      <div className="sticky top-0 z-20 bg-white border-b border-gray-100 shadow-sm">
+                      {/* Enhanced Mobile Header - Sticky */}
+                      <div className="sticky top-0 z-20 bg-white border-b border-gray-100 shadow-sm flex-shrink-0">
                         <div className="flex items-center justify-between px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-1 h-6 bg-green-500 rounded-full"></div>
@@ -807,8 +807,8 @@ export default function ProductsPage() {
                         )}
                       </div>
                       
-                      {/* Enhanced Mobile Filter Content */}
-                      <div className="overflow-y-auto mobile-scroll-area" style={{ height: 'calc(100vh - 140px)' }}>
+                      {/* Single Scroll Container - Main Content */}
+                      <div className="flex-1 overflow-y-auto">
                         <div className="px-6 py-4">
                           <ProductFilters 
                             filters={filters} 
@@ -818,8 +818,8 @@ export default function ProductsPage() {
                         </div>
                       </div>
                       
-                      {/* Mobile Action Footer */}
-                      <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4 shadow-lg">
+                      {/* Mobile Action Footer - Sticky */}
+                      <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4 shadow-lg flex-shrink-0">
                         <div className="flex gap-3">
                           <Button
                             variant="outline"
