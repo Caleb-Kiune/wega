@@ -54,6 +54,7 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false)
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<Product[]>([])
   const [showResults, setShowResults] = useState(false)
@@ -63,6 +64,7 @@ export default function Header() {
   const searchRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const accountDropdownRef = useRef<HTMLDivElement>(null)
+  const mobileSearchRef = useRef<HTMLDivElement>(null)
   
   const { cartCount } = useCart()
   const { items: wishlistItems } = useWishlist()
@@ -206,6 +208,7 @@ export default function Header() {
   const handleNavigationClick = () => {
     setIsMobileMenuOpen(false)
     setIsAccountDropdownOpen(false)
+    setIsMobileSearchOpen(false)
   }
 
   const handleSearchResultClick = () => {
@@ -229,6 +232,10 @@ export default function Header() {
       
       if (accountDropdownRef.current && !accountDropdownRef.current.contains(event.target as Node)) {
         setIsAccountDropdownOpen(false)
+      }
+      
+      if (mobileSearchRef.current && !mobileSearchRef.current.contains(event.target as Node)) {
+        setIsMobileSearchOpen(false)
       }
     }
 
@@ -396,9 +403,9 @@ export default function Header() {
               </Link>
             </motion.div>
 
-            {/* Enhanced Search Bar - QuickMart Style */}
+            {/* Enhanced Search Bar - Desktop Only */}
             <motion.div 
-              className="flex flex-1 max-w-lg mx-4 lg:mx-6 items-center"
+              className="hidden md:flex flex-1 max-w-lg mx-4 lg:mx-6 items-center"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
@@ -600,6 +607,35 @@ export default function Header() {
                 </TooltipProvider>
               </div>
 
+              {/* Mobile Search Icon */}
+              <div className="md:hidden">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+                  className="rounded-xl hover:bg-gray-100 transition-all duration-300"
+                  aria-label="Search"
+                >
+                  <Search className="h-5 w-5" />
+                </Button>
+              </div>
+
+              {/* Mobile Cart Icon */}
+              <div className="md:hidden">
+                <Link
+                  href="/cart"
+                  className="text-gray-600 hover:text-orange-500 p-2 rounded-xl hover:bg-orange-50 relative transition-all duration-300 focus-visible:ring-4 focus-visible:ring-orange-200 min-h-[40px] min-w-[40px] flex items-center justify-center group"
+                  aria-label="Cart"
+                >
+                  <ShoppingCart className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+                  {cartCount > 0 && (
+                    <Badge className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1 py-0.5 rounded-full border-2 border-white">
+                      {cartCount}
+                    </Badge>
+                  )}
+                </Link>
+              </div>
+
               {/* Mobile Menu Button */}
               <div className="md:hidden">
                   <Button 
@@ -786,6 +822,137 @@ export default function Header() {
                   </Link>
                 </div>
               </nav>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Mobile Search Bar */}
+        <AnimatePresence>
+          {isMobileSearchOpen && (
+            <motion.div
+              className="md:hidden bg-white border-t border-gray-200 shadow-lg"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              ref={mobileSearchRef}
+            >
+              <div className="container-responsive py-4">
+                <div className="relative">
+                  <form onSubmit={handleSearch} className="relative">
+                    <div className="relative w-full">
+                      <Input
+                        type="text"
+                        placeholder="Search our collection"
+                        className={cn(
+                          "rounded-full border border-gray-200 bg-white text-gray-900 placeholder:text-gray-500 px-4 py-3 pl-12 pr-4 w-full text-sm transition-all duration-300 shadow-sm",
+                          isSearchFocused ? "border-green-500 ring-2 ring-green-200 shadow-md" : "hover:border-gray-300 hover:shadow-md"
+                        )}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => {
+                          setIsSearchFocused(true)
+                          setShowResults(true)
+                        }}
+                        onBlur={() => setIsSearchFocused(false)}
+                        onKeyDown={handleSearchKeyDown}
+                        ref={searchInputRef}
+                        aria-label="Search for products"
+                      />
+                      
+                      {/* Search Icon on Left */}
+                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 h-6 w-6 flex items-center justify-center text-gray-400">
+                        <Search className="h-5 w-5" />
+                      </div>
+                      
+                      {/* Clear Button - Only show when typing */}
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={clearSearch}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 h-6 w-6 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+                          aria-label="Clear search"
+                        >
+                          <XIcon className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  </form>
+                  
+                  {/* Mobile Search Results */}
+                  <AnimatePresence>
+                    {showResults && (
+                      <motion.div 
+                        className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 mt-2 max-h-96 overflow-y-auto"
+                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <div className="p-2">
+                          {/* Search Results */}
+                          <div className="mb-3">
+                            <h3 className="text-sm font-semibold text-gray-700 px-3 py-2">Products {searchResults.length}</h3>
+                            {searchResults.map((product, index) => (
+                              <motion.div
+                                key={product.id}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.2, delay: index * 0.05 }}
+                              >
+                                <Link
+                                  href={`/products/${product.id}`}
+                                  className="flex items-center p-4 hover:bg-gray-50 rounded-xl transition-all duration-200 group"
+                                  onClick={handleSearchResultClick}
+                                >
+                                  <div className="relative w-12 h-12 rounded-lg overflow-hidden mr-4 bg-gray-100">
+                                    <img 
+                                      src={getImageUrl(product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url) || "/placeholder.svg"} 
+                                      alt={product.name}
+                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
+                                    />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-semibold text-gray-900 truncate">{product.name}</div>
+                                    <div className="text-sm text-green-600 font-medium">KES {product.price.toLocaleString()}</div>
+                                  </div>
+                                </Link>
+                              </motion.div>
+                            ))}
+                          </div>
+                          
+                          {/* Recent Searches */}
+                          {recentSearches.length > 0 && (
+                            <div className="mb-4">
+                              <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-sm font-semibold text-gray-700">Recent Searches</h3>
+                                <button
+                                  onClick={clearRecentSearches}
+                                  className="text-xs text-gray-500 hover:text-red-500 transition-colors"
+                                >
+                                  Clear all
+                                </button>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {recentSearches.map((search, index) => (
+                                  <button
+                                    key={index}
+                                    onClick={() => handleSearchClick(search)}
+                                    className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-green-100 text-gray-700 hover:text-green-700 rounded-full text-sm transition-all duration-200"
+                                  >
+                                    <ClockIcon className="h-3 w-3" />
+                                    {search}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             </motion.div>
           )}
