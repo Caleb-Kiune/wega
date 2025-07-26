@@ -53,6 +53,7 @@ interface Product {
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<Product[]>([])
   const [showResults, setShowResults] = useState(false)
@@ -61,6 +62,7 @@ export default function Header() {
   const [recentSearches, setRecentSearches] = useState<string[]>([])
   const searchRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const accountDropdownRef = useRef<HTMLDivElement>(null)
   
   const { cartCount } = useCart()
   const { items: wishlistItems } = useWishlist()
@@ -203,6 +205,7 @@ export default function Header() {
 
   const handleNavigationClick = () => {
     setIsMobileMenuOpen(false)
+    setIsAccountDropdownOpen(false)
   }
 
   const handleSearchResultClick = () => {
@@ -210,12 +213,22 @@ export default function Header() {
     setSearchQuery("")
   }
 
-  // Close search results when clicking outside
+  const handleAccountKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setIsAccountDropdownOpen(false)
+    }
+  }
+
+  // Close search results and account dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowResults(false)
         setIsSearchFocused(false)
+      }
+      
+      if (accountDropdownRef.current && !accountDropdownRef.current.contains(event.target as Node)) {
+        setIsAccountDropdownOpen(false)
       }
     }
 
@@ -564,55 +577,8 @@ export default function Header() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              {/* Desktop Navigation Icons */}
-              <div className="hidden md:flex items-center space-x-1">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link
-                        href="/"
-                        aria-label="Home"
-                        className="text-gray-600 hover:text-green-600 p-3 rounded-xl hover:bg-green-50 transition-all duration-300 focus-visible:ring-4 focus-visible:ring-green-200 min-h-[48px] min-w-[48px] flex items-center justify-center group"
-                      >
-                        <Home className="h-5 w-5 sm:h-6 sm:w-6 group-hover:scale-110 transition-transform duration-200" />
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent>Home</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link
-                        href="/products"
-                        aria-label="Products"
-                        className="text-gray-600 hover:text-green-600 p-3 rounded-xl hover:bg-green-50 transition-all duration-300 focus-visible:ring-4 focus-visible:ring-green-200 min-h-[48px] min-w-[48px] flex items-center justify-center group"
-                      >
-                        <ShoppingBag className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent>Products</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link
-                        href="/wishlist"
-                        aria-label="Wishlist"
-                        className="text-gray-600 hover:text-red-500 p-3 rounded-xl hover:bg-red-50 relative transition-all duration-300 focus-visible:ring-4 focus-visible:ring-red-200 min-h-[48px] min-w-[48px] flex items-center justify-center group"
-                      >
-                        <Heart className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
-                        {wishlistItems.length > 0 && (
-                          <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
-                            {wishlistItems.length}
-                          </Badge>
-                        )}
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent>Wishlist</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+              {/* Desktop Cart Icon */}
+              <div className="hidden md:flex items-center">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -621,7 +587,7 @@ export default function Header() {
                         aria-label="Cart"
                         className="text-gray-600 hover:text-orange-500 p-3 rounded-xl hover:bg-orange-50 relative transition-all duration-300 focus-visible:ring-4 focus-visible:ring-orange-200 min-h-[48px] min-w-[48px] flex items-center justify-center group"
                       >
-                        <ShoppingCart className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+                        <ShoppingCart className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
                         {cartCount > 0 && (
                           <Badge className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
                             {cartCount}
@@ -630,20 +596,6 @@ export default function Header() {
                       </Link>
                     </TooltipTrigger>
                     <TooltipContent>Cart</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link
-                        href="/track-order"
-                        aria-label="Track My Order"
-                        className="text-gray-600 hover:text-blue-600 p-3 rounded-xl hover:bg-blue-50 transition-all duration-300 focus-visible:ring-4 focus-visible:ring-blue-200 min-h-[48px] min-w-[48px] flex items-center justify-center group"
-                      >
-                        <Package className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent>Track My Order</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
@@ -665,23 +617,84 @@ export default function Header() {
                           </Button>
                         </div>
 
-              {/* Desktop User Menu */}
-              <div className="hidden md:block">
+              {/* Desktop Account Dropdown */}
+              <div className="hidden md:block relative" ref={accountDropdownRef}>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                                <Link
-                        href="/admin/login"
-                        aria-label="Account"
+                      <Link
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          setIsAccountDropdownOpen(!isAccountDropdownOpen)
+                        }}
+                        onKeyDown={handleAccountKeyDown}
                         className="text-gray-600 hover:text-green-600 p-3 rounded-xl hover:bg-green-50 transition-all duration-300 focus-visible:ring-4 focus-visible:ring-green-200 min-h-[48px] min-w-[48px] flex items-center justify-center group"
+                        aria-label="Account"
+                        aria-expanded={isAccountDropdownOpen}
                       >
-                        <User className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+                        <User className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
                       </Link>
                     </TooltipTrigger>
                     <TooltipContent>Account</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                  </div>
+                
+                {/* Account Dropdown */}
+                <AnimatePresence>
+                  {isAccountDropdownOpen && (
+                    <motion.div
+                      className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-50"
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="py-2">
+                        {/* Guest User Options */}
+                        <div className="px-3 py-2">
+                          <Link
+                            href="/wishlist"
+                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group"
+                            onClick={() => setIsAccountDropdownOpen(false)}
+                          >
+                            <Heart className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                            <span className="font-medium">Wishlist</span>
+                            {wishlistItems.length > 0 && (
+                              <Badge className="ml-auto bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                                {wishlistItems.length}
+                              </Badge>
+                            )}
+                          </Link>
+                          
+                          <Link
+                            href="/track-order"
+                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group"
+                            onClick={() => setIsAccountDropdownOpen(false)}
+                          >
+                            <Package className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                            <span className="font-medium">Track Order</span>
+                          </Link>
+                        </div>
+                        
+                        <div className="border-t border-gray-200 my-2"></div>
+                        
+                        {/* Login/Register */}
+                        <div className="px-3 py-2">
+                          <Link
+                            href="/login"
+                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 group"
+                            onClick={() => setIsAccountDropdownOpen(false)}
+                          >
+                            <User className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                            <span className="font-medium">Login / Register</span>
+                          </Link>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </motion.div>
           </div>
         </div>
@@ -715,21 +728,6 @@ export default function Header() {
                 
                 {/* Mobile Action Buttons */}
                   <div className="space-y-3 pt-4 border-t border-gray-200">
-                          <Link
-                    href="/wishlist"
-                    onClick={handleNavigationClick}
-                      className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all duration-300 group"
-                  >
-                      <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-red-100 transition-colors duration-300 relative">
-                    <Heart className="h-5 w-5" />
-                    {wishlistItems.length > 0 && (
-                          <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
-                        {wishlistItems.length}
-                      </Badge>
-                    )}
-                      </div>
-                      <span className="font-medium">Wishlist</span>
-                          </Link>
                   <Link
                     href="/cart"
                     onClick={handleNavigationClick}
@@ -747,17 +745,44 @@ export default function Header() {
                   </Link>
                 </div>
 
-                {/* Mobile Account Link */}
-                <div className="border-t border-gray-200 pt-4">
+                {/* Mobile Account Links */}
+                <div className="border-t border-gray-200 pt-4 space-y-3">
                   <Link
-                    href="/admin/login"
+                    href="/wishlist"
                     onClick={handleNavigationClick}
-                      className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-2xl transition-all duration-300 group"
+                    className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all duration-300 group"
                   >
-                      <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-green-100 transition-colors duration-300">
-                    <User className="h-5 w-5" />
-                      </div>
-                      <span className="font-medium">Account</span>
+                    <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-red-100 transition-colors duration-300 relative">
+                      <Heart className="h-5 w-5" />
+                      {wishlistItems.length > 0 && (
+                        <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
+                          {wishlistItems.length}
+                        </Badge>
+                      )}
+                    </div>
+                    <span className="font-medium">Wishlist</span>
+                  </Link>
+                  
+                  <Link
+                    href="/track-order"
+                    onClick={handleNavigationClick}
+                    className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all duration-300 group"
+                  >
+                    <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-blue-100 transition-colors duration-300">
+                      <Package className="h-5 w-5" />
+                    </div>
+                    <span className="font-medium">Track Order</span>
+                  </Link>
+                  
+                  <Link
+                    href="/login"
+                    onClick={handleNavigationClick}
+                    className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-2xl transition-all duration-300 group"
+                  >
+                    <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-green-100 transition-colors duration-300">
+                      <User className="h-5 w-5" />
+                    </div>
+                    <span className="font-medium">Login / Register</span>
                   </Link>
                 </div>
               </nav>
