@@ -362,9 +362,26 @@ export default function Header() {
         />
         <div className="container-responsive">
           <div className="flex items-center justify-between">
-            {/* Enhanced Logo */}
+            {/* Mobile Menu Button - Left */}
+            <div className="md:hidden">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="rounded-xl hover:bg-gray-100 transition-all duration-300"
+                aria-label="Toggle mobile menu"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
+
+            {/* Enhanced Logo - Center */}
             <motion.div 
-              className="flex-shrink-0 flex items-center"
+              className="flex-shrink-0 flex items-center justify-center flex-1 md:flex-none"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
@@ -607,20 +624,20 @@ export default function Header() {
                 </TooltipProvider>
               </div>
 
-              {/* Mobile Search Icon */}
+              {/* Mobile Search Icon - Right */}
               <div className="md:hidden">
-                <Button
-                  variant="ghost"
-                  size="icon"
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
                   onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
                   className="rounded-xl hover:bg-gray-100 transition-all duration-300"
                   aria-label="Search"
                 >
                   <Search className="h-5 w-5" />
-                </Button>
-              </div>
+                          </Button>
+                        </div>
 
-              {/* Mobile Cart Icon */}
+              {/* Mobile Cart Icon - Right */}
               <div className="md:hidden">
                 <Link
                   href="/cart"
@@ -636,29 +653,12 @@ export default function Header() {
                 </Link>
               </div>
 
-              {/* Mobile Menu Button */}
-              <div className="md:hidden">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="rounded-xl hover:bg-gray-100 transition-all duration-300"
-                  aria-label="Toggle mobile menu"
-                  >
-                  {isMobileMenuOpen ? (
-                    <X className="h-5 w-5" />
-                  ) : (
-                    <Menu className="h-5 w-5" />
-                  )}
-                          </Button>
-                        </div>
-
               {/* Desktop Account Dropdown */}
               <div className="hidden md:block relative" ref={accountDropdownRef}>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Link
+                                <Link
                         href="#"
                         onClick={(e) => {
                           e.preventDefault()
@@ -726,8 +726,8 @@ export default function Header() {
                             <span className="font-medium">Login / Register</span>
                           </Link>
                         </div>
-                      </div>
-                    </motion.div>
+                  </div>
+            </motion.div>
                   )}
                 </AnimatePresence>
               </div>
@@ -783,21 +783,21 @@ export default function Header() {
 
                 {/* Mobile Account Links */}
                 <div className="border-t border-gray-200 pt-4 space-y-3">
-                  <Link
+                          <Link
                     href="/wishlist"
                     onClick={handleNavigationClick}
-                    className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all duration-300 group"
+                      className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all duration-300 group"
                   >
-                    <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-red-100 transition-colors duration-300 relative">
-                      <Heart className="h-5 w-5" />
-                      {wishlistItems.length > 0 && (
-                        <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
-                          {wishlistItems.length}
-                        </Badge>
-                      )}
-                    </div>
-                    <span className="font-medium">Wishlist</span>
-                  </Link>
+                      <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-red-100 transition-colors duration-300 relative">
+                    <Heart className="h-5 w-5" />
+                    {wishlistItems.length > 0 && (
+                          <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
+                        {wishlistItems.length}
+                      </Badge>
+                    )}
+                      </div>
+                      <span className="font-medium">Wishlist</span>
+                          </Link>
                   
                   <Link
                     href="/track-order"
@@ -806,18 +806,18 @@ export default function Header() {
                   >
                     <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-blue-100 transition-colors duration-300">
                       <Package className="h-5 w-5" />
-                    </div>
+                      </div>
                     <span className="font-medium">Track Order</span>
                   </Link>
-                  
+
                   <Link
                     href="/login"
                     onClick={handleNavigationClick}
-                    className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-2xl transition-all duration-300 group"
+                      className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-2xl transition-all duration-300 group"
                   >
-                    <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-green-100 transition-colors duration-300">
-                      <User className="h-5 w-5" />
-                    </div>
+                      <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-green-100 transition-colors duration-300">
+                    <User className="h-5 w-5" />
+                      </div>
                     <span className="font-medium">Login / Register</span>
                   </Link>
                 </div>
@@ -840,6 +840,14 @@ export default function Header() {
             >
               <div className="container-responsive py-4">
                 <div className="relative">
+                  {/* Close Button - Top Right */}
+                  <button
+                    onClick={() => setIsMobileSearchOpen(false)}
+                    className="absolute top-1/2 -translate-y-1/2 right-0 z-10 p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100"
+                    aria-label="Close search"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
                   <form onSubmit={handleSearch} className="relative">
                     <div className="relative w-full">
                       <Input
