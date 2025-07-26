@@ -696,7 +696,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
   return (
     <>
       <article 
-        className="group card-interactive h-full overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-2xl flex flex-col relative min-h-[180px] cursor-pointer rounded-xl w-full transition-all duration-300 hover:scale-[1.02]" 
+        className="group card-interactive h-full overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-2xl flex flex-col relative min-h-[180px] cursor-pointer rounded-xl w-full transition-all duration-300" 
         role="article" 
         aria-labelledby={`product-${product.id}`}
       >

@@ -444,29 +444,7 @@ export default function Header() {
                       exit={{ opacity: 0, y: -10, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
                     >
-                      {/* Search Status Header */}
-                      {searchQuery && (
-                        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 rounded-t-2xl">
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-2">
-                              <Search className="h-4 w-4 text-gray-500" />
-                              <span className="text-gray-600">
-                                Search results for: <span className="font-semibold text-gray-900">"{searchQuery}"</span>
-                                <span className="text-green-600 ml-2">
-                                  ({searchResults.length} {searchResults.length === 1 ? 'product' : 'products'})
-                                </span>
-                              </span>
-                            </div>
-                            <button
-                              onClick={clearSearch}
-                              className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
-                              aria-label="Clear search"
-                            >
-                              <XIcon className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-                      )}
+
                       
                       {isSearching ? (
                         <div className="p-6 text-center flex items-center justify-center gap-3">
@@ -477,7 +455,7 @@ export default function Header() {
                         <div className="p-2">
                           {/* Search Results */}
                           <div className="mb-3">
-                            <h3 className="text-sm font-semibold text-gray-700 px-3 py-2">Products</h3>
+                            <h3 className="text-sm font-semibold text-gray-700 px-3 py-2">Products {searchResults.length}</h3>
                             {searchResults.map((product, index) => (
                               <motion.div
                                 key={product.id}
@@ -515,15 +493,13 @@ export default function Header() {
                           </Link>
                               </motion.div>
                         ))}
-                            <div className="p-3 border-t border-gray-100">
-                          <Button
-                            variant="outline"
-                            size="sm"
+                            <div className="px-3 py-2 border-t border-gray-100">
+                          <button
                             onClick={handleSearch}
-                                className="w-full text-sm rounded-xl border-green-200 text-green-700 hover:bg-green-50"
+                            className="w-full text-sm font-medium text-green-600 hover:text-green-700 transition-colors py-2"
                           >
-                                View all results ({searchResults.length})
-                          </Button>
+                            View all results ({searchResults.length})
+                          </button>
                             </div>
                           </div>
                         </div>
