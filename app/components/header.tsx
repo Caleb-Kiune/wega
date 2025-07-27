@@ -379,9 +379,9 @@ export default function Header() {
               </Button>
             </div>
 
-            {/* Enhanced Logo - Center */}
+            {/* Enhanced Logo - Left on Mobile, Center on Desktop */}
             <motion.div 
-              className="flex-shrink-0 flex items-center justify-center flex-1 md:flex-none"
+              className="flex-shrink-0 flex items-center justify-start md:justify-center flex-1 md:flex-none"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
@@ -394,8 +394,8 @@ export default function Header() {
                     width={100}
                     height={50}
                   className={cn(
-                      "w-auto transition-all duration-300 drop-shadow-sm h-8 sm:h-10",
-                      isScrolled ? "h-7 sm:h-8" : "h-8 sm:h-10"
+                      "w-auto transition-all duration-300 drop-shadow-sm h-10 sm:h-10",
+                      isScrolled ? "h-9 sm:h-8" : "h-10 sm:h-10"
                   )}
                   priority
                 />
@@ -410,8 +410,8 @@ export default function Header() {
                   WEGA Kitchenware
                 </span>
                 <span className={cn(
-                    "font-bold text-gray-800 transition-all duration-300 sm:hidden brand-name",
-                  isScrolled ? "text-sm" : "text-base"
+                    "font-bold text-gray-800 transition-all duration-300 sm:hidden brand-name text-lg",
+                  isScrolled ? "text-base" : "text-lg"
                 )}>
                   WEGA
                 </span>
@@ -596,7 +596,7 @@ export default function Header() {
 
             {/* Enhanced Right side icons */}
             <motion.div 
-              className="flex items-center space-x-1 md:space-x-2"
+              className="flex items-center space-x-2 md:space-x-2"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
