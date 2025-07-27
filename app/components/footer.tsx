@@ -94,9 +94,9 @@ export default function Footer() {
       {/* Main Footer Content */}
       <div className="py-5 sm:py-12 bg-gray-800">
         <div className="container mx-auto max-w-7xl px-2 sm:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 lg:gap-12">
             {/* Brand & Contact */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-2">
               <div className="flex items-center mb-3 sm:mb-6">
                 <div className="bg-green-600 p-2 sm:p-3 rounded-xl mr-2 sm:mr-4 shadow-lg">
                   <Utensils className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
@@ -155,137 +155,11 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Quick Links */}
-            <div>
-              <button
-                onClick={() => toggleSection('quickLinks')}
-                className="flex items-center justify-between w-full md:hidden text-left text-base sm:text-lg font-semibold mb-3 sm:mb-6 text-white py-2 px-0 border-b border-gray-600 md:border-none"
-              >
-                Quick Links
-                <ChevronDown className={`h-5 w-5 transition-transform duration-300 ${expandedSections.quickLinks ? 'rotate-180' : ''}`} />
-              </button>
-              <h4 className="hidden md:block text-base sm:text-lg font-semibold mb-4 sm:mb-6 text-white">Quick Links</h4>
-              <ul className={`space-y-2 sm:space-y-4 ${expandedSections.quickLinks ? 'block' : 'hidden md:block'}`}>
-                <li>
-                  <Link href="/about" className="text-gray-200 hover:text-white transition-colors text-xs sm:text-sm flex items-center group py-2 min-h-[44px]">
-                    <ArrowRight className="h-3 w-3 mr-3 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1 flex-shrink-0" />
-                    About Us
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/products" className="text-gray-200 hover:text-white transition-colors text-xs sm:text-sm flex items-center group py-2 min-h-[44px]">
-                    <ArrowRight className="h-3 w-3 mr-3 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1 flex-shrink-0" />
-                    Shop All Products
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/products?category=special-offers" className="text-gray-200 hover:text-white transition-colors text-xs sm:text-sm flex items-center group py-2 min-h-[44px]">
-                    <ArrowRight className="h-3 w-3 mr-3 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1 flex-shrink-0" />
-                    Special Offers
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/products?category=new-arrivals" className="text-gray-200 hover:text-white transition-colors text-xs sm:text-sm flex items-center group py-2 min-h-[44px]">
-                    <ArrowRight className="h-3 w-3 mr-3 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1 flex-shrink-0" />
-                    New Arrivals
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/contact" className="text-gray-200 hover:text-white transition-colors text-xs sm:text-sm flex items-center group py-2 min-h-[44px]">
-                    <ArrowRight className="h-3 w-3 mr-3 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1 flex-shrink-0" />
-                    Contact Us
-                  </Link>
-                </li>
-              </ul>
-            </div>
 
-            {/* Customer Service */}
-            <div>
-              <button
-                onClick={() => toggleSection('customerService')}
-                className="flex items-center justify-between w-full md:hidden text-left text-base sm:text-lg font-semibold mb-3 sm:mb-6 text-white py-2 px-0 border-b border-gray-600 md:border-none"
-              >
-                Customer Service
-                <ChevronDown className={`h-5 w-5 transition-transform duration-300 ${expandedSections.customerService ? 'rotate-180' : ''}`} />
-              </button>
-              <h4 className="hidden md:block text-base sm:text-lg font-semibold mb-4 sm:mb-6 text-white">Customer Service</h4>
-              <ul className={`space-y-2 sm:space-y-4 ${expandedSections.customerService ? 'block' : 'hidden md:block'}`}>
-                <li>
-                  <Link href="/shipping" className="text-gray-200 hover:text-white transition-colors text-xs sm:text-sm flex items-center group py-2 min-h-[44px]">
-                    <ArrowRight className="h-3 w-3 mr-3 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1 flex-shrink-0" />
-                    Shipping Information
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/returns" className="text-gray-200 hover:text-white transition-colors text-xs sm:text-sm flex items-center group py-2 min-h-[44px]">
-                    <ArrowRight className="h-3 w-3 mr-3 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1 flex-shrink-0" />
-                    Returns & Exchanges
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/faq" className="text-gray-200 hover:text-white transition-colors text-xs sm:text-sm flex items-center group py-2 min-h-[44px]">
-                    <ArrowRight className="h-3 w-3 mr-3 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1 flex-shrink-0" />
-                    Frequently Asked Questions
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/size-guide" className="text-gray-200 hover:text-white transition-colors text-xs sm:text-sm flex items-center group py-2 min-h-[44px]">
-                    <ArrowRight className="h-3 w-3 mr-3 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1 flex-shrink-0" />
-                    Size Guide
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/warranty" className="text-gray-200 hover:text-white transition-colors text-xs sm:text-sm flex items-center group py-2 min-h-[44px]">
-                    <ArrowRight className="h-3 w-3 mr-3 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1 flex-shrink-0" />
-                    Warranty Information
-                  </Link>
-                </li>
-              </ul>
-            </div>
 
-            {/* Categories */}
-            <div>
-              <button
-                onClick={() => toggleSection('categories')}
-                className="flex items-center justify-between w-full md:hidden text-left text-base sm:text-lg font-semibold mb-3 sm:mb-6 text-white py-2 px-0 border-b border-gray-600 md:border-none"
-              >
-                Shop by Category
-                <ChevronDown className={`h-5 w-5 transition-transform duration-300 ${expandedSections.categories ? 'rotate-180' : ''}`} />
-              </button>
-              <h4 className="hidden md:block text-base sm:text-lg font-semibold mb-4 sm:mb-6 text-white">Shop by Category</h4>
-              <ul className={`space-y-2 sm:space-y-4 ${expandedSections.categories ? 'block' : 'hidden md:block'}`}>
-                <li>
-                  <Link href="/products?category=cookware" className="text-gray-200 hover:text-white transition-colors text-xs sm:text-sm flex items-center group py-2 min-h-[44px]">
-                    <ChefHat className="h-3 w-3 mr-3 text-green-400 flex-shrink-0" />
-                    Cookware
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/products?category=utensils" className="text-gray-200 hover:text-white transition-colors text-xs sm:text-sm flex items-center group py-2 min-h-[44px]">
-                    <Utensils className="h-3 w-3 mr-3 text-green-400 flex-shrink-0" />
-                    Kitchen Utensils
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/products?category=appliances" className="text-gray-200 hover:text-white transition-colors text-xs sm:text-sm flex items-center group py-2 min-h-[44px]">
-                    <ShoppingBag className="h-3 w-3 mr-3 text-green-400 flex-shrink-0" />
-                    Appliances
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/products?category=bakeware" className="text-gray-200 hover:text-white transition-colors text-xs sm:text-sm flex items-center group py-2 min-h-[44px]">
-                    <Gift className="h-3 w-3 mr-3 text-green-400 flex-shrink-0" />
-                    Bakeware
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/products?category=storage" className="text-gray-200 hover:text-white transition-colors text-xs sm:text-sm flex items-center group py-2 min-h-[44px]">
-                    <Award className="h-3 w-3 mr-3 text-green-400 flex-shrink-0" />
-                    Storage Solutions
-                  </Link>
-                </li>
-              </ul>
-            </div>
+
+
+
           </div>
         </div>
       </div>

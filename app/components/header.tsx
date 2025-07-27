@@ -251,7 +251,7 @@ export default function Header() {
 
   const navigation = [
     { name: "Home", href: "/", icon: Home },
-    { name: "Products", href: "/products", icon: ShoppingBag },
+    { name: "Shop", href: "/products", icon: ShoppingBag },
   ]
 
   const trustSignals = [
@@ -361,7 +361,7 @@ export default function Header() {
           }}
         />
         <div className="container-responsive">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between pr-2 md:pr-0">
             {/* Mobile Menu Button - Left */}
             <div className="md:hidden">
               <Button 
@@ -596,11 +596,34 @@ export default function Header() {
 
             {/* Enhanced Right side icons */}
             <motion.div 
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-1 md:space-x-2"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
+              {/* Desktop Wishlist Icon */}
+              <div className="hidden md:flex items-center">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link
+                        href="/wishlist"
+                        aria-label="Wishlist"
+                        className="text-gray-600 hover:text-red-500 p-3 rounded-xl hover:bg-red-50 relative transition-all duration-300 focus-visible:ring-4 focus-visible:ring-red-200 min-h-[48px] min-w-[48px] flex items-center justify-center group"
+                      >
+                        <Heart className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
+                        {wishlistItems.length > 0 && (
+                          <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
+                            {wishlistItems.length}
+                          </Badge>
+                        )}
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>Wishlist</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+
               {/* Desktop Cart Icon */}
               <div className="hidden md:flex items-center">
                 <TooltipProvider>
@@ -636,6 +659,22 @@ export default function Header() {
                   <Search className="h-5 w-5" />
                           </Button>
                         </div>
+
+              {/* Mobile Wishlist Icon - Right */}
+              <div className="md:hidden">
+                <Link
+                  href="/wishlist"
+                  className="text-gray-600 hover:text-red-500 p-2 rounded-xl hover:bg-red-50 relative transition-all duration-300 focus-visible:ring-4 focus-visible:ring-red-200 min-h-[40px] min-w-[40px] flex items-center justify-center group"
+                  aria-label="Wishlist"
+                >
+                  <Heart className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+                  {wishlistItems.length > 0 && (
+                    <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1 py-0.5 rounded-full border-2 border-white">
+                      {wishlistItems.length}
+                    </Badge>
+                  )}
+                </Link>
+              </div>
 
               {/* Mobile Cart Icon - Right */}
               <div className="md:hidden">
@@ -762,42 +801,8 @@ export default function Header() {
                   </Link>
                 ))}
                 
-                {/* Mobile Action Buttons */}
-                  <div className="space-y-3 pt-4 border-t border-gray-200">
-                  <Link
-                    href="/cart"
-                    onClick={handleNavigationClick}
-                      className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-2xl transition-all duration-300 group"
-                  >
-                      <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-orange-100 transition-colors duration-300 relative">
-                    <ShoppingCart className="h-5 w-5" />
-                    {cartCount > 0 && (
-                          <Badge className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
-                        {cartCount}
-                      </Badge>
-                    )}
-                      </div>
-                      <span className="font-medium">Cart</span>
-                  </Link>
-                </div>
-
                 {/* Mobile Account Links */}
-                <div className="border-t border-gray-200 pt-4 space-y-3">
-                          <Link
-                    href="/wishlist"
-                    onClick={handleNavigationClick}
-                      className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all duration-300 group"
-                  >
-                      <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-red-100 transition-colors duration-300 relative">
-                    <Heart className="h-5 w-5" />
-                    {wishlistItems.length > 0 && (
-                          <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
-                        {wishlistItems.length}
-                      </Badge>
-                    )}
-                      </div>
-                      <span className="font-medium">Wishlist</span>
-                          </Link>
+                <div className="pt-4 space-y-3">
                   
                   <Link
                     href="/track-order"

@@ -99,6 +99,11 @@ export default function ProductsPage() {
     });
   }, []);
 
+  // Scroll to top when page loads
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Handle search parameter changes from URL
   useEffect(() => {
     const urlSearch = searchParams.get('search');
@@ -548,71 +553,7 @@ export default function ProductsPage() {
         }
       `}</style>
       
-      {/* Compact Hero Section - Products Page Style */}
-      <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden rounded-2xl mx-4 mt-4 mb-6">
-        {/* Animated Background Pattern */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse"></div>
-          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(34,197,94,0.1),transparent_50%)]"></div>
-        </div>
-        
-        <div className="relative container mx-auto px-4 py-8 sm:py-10 lg:py-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="text-center max-w-4xl mx-auto"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="mb-4"
-            >
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1.5 mb-4">
-                <Sparkles className="h-3.5 w-3.5 text-green-400" />
-                <span className="text-xs font-medium">Premium Collection</span>
-              </div>
-            </motion.div>
-            
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 tracking-tight leading-tight">
-              <span className="bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
-                Premium Kitchenware
-              </span>
-              <br />
-              <span className="text-green-400">Collection</span>
-            </h1>
-            
-            <motion.p 
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-sm sm:text-base text-slate-200 mb-6 max-w-2xl mx-auto leading-relaxed px-4"
-            >
-              Discover handcrafted kitchen essentials that transform your cooking experience. 
-              From professional-grade cookware to elegant serving pieces.
-            </motion.p>
-            
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-4"
-            >
-              <div className="flex items-center gap-4 text-xs sm:text-sm text-slate-300">
-                <div className="flex items-center gap-1.5">
-                  <Star className="h-3.5 w-3.5 text-green-400" />
-                  <span>Premium Quality</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <TrendingUp className="h-3.5 w-3.5 text-green-400" />
-                  <span>Best Sellers</span>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </div>
+
 
       {/* Enhanced Main Content */}
       <div ref={mainContentRef} className="container mx-auto px-4 py-8 sm:py-12 lg:py-16">

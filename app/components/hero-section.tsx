@@ -37,7 +37,7 @@ const slides: Slide[] = [
     title: "Timeless Kitchen Essentials",
     subtitle: "Classic & Rustic",
     description: "Discover kitchenware that brings warmth and tradition to your home.",
-    ctaText: "View all featured products",
+    ctaText: "Featured products",
     ctaLink: "/products?is_featured=true",
     badge: "Featured"
   },
@@ -48,7 +48,7 @@ const slides: Slide[] = [
     title: "Crafted for Every Chef",
     subtitle: "Tools of the Trade",
     description: "Find the perfect utensils for every recipe and every cook.",
-    ctaText: "View all new arrivals",
+    ctaText: "New arrivals",
     ctaLink: "/products?is_new=true",
     badge: "New Arrivals"
   },
@@ -59,7 +59,7 @@ const slides: Slide[] = [
     title: "Inspire Your Cooking",
     subtitle: "Modern Kitchenware",
     description: "Brighten your kitchen with our colorful, modern cookware sets.",
-    ctaText: "View all special offers",
+    ctaText: "Special offers",
     ctaLink: "/products?is_sale=true",
     badge: "Special Offers"
   }
@@ -175,38 +175,41 @@ export default function HeroSection() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/40 rounded-2xl" />
       </div>
 
-      {/* Content Container with Smooth Transitions (no panel/card) */}
-      <div className="relative z-10 flex items-center justify-center w-full px-4 py-6 sm:py-10 lg:py-12">
-        <div className={`flex flex-col items-center gap-6 transition-all duration-800 ease-in-out ${
+      {/* Content Container - Matching Products Page Structure */}
+      <div className="relative z-10 container mx-auto px-4 py-8 sm:py-10 lg:py-12">
+        <div className={`text-center max-w-4xl mx-auto transition-all duration-800 ease-in-out ${
           isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
         }`}>
-          {/* Badge - white text, theme green star */}
-          <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-4 py-1.5 text-xs font-semibold shadow text-white mb-2">
-            <Star className="h-3.5 w-3.5 text-emerald-400" />
-            <span>{currentSlideData.badge}</span>
+          {/* Badge - matching products page style */}
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1.5 mb-4">
+            <Star className="h-3.5 w-3.5 text-green-400" />
+            <span className="text-xs font-medium">{currentSlideData.badge}</span>
           </div>
 
-          {/* Headline - slightly smaller on mobile */}
-          <h1 className="text-3xl sm:text-5xl font-extrabold mb-3 tracking-tight leading-tight text-white text-shadow-strong text-center">
-            {currentSlideData.title}
-            <span className="block bg-gradient-to-r from-emerald-200 to-green-300 bg-clip-text text-transparent mt-2 text-2xl sm:text-4xl font-bold text-shadow-strong">
-              {currentSlideData.subtitle}
+          {/* Headline - matching products page size */}
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 tracking-tight leading-tight">
+            <span className="bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
+              {currentSlideData.title}
             </span>
+            <br />
+            <span className="text-green-400">{currentSlideData.subtitle}</span>
           </h1>
 
-          {/* Description - improved spacing and shadow */}
-          <p className="text-base sm:text-lg text-slate-200 max-w-2xl mx-auto leading-relaxed px-4 text-shadow-strong text-center mb-4">
+          {/* Description - matching products page style */}
+          <p className="text-sm sm:text-base text-slate-200 mb-6 max-w-2xl mx-auto leading-relaxed px-4">
             {currentSlideData.description}
           </p>
 
-          {/* CTA Button - brighter, larger, rounded, with icon */}
-          <Link
-            href={currentSlideData.ctaLink}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-full px-6 sm:px-10 py-3 sm:py-4 shadow-lg transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 text-base sm:text-lg mt-4 mb-2 min-w-0"
-          >
-            {currentSlideData.ctaText}
-            <ArrowRight className="h-5 w-5" />
-          </Link>
+          {/* CTA Button - Professional styling with consistent padding */}
+          <div className="flex justify-center">
+            <Link
+              href={currentSlideData.ctaLink}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-full px-4 sm:px-6 py-2.5 sm:py-3 shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap min-w-[100px] sm:min-w-[120px]"
+            >
+              {currentSlideData.ctaText}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </div>
       {/* Remove SlideIndicator dots */}
