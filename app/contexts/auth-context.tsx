@@ -63,18 +63,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const checkAuthStatus = async () => {
     try {
       setLoading(true);
+      console.log('Checking auth status...');
       
       // Check if we have tokens
       const accessToken = authApi.getAccessToken();
       const refreshToken = authApi.getRefreshToken();
       
+      console.log('Tokens found:', { 
+        hasAccessToken: !!accessToken, 
+        hasRefreshToken: !!refreshToken 
+      });
+      
       if (!accessToken || !refreshToken) {
+        console.log('No tokens found, setting user to null');
         setUser(null);
         return;
       }
 
       // Check if tokens are expired
       if (authApi.isRefreshTokenExpired()) {
+        console.log('Refresh token expired, clearing tokens');
         // Both tokens expired, clear them
         authApi.clearTokens();
         setUser(null);
@@ -82,14 +90,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (authApi.isTokenExpired()) {
+        console.log('Access token expired, attempting refresh');
         // Access token expired, try to refresh
         await refreshAuth();
         return;
       }
 
+      console.log('Tokens valid, getting user profile');
       // Tokens are valid, get user profile
       const response = await authApi.getProfile();
       setUser(response.user);
+      console.log('User profile loaded:', response.user.username);
       
     } catch (error) {
       console.error('Auth status check failed:', error);
@@ -98,6 +109,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
     } finally {
       setLoading(false);
+      console.log('Auth status check completed');
     }
   };
 
@@ -127,14 +139,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (error instanceof Error) {
         const message = error.message.toLowerCase();
         
-        if (message.includes('invalid credentials') || message.includes('invalid username or password')) {
+        if (message.includes('too many login attempts') || message.includes('account locked')) {
+          errorMessage = 'Account is temporarily locked due to too many failed attempts. Please try again later.';
+        } else if (message.includes('invalid credentials') || message.includes('invalid username or password')) {
           errorMessage = 'Invalid username or password. Please check your credentials and try again.';
         } else if (message.includes('network') || message.includes('fetch')) {
-          errorMessage = 'Network error. Please check your connection.';
+          errorMessage = 'Network error. Please check your connection and try again.';
         } else if (message.includes('401')) {
           errorMessage = 'Invalid username or password. Please check your credentials and try again.';
         } else if (message.includes('500')) {
           errorMessage = 'Server error. Please try again later.';
+        } else if (message.includes('csrf') || message.includes('session expired')) {
+          errorMessage = 'Session expired. Please try again.';
         } else {
           errorMessage = error.message;
         }
@@ -154,15 +170,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Logout API call failed:', error);
       // Continue with local logout even if API call fails
+      // This is expected if tokens are already expired or cleared
     } finally {
-      // Clear local state
+      // Always clear local state regardless of API call success
       authApi.clearTokens();
       setUser(null);
       
       toast.success('Logged out successfully');
       
-      // Redirect to login page
-      router.push('/admin/login');
+      // Use window.location for more reliable redirect
+      window.location.href = '/admin/login';
     }
   };
 

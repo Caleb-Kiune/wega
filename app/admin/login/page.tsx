@@ -5,27 +5,55 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Package, ArrowRight } from 'lucide-react';
+import { FormField } from '@/components/forms/form-field';
+import { useFormValidation, commonValidationRules } from '@/hooks/use-form-validation';
+import { Package, ArrowRight, Lock, Clock } from 'lucide-react';
 import { toast } from 'sonner';
-import Image from 'next/image'
 import { motion } from 'framer-motion';
 
+interface LoginFormData {
+  username: string;
+  password: string;
+}
+
+const loginValidationRules = {
+  username: [
+    commonValidationRules.required('Username or email'),
+    commonValidationRules.minLength(3, 'Username'),
+    commonValidationRules.maxLength(30, 'Username')
+  ],
+  password: [
+    commonValidationRules.required('Password'),
+    commonValidationRules.minLength(8, 'Password')
+  ]
+};
+
 export default function AdminLoginPage() {
-  const [credentials, setCredentials] = useState({
+  const [formData, setFormData] = useState<LoginFormData>({
     username: '',
     password: ''
   });
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [rememberMe, setRememberMe] = useState(false);
+  const [lockoutInfo, setLockoutInfo] = useState<{ isLocked: boolean; remainingSeconds: number } | null>(null);
   const usernameInputRef = useRef<HTMLInputElement>(null);
   
   const { login, isAuthenticated } = useAuth();
   const router = useRouter();
+  
+  const {
+    errors,
+    touched,
+    validateField,
+    validateForm,
+    setFieldError,
+    clearFieldError,
+    markFieldAsTouched,
+    resetValidation
+  } = useFormValidation(loginValidationRules);
 
   // Handle hydration mismatch
   useEffect(() => {
@@ -46,178 +74,241 @@ export default function AdminLoginPage() {
     }
   }, [isClient]);
 
+  // Clear errors when user starts typing
+  useEffect(() => {
+    if (formData.username && errors.username) {
+      clearFieldError('username');
+    }
+  }, [formData.username, errors.username, clearFieldError]);
+
+  useEffect(() => {
+    if (formData.password && errors.password) {
+      clearFieldError('password');
+    }
+  }, [formData.password, errors.password, clearFieldError]);
+
+  const handleFieldChange = (field: keyof LoginFormData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Real-time validation
+    const error = validateField(field, value);
+    if (error) {
+      setFieldError(field, error);
+    } else {
+      clearFieldError(field);
+    }
+  };
+
+  const handleFieldBlur = (field: keyof LoginFormData) => {
+    markFieldAsTouched(field);
+    const error = validateField(field, formData[field]);
+    if (error) {
+      setFieldError(field, error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage(null);
     
-    if (!credentials.username || !credentials.password) {
-      setErrorMessage('Please fill in all fields');
-      toast.error('Please fill in all fields');
+    if (!validateForm(formData)) {
+      toast.error('Please fix the errors below');
       return;
     }
 
     try {
       setIsLoading(true);
-      await login(credentials);
+      setLockoutInfo(null);
+      
+      await login({
+        ...formData,
+        remember_me: rememberMe
+      });
+      
+      toast.success('Login successful!');
+      router.push('/admin');
+      
     } catch (error) {
-      setErrorMessage('Invalid username or password');
-      toast.error('Invalid username or password');
+      console.error('Login error:', error);
+      
+      let errorMessage = 'Login failed';
+      if (error instanceof Error) {
+        const message = error.message.toLowerCase();
+        
+        if (message.includes('too many login attempts') || message.includes('account locked')) {
+          errorMessage = 'Account is temporarily locked due to too many failed attempts. Please try again later.';
+          setLockoutInfo({ isLocked: true, remainingSeconds: 900 }); // 15 minutes
+        } else if (message.includes('invalid credentials') || message.includes('invalid username or password')) {
+          errorMessage = 'Invalid username or password. Please check your credentials and try again.';
+        } else if (message.includes('network') || message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (message.includes('csrf') || message.includes('session expired')) {
+          errorMessage = 'Session expired. Please try again.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleInputChange = (field: 'username' | 'password', value: string) => {
-    setCredentials(prev => ({
-      ...prev,
-      [field]: value
-    }));
   };
 
   const handleForgotPassword = () => {
     toast.info('Please contact your system administrator to reset your password.');
   };
 
-  // Don't render until client-side hydration is complete
   if (!isClient) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white p-4">
-        <div className="w-full max-w-md">
-          <Card className="shadow-lg border-0 rounded-2xl bg-white">
-            <CardContent className="pt-8 pb-8">
-              <div className="flex flex-col items-center space-y-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-                <p className="text-sm text-gray-400">Loading...</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center p-4">
       <motion.div
-        initial={{ opacity: 0, y: 40 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: 'easeOut' }}
-        className="w-full max-w-md z-10 relative"
-        tabIndex={-1}
+        className="w-full max-w-md"
       >
-        {/* Logo/Brand Section */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full mb-6 shadow border mx-auto">
-            <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/wega%20kitchenware%20website..jpg-WrrItNFb2yW5TLOQ4Ax5GY0Sv0YPew.jpeg"
-              alt="WEGA Kitchenware Logo"
-              width={80}
-              height={80}
-              className="w-16 h-16 object-contain rounded-full"
-              priority
-            />
-          </div>
-          <h1 className="text-2xl font-semibold text-gray-900 tracking-tight mb-2 font-serif">Admin Login</h1>
-        </div>
-        {/* Login Card */}
-        <Card className="shadow-lg border-0 rounded-2xl bg-white">
-          <CardHeader className="space-y-2 pb-4">
-            <CardTitle className="text-lg font-semibold text-center text-gray-900 font-serif">Sign in to continue</CardTitle>
+        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="text-center space-y-4">
+            <div className="flex justify-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <Package className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <CardTitle className="text-2xl font-bold text-slate-900">
+                Admin Login
+              </CardTitle>
+              <CardDescription className="text-slate-600">
+                Sign in to manage your kitchenware store
+              </CardDescription>
+            </div>
           </CardHeader>
+
           <CardContent className="space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-6" suppressHydrationWarning autoComplete="on">
-              {/* Username/Email Field */}
-              <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium text-gray-700">
-                  Username or Email
-                </Label>
-                <Input
-                  id="username"
-                  type="text"
-                  placeholder="Username or email"
-                  value={credentials.username}
-                  onChange={(e) => handleInputChange('username', e.target.value)}
-                  className="h-11 px-4 bg-white border border-gray-200 focus:border-green-500 focus:ring-1 focus:ring-green-100 rounded-lg transition-all duration-200 text-gray-900 placeholder-gray-400"
-                  disabled={isLoading}
-                  autoComplete="username"
-                  ref={usernameInputRef}
-                  required
-                  tabIndex={1}
-                  suppressHydrationWarning
-                />
-              </div>
-              {/* Password Field */}
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  Password
-                </Label>
-                <div className="relative flex items-center">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Password"
-                    value={credentials.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
-                    className="h-11 px-4 pr-16 bg-white border border-gray-200 focus:border-green-500 focus:ring-1 focus:ring-green-100 rounded-lg transition-all duration-200 text-gray-900 placeholder-gray-400"
-                    disabled={isLoading}
-                    autoComplete="current-password"
-                    required
-                    tabIndex={2}
-                    suppressHydrationWarning
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-0 bottom-0 flex items-center justify-center h-11 text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1"
-                    disabled={isLoading}
-                    tabIndex={3}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-              {/* Inline Error Feedback */}
-              {errorMessage && (
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+              {/* Lockout Warning */}
+              {lockoutInfo?.isLocked && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2 text-xs text-center mb-2"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 bg-red-50 border border-red-200 rounded-lg"
+                  role="alert"
                   aria-live="polite"
                 >
-                  {errorMessage}
+                  <div className="flex items-center space-x-2">
+                    <Lock className="h-5 w-5 text-red-500" aria-hidden="true" />
+                    <div>
+                      <p className="text-sm font-medium text-red-800">Account Temporarily Locked</p>
+                      <p className="text-xs text-red-600">
+                        Too many failed attempts. Please try again in {lockoutInfo.remainingSeconds} seconds.
+                      </p>
+                    </div>
+                  </div>
                 </motion.div>
               )}
-              {/* Submit Button */}
-              <div>
-                <Button
-                  type="submit"
-                  className="w-full h-12 rounded-lg bg-green-700 hover:bg-green-800 text-white font-semibold text-base shadow transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                  disabled={isLoading}
-                  tabIndex={4}
-                >
-                  {isLoading ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  ) : (
-                    <span>Sign In</span>
-                  )}
-                </Button>
+
+              {/* Username/Email Field */}
+              <FormField
+                ref={usernameInputRef}
+                label="Username or Email"
+                name="username"
+                type="text"
+                placeholder="Enter your username or email"
+                value={formData.username}
+                onChange={(value) => handleFieldChange('username', value as string)}
+                onBlur={() => handleFieldBlur('username')}
+                error={errors.username}
+                touched={touched.username}
+                required
+                disabled={isLoading || lockoutInfo?.isLocked}
+                autoComplete="username"
+                aria-describedby="username-help"
+              />
+
+              {/* Password Field */}
+              <FormField
+                label="Password"
+                name="password"
+                type="password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={(value) => handleFieldChange('password', value as string)}
+                onBlur={() => handleFieldBlur('password')}
+                error={errors.password}
+                touched={touched.password}
+                required
+                disabled={isLoading || lockoutInfo?.isLocked}
+                showPasswordToggle
+                autoComplete="current-password"
+                aria-describedby="password-help"
+              />
+
+              {/* Remember Me */}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="remember-me"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                  disabled={isLoading || lockoutInfo?.isLocked}
+                  aria-describedby="remember-me-help"
+                />
+                <Label htmlFor="remember-me" className="text-sm text-gray-600">
+                  Remember me for 30 days
+                </Label>
               </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                className="w-full h-12 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                disabled={isLoading || lockoutInfo?.isLocked}
+                aria-describedby="submit-help"
+              >
+                {isLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    <span>Signing in...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <span>Sign In</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </div>
+                )}
+              </Button>
             </form>
+
+            {/* Help Text */}
+            <div className="space-y-2 text-xs text-slate-500">
+              <p id="username-help">
+                Enter your username or email address
+              </p>
+              <p id="password-help">
+                Enter your password (minimum 8 characters)
+              </p>
+              <p id="remember-me-help">
+                Keep me signed in for 30 days
+              </p>
+              <p id="submit-help">
+                Click to sign in to your admin account
+              </p>
+            </div>
+
+            {/* Forgot Password */}
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                className="text-sm text-emerald-600 hover:text-emerald-700 underline focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 rounded"
+                disabled={isLoading}
+              >
+                Forgot your password?
+              </button>
+            </div>
           </CardContent>
         </Card>
-        {/* Footer */}
-        <div className="text-center mt-8">
-          <p className="text-xs text-gray-300">
-            © {new Date().getFullYear()} WEGA Kitchenware
-          </p>
-        </div>
       </motion.div>
     </div>
   );

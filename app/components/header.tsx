@@ -761,7 +761,7 @@ export default function Header() {
                         {/* Login/Register */}
                         <div className="px-3 py-2">
                           <Link
-                            href="/admin"
+                            href="/admin/login"
                             className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 group"
                             onClick={() => setIsAccountDropdownOpen(false)}
                           >
@@ -820,7 +820,7 @@ export default function Header() {
                   </Link>
 
                   <Link
-                    href="/admin"
+                    href="/admin/login"
                     onClick={handleNavigationClick}
                       className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-2xl transition-all duration-300 group"
                   >

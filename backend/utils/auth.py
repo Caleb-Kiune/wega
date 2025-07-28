@@ -1,15 +1,35 @@
 import jwt
 import os
+import secrets
+import re
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import request, jsonify, current_app
+from flask import request, jsonify, current_app, session
 from models import AdminUser, db
 
-def generate_tokens(user_id, username, role):
+def generate_csrf_token():
+    """Generate a CSRF token"""
+    if 'csrf_token' not in session:
+        session['csrf_token'] = secrets.token_urlsafe(32)
+    return session['csrf_token']
+
+def validate_csrf_token(token):
+    """Validate CSRF token"""
+    if not token:
+        return False
+    return token == session.get('csrf_token')
+
+def generate_tokens(user_id, username, role, remember_me=False):
     """Generate access and refresh tokens"""
     secret_key = os.environ.get('JWT_SECRET_KEY', 'your-jwt-secret-key-change-in-production')
-    access_expires = int(os.environ.get('JWT_ACCESS_TOKEN_EXPIRES', 1800))  # 30 minutes
-    refresh_expires = int(os.environ.get('JWT_REFRESH_TOKEN_EXPIRES', 604800))  # 7 days
+    
+    # Set expiration based on remember_me
+    if remember_me:
+        access_expires = int(os.environ.get('JWT_ACCESS_TOKEN_EXPIRES_REMEMBER', 86400))  # 24 hours
+        refresh_expires = int(os.environ.get('JWT_REFRESH_TOKEN_EXPIRES_REMEMBER', 2592000))  # 30 days
+    else:
+        access_expires = int(os.environ.get('JWT_ACCESS_TOKEN_EXPIRES', 1800))  # 30 minutes
+        refresh_expires = int(os.environ.get('JWT_REFRESH_TOKEN_EXPIRES', 604800))  # 7 days
     
     # Access token payload
     access_payload = {
@@ -17,6 +37,7 @@ def generate_tokens(user_id, username, role):
         'username': username,
         'role': role,
         'type': 'access',
+        'remember_me': remember_me,
         'exp': datetime.utcnow() + timedelta(seconds=access_expires),
         'iat': datetime.utcnow()
     }
@@ -26,6 +47,7 @@ def generate_tokens(user_id, username, role):
         'user_id': user_id,
         'username': username,
         'type': 'refresh',
+        'remember_me': remember_me,
         'exp': datetime.utcnow() + timedelta(seconds=refresh_expires),
         'iat': datetime.utcnow()
     }
@@ -116,6 +138,19 @@ def require_role(required_role):
         return decorated_function
     return decorator
 
+def require_csrf(f):
+    """Decorator to require CSRF token"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        csrf_token = request.headers.get('X-CSRF-Token')
+        if not validate_csrf_token(csrf_token):
+            return jsonify({
+                'error': 'Forbidden',
+                'message': 'Invalid CSRF token'
+            }), 403
+        return f(*args, **kwargs)
+    return decorated_function
+
 def update_last_login(user_id):
     """Update user's last login timestamp"""
     try:
@@ -140,5 +175,37 @@ def validate_password(password):
     
     if not any(c.isdigit() for c in password):
         return False, "Password must contain at least one number"
+    
+    if not any(c in '!@#$%^&*()_+-=[]{}|;:,.<>?' for c in password):
+        return False, "Password must contain at least one special character"
+    
+    return True, None
+
+def validate_username(username):
+    """Validate username format"""
+    if len(username) < 3:
+        return False, "Username must be at least 3 characters long"
+    
+    if len(username) > 30:
+        return False, "Username must be no more than 30 characters long"
+    
+    if not re.match(r'^[a-zA-Z0-9_]+$', username):
+        return False, "Username can only contain letters, numbers, and underscores"
+    
+    return True, None
+
+def validate_email(email):
+    """Validate email format"""
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(email_pattern, email):
+        return False, "Invalid email format"
+    
+    return True, None
+
+def check_rate_limit(user):
+    """Check if user is rate limited"""
+    if user.is_locked():
+        remaining = user.get_lockout_remaining()
+        return False, f"Account is locked. Please try again in {remaining} seconds."
     
     return True, None 

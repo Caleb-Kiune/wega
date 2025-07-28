@@ -1,24 +1,46 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session, current_app
 from models import db, AdminUser
-from utils.auth import generate_tokens, verify_token, require_auth, update_last_login, validate_password
+from utils.auth import (
+    generate_tokens, verify_token, require_auth, update_last_login, 
+    validate_password, validate_username, validate_email, check_rate_limit,
+    generate_csrf_token, require_csrf
+)
 from datetime import datetime
 import re
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
+@auth_bp.route('/csrf-token', methods=['GET'])
+def get_csrf_token():
+    """Get CSRF token for form submission"""
+    return jsonify({
+        'csrf_token': generate_csrf_token()
+    }), 200
+
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    """Admin login endpoint"""
+    """Admin login endpoint with enhanced security"""
     data = request.get_json()
     
     if not data:
         return jsonify({'error': 'No data provided'}), 400
     
-    username = data.get('username')
-    password = data.get('password')
+    username = data.get('username', '').strip()
+    password = data.get('password', '')
+    remember_me = data.get('remember_me', False)
     
-    if not username or not password:
-        return jsonify({'error': 'Username and password are required'}), 400
+    # Field validation
+    if not username:
+        return jsonify({'error': 'Username is required'}), 400
+    
+    if not password:
+        return jsonify({'error': 'Password is required'}), 400
+    
+    # Validate username format (if it's not an email)
+    if '@' not in username:
+        is_valid, error_message = validate_username(username)
+        if not is_valid:
+            return jsonify({'error': error_message}), 400
     
     try:
         # Find user by username or email
@@ -32,11 +54,30 @@ def login():
         if not user.is_active:
             return jsonify({'error': 'Account is deactivated'}), 401
         
+        # Check rate limiting
+        is_allowed, error_message = check_rate_limit(user)
+        if not is_allowed:
+            return jsonify({'error': error_message}), 429
+        
+        # Verify password
         if not user.check_password(password):
+            # Increment failed attempts
+            user.increment_failed_attempts()
+            
+            # Check if account is now locked
+            if user.is_locked():
+                remaining = user.get_lockout_remaining()
+                return jsonify({
+                    'error': f'Account locked due to too many failed attempts. Please try again in {remaining} seconds.'
+                }), 429
+            
             return jsonify({'error': 'Invalid credentials'}), 401
         
-        # Generate tokens
-        tokens = generate_tokens(user.id, user.username, user.role)
+        # Successful login - reset failed attempts
+        user.reset_failed_attempts()
+        
+        # Generate tokens with remember_me option
+        tokens = generate_tokens(user.id, user.username, user.role, remember_me)
         
         # Update last login
         update_last_login(user.id)
@@ -48,7 +89,8 @@ def login():
         }), 200
         
     except Exception as e:
-        return jsonify({'error': 'Login failed', 'message': str(e)}), 500
+        current_app.logger.error(f"Login error: {e}")
+        return jsonify({'error': 'Login failed', 'message': 'Internal server error'}), 500
 
 @auth_bp.route('/refresh', methods=['POST'])
 def refresh_token():
@@ -69,8 +111,14 @@ def refresh_token():
         if not user or not user.is_active:
             return jsonify({'error': 'User not found or inactive'}), 401
         
-        # Generate new tokens
-        tokens = generate_tokens(user.id, user.username, user.role)
+        # Check rate limiting
+        is_allowed, error_message = check_rate_limit(user)
+        if not is_allowed:
+            return jsonify({'error': error_message}), 429
+        
+        # Generate new tokens with same remember_me setting
+        remember_me = payload.get('remember_me', False)
+        tokens = generate_tokens(user.id, user.username, user.role, remember_me)
         
         return jsonify({
             'message': 'Token refreshed successfully',
@@ -78,7 +126,8 @@ def refresh_token():
         }), 200
         
     except Exception as e:
-        return jsonify({'error': 'Token refresh failed', 'message': str(e)}), 500
+        current_app.logger.error(f"Token refresh error: {e}")
+        return jsonify({'error': 'Token refresh failed', 'message': 'Internal server error'}), 500
 
 @auth_bp.route('/logout', methods=['POST'])
 @require_auth
@@ -104,8 +153,9 @@ def get_profile():
 
 @auth_bp.route('/profile', methods=['PUT'])
 @require_auth
+@require_csrf
 def update_profile():
-    """Update current user profile"""
+    """Update current user profile with CSRF protection"""
     from utils.auth import get_current_user
     user = get_current_user()
     data = request.get_json()
@@ -116,31 +166,36 @@ def update_profile():
     try:
         # Update allowed fields
         if 'email' in data:
-            # Check if email is valid
-            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-            if not re.match(email_pattern, data['email']):
-                return jsonify({'error': 'Invalid email format'}), 400
+            email = data['email'].strip()
+            is_valid, error_message = validate_email(email)
+            if not is_valid:
+                return jsonify({'error': error_message}), 400
             
             # Check if email is already taken by another user
             existing_user = AdminUser.query.filter(
-                AdminUser.email == data['email'],
+                AdminUser.email == email,
                 AdminUser.id != user.id
             ).first()
             if existing_user:
                 return jsonify({'error': 'Email already in use'}), 400
             
-            user.email = data['email']
+            user.email = email
         
         if 'username' in data:
+            username = data['username'].strip()
+            is_valid, error_message = validate_username(username)
+            if not is_valid:
+                return jsonify({'error': error_message}), 400
+            
             # Check if username is already taken by another user
             existing_user = AdminUser.query.filter(
-                AdminUser.username == data['username'],
+                AdminUser.username == username,
                 AdminUser.id != user.id
             ).first()
             if existing_user:
                 return jsonify({'error': 'Username already in use'}), 400
             
-            user.username = data['username']
+            user.username = username
         
         db.session.commit()
         
@@ -151,12 +206,14 @@ def update_profile():
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': 'Profile update failed', 'message': str(e)}), 500
+        current_app.logger.error(f"Profile update error: {e}")
+        return jsonify({'error': 'Profile update failed', 'message': 'Internal server error'}), 500
 
 @auth_bp.route('/change-password', methods=['POST'])
 @require_auth
+@require_csrf
 def change_password():
-    """Change current user password"""
+    """Change current user password with CSRF protection"""
     from utils.auth import get_current_user
     user = get_current_user()
     data = request.get_json()
@@ -164,11 +221,14 @@ def change_password():
     if not data:
         return jsonify({'error': 'No data provided'}), 400
     
-    current_password = data.get('current_password')
-    new_password = data.get('new_password')
+    current_password = data.get('current_password', '')
+    new_password = data.get('new_password', '')
     
-    if not current_password or not new_password:
-        return jsonify({'error': 'Current password and new password are required'}), 400
+    if not current_password:
+        return jsonify({'error': 'Current password is required'}), 400
+    
+    if not new_password:
+        return jsonify({'error': 'New password is required'}), 400
     
     # Verify current password
     if not user.check_password(current_password):
@@ -189,7 +249,8 @@ def change_password():
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': 'Password change failed', 'message': str(e)}), 500
+        current_app.logger.error(f"Password change error: {e}")
+        return jsonify({'error': 'Password change failed', 'message': 'Internal server error'}), 500
 
 @auth_bp.route('/users', methods=['GET'])
 @require_auth
@@ -208,12 +269,14 @@ def get_users():
         }), 200
         
     except Exception as e:
-        return jsonify({'error': 'Failed to fetch users', 'message': str(e)}), 500
+        current_app.logger.error(f"Get users error: {e}")
+        return jsonify({'error': 'Failed to fetch users', 'message': 'Internal server error'}), 500
 
 @auth_bp.route('/users', methods=['POST'])
 @require_auth
+@require_csrf
 def create_user():
-    """Create new admin user (super admin only)"""
+    """Create new admin user (super admin only) with CSRF protection"""
     from utils.auth import get_current_user
     user = get_current_user()
     
@@ -225,20 +288,29 @@ def create_user():
     if not data:
         return jsonify({'error': 'No data provided'}), 400
     
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
+    username = data.get('username', '').strip()
+    email = data.get('email', '').strip()
+    password = data.get('password', '')
     role = data.get('role', 'admin')
     
-    if not username or not email or not password:
-        return jsonify({'error': 'Username, email, and password are required'}), 400
+    if not username:
+        return jsonify({'error': 'Username is required'}), 400
     
-    # Validate email format
-    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    if not re.match(email_pattern, email):
-        return jsonify({'error': 'Invalid email format'}), 400
+    if not email:
+        return jsonify({'error': 'Email is required'}), 400
     
-    # Validate password
+    if not password:
+        return jsonify({'error': 'Password is required'}), 400
+    
+    # Validate input fields
+    is_valid, error_message = validate_username(username)
+    if not is_valid:
+        return jsonify({'error': error_message}), 400
+    
+    is_valid, error_message = validate_email(email)
+    if not is_valid:
+        return jsonify({'error': error_message}), 400
+    
     is_valid, error_message = validate_password(password)
     if not is_valid:
         return jsonify({'error': error_message}), 400
@@ -268,4 +340,5 @@ def create_user():
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': 'User creation failed', 'message': str(e)}), 500 
+        current_app.logger.error(f"User creation error: {e}")
+        return jsonify({'error': 'User creation failed', 'message': 'Internal server error'}), 500 

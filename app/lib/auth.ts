@@ -15,6 +15,7 @@ export interface AdminUser {
 export interface LoginCredentials {
   username: string;
   password: string;
+  remember_me?: boolean;
 }
 
 export interface AuthTokens {
@@ -24,19 +25,21 @@ export interface AuthTokens {
   refresh_expires_in: number;
 }
 
-export interface LoginResponse {
+export interface AuthResponse {
   message: string;
   user: AdminUser;
   tokens: AuthTokens;
 }
 
-export interface RefreshResponse {
-  message: string;
-  tokens: AuthTokens;
+export interface CsrfResponse {
+  csrf_token: string;
 }
 
-export class AuthAPI {
+class AuthAPI {
   private baseURL: string;
+  private csrfToken: string | null = null;
+  private retryAttempts = 3;
+  private retryDelay = 1000; // 1 second
 
   constructor() {
     this.baseURL = API_BASE_URL;
@@ -45,7 +48,8 @@ export class AuthAPI {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    retryCount = 0
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     console.log('Making request to:', url);
@@ -57,6 +61,14 @@ export class AuthAPI {
       },
       ...options,
     };
+
+    // Add CSRF token if available
+    if (this.csrfToken && options.method !== 'GET') {
+      config.headers = {
+        ...config.headers,
+        'X-CSRF-Token': this.csrfToken,
+      };
+    }
 
     try {
       const response = await fetch(url, config);
@@ -72,25 +84,79 @@ export class AuthAPI {
           errorMessage = response.statusText || errorMessage;
         }
         
+        // Handle specific error cases
+        if (response.status === 429) {
+          // Rate limited
+          throw new Error('Too many login attempts. Please try again later.');
+        } else if (response.status === 403) {
+          // CSRF token invalid
+          await this.refreshCsrfToken();
+          throw new Error('Session expired. Please try again.');
+        }
+        
         throw new Error(errorMessage);
       }
       
       return await response.json();
     } catch (error) {
       console.error('Auth API request failed:', error);
+      
+      // Retry logic for network errors
+      if (retryCount < this.retryAttempts && this.isRetryableError(error)) {
+        console.log(`Retrying request (${retryCount + 1}/${this.retryAttempts})...`);
+        await this.delay(this.retryDelay * Math.pow(2, retryCount)); // Exponential backoff
+        return this.request<T>(endpoint, options, retryCount + 1);
+      }
+      
       throw error;
     }
   }
 
-  async login(credentials: LoginCredentials): Promise<LoginResponse> {
-    return this.request<LoginResponse>('/auth/login', {
+  private isRetryableError(error: any): boolean {
+    // Retry on network errors, not on authentication or validation errors
+    return error.name === 'TypeError' || 
+           error.message.includes('fetch') ||
+           error.message.includes('network') ||
+           error.message.includes('Failed to fetch');
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async getCsrfToken(): Promise<string> {
+    try {
+      const response = await this.request<CsrfResponse>('/auth/csrf-token', {
+        method: 'GET',
+      });
+      this.csrfToken = response.csrf_token;
+      return response.csrf_token;
+    } catch (error) {
+      console.error('Failed to get CSRF token:', error);
+      throw error;
+    }
+  }
+
+  private async refreshCsrfToken(): Promise<void> {
+    try {
+      await this.getCsrfToken();
+    } catch (error) {
+      console.error('Failed to refresh CSRF token:', error);
+    }
+  }
+
+  async login(credentials: LoginCredentials): Promise<AuthResponse> {
+    // Get CSRF token before login
+    await this.getCsrfToken();
+    
+    return this.request<AuthResponse>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
   }
 
-  async refreshToken(refreshToken: string): Promise<RefreshResponse> {
-    return this.request<RefreshResponse>('/auth/refresh', {
+  async refreshToken(refreshToken: string): Promise<{ tokens: AuthTokens }> {
+    return this.request<{ tokens: AuthTokens }>('/auth/refresh', {
       method: 'POST',
       body: JSON.stringify({ refresh_token: refreshToken }),
     });
@@ -99,7 +165,8 @@ export class AuthAPI {
   async logout(): Promise<{ message: string }> {
     const token = this.getAccessToken();
     if (!token) {
-      return { message: 'No active session' };
+      // If no token, just return success since we're already logged out
+      return { message: 'Logged out successfully' };
     }
 
     return this.request<{ message: string }>('/auth/logout', {

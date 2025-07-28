@@ -19,11 +19,19 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      router.push('/admin/login');
-    }
-  }, [isAuthenticated, loading, router]);
+  // Handle manual navigation to login
+  const handleGoToLogin = () => {
+    window.location.href = '/admin/login';
+  };
+
+  const handleGoToHome = () => {
+    window.location.href = '/';
+  };
+
+  // Remove auto-redirect to prevent conflicts with manual navigation
+  // Let users manually navigate to login
+
+  // Remove unused timeout effect
 
   // Show loading state
   if (loading) {
@@ -61,14 +69,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           </CardHeader>
           <CardContent className="space-y-4">
             <Button 
-              onClick={() => router.push('/admin/login')} 
+              onClick={handleGoToLogin}
               className="w-full"
             >
               Go to Login
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => router.push('/')} 
+              onClick={handleGoToHome}
               className="w-full"
             >
               Back to Home

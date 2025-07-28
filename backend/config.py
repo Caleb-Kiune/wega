@@ -37,17 +37,21 @@ class Config:
         'https://wega-backend.onrender.com'  # Your Render backend URL
     ]
     CORS_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
-    CORS_ALLOW_HEADERS = ['Content-Type', 'Authorization']
+    CORS_ALLOW_HEADERS = ['Content-Type', 'Authorization', 'X-CSRF-Token']
     CORS_SUPPORTS_CREDENTIALS = True
+    
+    # JWT configuration
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'your-jwt-secret-key-change-in-production')
+    JWT_ACCESS_TOKEN_EXPIRES = 1800  # 30 minutes
+    JWT_REFRESH_TOKEN_EXPIRES = 604800  # 7 days
+    JWT_ACCESS_TOKEN_EXPIRES_REMEMBER = 86400  # 24 hours
+    JWT_REFRESH_TOKEN_EXPIRES_REMEMBER = 2592000  # 30 days
 
 class DevelopmentConfig(Config):
     """Development configuration"""
     DEBUG = True
-    # Use PostgreSQL for development
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'postgresql://wega_user:wega_password@localhost:5432/wega_kitchenware'
-    # Set instance path to prevent Flask from using instance folder
-    INSTANCE_PATH = os.path.abspath(os.path.dirname(__file__))
-    BASE_URL = None  # Will use request.host_url in development
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
+    BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5000')
 
 class ProductionConfig(Config):
     """Production configuration"""
