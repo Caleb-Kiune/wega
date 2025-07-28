@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import OrderTimeline from '@/components/order-timeline';
 
 interface OrderDetailsClientProps {
   initialOrder: Order;
@@ -466,38 +467,7 @@ export default function OrderDetailsClient({ initialOrder }: OrderDetailsClientP
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2"></div>
-                      <div>
-                        <p className="font-medium text-slate-900">Order Placed</p>
-                        <p className="text-sm text-slate-500">
-                          {format(new Date(order.created_at), 'MMM d, yyyy h:mm a')}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-slate-300 rounded-full mt-2"></div>
-                      <div>
-                        <p className="font-medium text-slate-400">Processing</p>
-                        <p className="text-sm text-slate-400">In progress</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-slate-300 rounded-full mt-2"></div>
-                      <div>
-                        <p className="font-medium text-slate-400">Shipped</p>
-                        <p className="text-sm text-slate-400">Pending</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-slate-300 rounded-full mt-2"></div>
-                      <div>
-                        <p className="font-medium text-slate-400">Delivered</p>
-                        <p className="text-sm text-slate-400">Pending</p>
-                      </div>
-                    </div>
-                  </div>
+                  <OrderTimeline order={order} variant="compact" />
                 </CardContent>
               </Card>
             </motion.div>

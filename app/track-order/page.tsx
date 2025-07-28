@@ -37,6 +37,7 @@ import {
 import { useToast } from '@/lib/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import OrderTimeline from '@/components/order-timeline';
 
 // Utility functions for order status
 const getStatusColor = (status: Order['status']) => {
@@ -618,48 +619,7 @@ export default function TrackOrderPage() {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <CardContent className="pt-0">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="flex items-start gap-3">
-                          <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                            <span className="text-emerald-600 text-xs font-bold">1</span>
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-medium text-slate-800 mb-1">Order Confirmed</h4>
-                            <p className="text-xs text-slate-600 mb-1">{safeFormat(order.created_at, 'MMM d, h:mm a')}</p>
-                            <p className="text-xs text-slate-600">Your order has been received and confirmed.</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-start gap-3">
-                          <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                            <span className="text-emerald-600 text-xs font-bold">2</span>
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-medium text-slate-800 mb-1">Processing</h4>
-                            <p className="text-xs text-slate-600">Our team is preparing your order for shipment.</p>
-                </div>
-              </div>
-
-                        <div className="flex items-start gap-3">
-                          <div className="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                            <span className="text-slate-400 text-xs font-bold">3</span>
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-medium text-slate-400 mb-1">Shipping</h4>
-                            <p className="text-xs text-slate-400">Your order will be shipped soon.</p>
-                          </div>
-                  </div>
-                        
-                        <div className="flex items-start gap-3">
-                          <div className="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                            <span className="text-slate-400 text-xs font-bold">4</span>
-                  </div>
-                          <div className="flex-1">
-                            <h4 className="font-medium text-slate-400 mb-1">Delivery</h4>
-                            <p className="text-xs text-slate-400">Your order will be delivered to your address.</p>
-                  </div>
-                </div>
-              </div>
+                      <OrderTimeline order={order} />
                     </CardContent>
                   </CollapsibleContent>
                 </Card>
@@ -667,55 +627,7 @@ export default function TrackOrderPage() {
             </div>
           )}
 
-          {/* Action Buttons */}
-          <motion.div 
-            className="bg-white rounded-2xl shadow-xl border-2 border-emerald-200 p-8 mb-8 relative z-10"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-            style={{
-              background: 'white',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-              border: '2px solid #10b981'
-            }}
-          >
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-bold text-slate-900 mb-2">What would you like to do next?</h3>
-              <p className="text-slate-600 text-base">Choose your next action</p>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/" className="w-full sm:w-auto">
-                <button 
-                  className="w-full sm:w-auto px-8 py-4 text-base border-2 border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium rounded-2xl flex items-center justify-center gap-3 shadow-md hover:shadow-lg"
-                  style={{ 
-                    backgroundColor: 'white',
-                    borderColor: '#cbd5e1',
-                    color: '#374151',
-                    minHeight: '56px'
-                  }}
-                >
-                  <Home className="w-5 h-5" />
-                  Back to Home
-                </button>
-              </Link>
-              
-              <Link href="/products" className="w-full sm:w-auto">
-                <button 
-                  className="w-full sm:w-auto px-8 py-4 text-base shadow-lg hover:shadow-xl transition-all duration-200 font-medium rounded-2xl flex items-center justify-center gap-3 text-white"
-                  style={{ 
-                    background: 'linear-gradient(to right, #059669, #16a34a)',
-                    border: 'none',
-                    color: 'white',
-                    minHeight: '56px'
-                  }}
-                >
-                  <ShoppingBag className="w-5 h-5" />
-                  Continue Shopping
-                </button>
-              </Link>
-            </div>
-          </motion.div>
+
           </div>
       </div>
     </div>

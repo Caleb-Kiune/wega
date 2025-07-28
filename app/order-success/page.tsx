@@ -40,6 +40,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ordersApi, Order } from "@/lib/orders"
 import { getImageUrl } from '@/lib/products'
 import { format, isValid, parseISO } from 'date-fns'
+import OrderTimeline from '@/components/order-timeline'
 
 export default function OrderSuccessPage() {
   const searchParams = useSearchParams()
@@ -584,175 +585,14 @@ export default function OrderSuccessPage() {
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <CardContent className="pt-0">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                          <span className="text-emerald-600 text-xs font-bold">1</span>
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-slate-800 mb-1">Order Confirmed</h4>
-                          <p className="text-xs text-slate-600 mb-1">{safeFormat(order.created_at, 'MMM d, h:mm a')}</p>
-                          <p className="text-xs text-slate-600">Your order has been received and confirmed.</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-start gap-3">
-                        <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                          <span className="text-emerald-600 text-xs font-bold">2</span>
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-slate-800 mb-1">Processing</h4>
-                          <p className="text-xs text-slate-600">Our team is preparing your order for shipment.</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                        <div className="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                          <span className="text-slate-400 text-xs font-bold">3</span>
-                </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-slate-400 mb-1">Shipping</h4>
-                          <p className="text-xs text-slate-400">Your order will be shipped soon.</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                        <div className="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                          <span className="text-slate-400 text-xs font-bold">4</span>
-                </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-slate-400 mb-1">Delivery</h4>
-                          <p className="text-xs text-slate-400">Your order will be delivered to your address.</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
+                    <OrderTimeline order={order} />
+                  </CardContent>
                 </CollapsibleContent>
         </Card>
             </Collapsible>
           </div>
 
-          {/* Compact Action Buttons */}
-          <motion.div 
-            className="flex flex-col sm:flex-row gap-3 justify-center mb-8"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.0 }}
-          >
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button 
-                    onClick={refreshOrder}
-                    disabled={isRefreshing}
-                    className="w-full sm:w-auto px-6 py-3 border-2 border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium rounded-2xl flex items-center justify-center gap-3 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ 
-                      backgroundColor: 'white',
-                      borderColor: '#cbd5e1',
-                      color: '#374151',
-                      minHeight: '48px'
-                    }}
-                  >
-                    <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                    {isRefreshing ? 'Refreshing...' : 'Refresh'}
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>Check for order updates</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button 
-                    onClick={shareOrder}
-                    className="w-full sm:w-auto px-6 py-3 border-2 border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium rounded-2xl flex items-center justify-center gap-3 shadow-md hover:shadow-lg"
-                    style={{ 
-                      backgroundColor: 'white',
-                      borderColor: '#cbd5e1',
-                      color: '#374151',
-                      minHeight: '48px'
-                    }}
-                  >
-                    <Share2 className="w-4 h-4" />
-                    Share
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>Share your order details</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          
-          <Link href="/track-order" className="w-full sm:w-auto">
-            <button 
-              className="w-full sm:w-auto px-6 py-3 border-2 border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium rounded-2xl flex items-center justify-center gap-3 shadow-md hover:shadow-lg"
-              style={{ 
-                backgroundColor: 'white',
-                borderColor: '#cbd5e1',
-                color: '#374151',
-                minHeight: '48px'
-              }}
-            >
-              <Package className="w-4 h-4" />
-              Track Another
-            </button>
-          </Link>
-          
-          <Link href="/" className="w-full sm:w-auto">
-            <button 
-              className="w-full sm:w-auto px-8 py-4 text-base shadow-lg hover:shadow-xl transition-all duration-200 font-medium rounded-2xl flex items-center justify-center gap-3 text-white"
-              style={{ 
-                background: 'linear-gradient(to right, #059669, #16a34a)',
-                border: 'none',
-                color: 'white',
-                minHeight: '56px'
-              }}
-            >
-              <ShoppingBag className="w-5 h-5" />
-              Continue Shopping
-            </button>
-          </Link>
-          </motion.div>
 
-          {/* Compact Trust Signals */}
-          <motion.div 
-            className="text-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 1.2 }}
-          >
-            <div className="bg-white rounded-xl shadow-lg p-4 border border-slate-200">
-              <h3 className="text-base font-semibold text-slate-900 mb-3">Why Choose WEGA Kitchenware?</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                    <Truck className="w-4 h-4 text-emerald-600" />
-                  </div>
-                  <div className="text-left">
-                    <h4 className="font-medium text-slate-900 text-sm">Free Delivery</h4>
-                    <p className="text-xs text-slate-600">Over KES 5,000</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                    <Shield className="w-4 h-4 text-emerald-600" />
-                  </div>
-                  <div className="text-left">
-                    <h4 className="font-medium text-slate-900 text-sm">Secure Payment</h4>
-                    <p className="text-xs text-slate-600">100% secure</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                    <Star className="w-4 h-4 text-emerald-600" />
-                  </div>
-                  <div className="text-left">
-                    <h4 className="font-medium text-slate-900 text-sm">Premium Quality</h4>
-                    <p className="text-xs text-slate-600">Best products</p>
-                  </div>
-                </div>
-              </div>
-        </div>
-          </motion.div>
         </div>
       </div>
     </div>

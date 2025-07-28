@@ -726,25 +726,29 @@ export default function Header() {
                       transition={{ duration: 0.2 }}
                     >
                       <div className="py-2">
-                        {/* Guest User Options */}
+                        {/* Navigation Options */}
                         <div className="px-3 py-2">
                           <Link
-                            href="/wishlist"
-                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group"
+                            href="/"
+                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 group"
                             onClick={() => setIsAccountDropdownOpen(false)}
                           >
-                            <Heart className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                            <span className="font-medium">Wishlist</span>
-                            {wishlistItems.length > 0 && (
-                              <Badge className="ml-auto bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                                {wishlistItems.length}
-                              </Badge>
-                            )}
+                            <Home className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                            <span className="font-medium">Home</span>
+                          </Link>
+                          
+                          <Link
+                            href="/products"
+                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group"
+                            onClick={() => setIsAccountDropdownOpen(false)}
+                          >
+                            <ShoppingBag className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                            <span className="font-medium">Shop</span>
                           </Link>
                           
                           <Link
                             href="/track-order"
-                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group"
+                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all duration-200 group"
                             onClick={() => setIsAccountDropdownOpen(false)}
                           >
                             <Package className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
@@ -757,12 +761,12 @@ export default function Header() {
                         {/* Login/Register */}
                         <div className="px-3 py-2">
                           <Link
-                            href="/login"
+                            href="/admin"
                             className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 group"
                             onClick={() => setIsAccountDropdownOpen(false)}
                           >
                             <User className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                            <span className="font-medium">Login / Register</span>
+                            <span className="font-medium">Admin Login</span>
                           </Link>
                         </div>
                   </div>
@@ -816,14 +820,14 @@ export default function Header() {
                   </Link>
 
                   <Link
-                    href="/login"
+                    href="/admin"
                     onClick={handleNavigationClick}
                       className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-2xl transition-all duration-300 group"
                   >
                       <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-green-100 transition-colors duration-300">
                     <User className="h-5 w-5" />
                       </div>
-                    <span className="font-medium">Login / Register</span>
+                    <span className="font-medium">Admin Login</span>
                   </Link>
                 </div>
               </nav>
