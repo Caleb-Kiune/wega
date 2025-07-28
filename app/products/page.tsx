@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from 'react';
-import { useProducts } from '@/lib/hooks/use-products';
+import { useProductsSWR } from '@/lib/hooks/use-products-swr';
 import ProductFilters from '@/components/ProductFilters';
 import ProductCard from '@/components/product-card';
 import { ProductsLoading } from '@/components/products-loading';
@@ -112,7 +112,7 @@ export default function ProductsPage() {
     }
   }, [searchParams.get('search')]);
 
-  const { products, loading, error, totalPages, currentPage } = useProducts(filters);
+  const { products, loading, error, pages: totalPages, current_page: currentPage } = useProductsSWR(filters);
 
   const handleFiltersChange = (newFilters: Partial<ProductsFilters>) => {
     const updatedFilters = { ...filters, ...newFilters, page: 1 };

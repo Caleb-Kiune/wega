@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useCallback, useRef } from "react"
 import { useInView } from "react-intersection-observer"
 import ProductCard from "@/components/product-card"
-import { productsApi } from "@/lib/products"
+import { useProductsSWR } from "@/lib/hooks/use-products-swr"
 import { Product, ProductsParams } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
@@ -35,13 +35,21 @@ export default function ProductGrid({
   showPagination = false,
   enableInfiniteScroll = false
 }: ProductGridProps) {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
-  const [totalPages, setTotalPages] = useState(1)
+
+  // Set filter parameters based on category
+  const filterParams: ProductsParams = {
+    is_featured: category === 'featured',
+    is_new: category === 'new-arrivals',
+    is_sale: category === 'special-offers',
+    limit: limit,
+    page: currentPage
+  }
+
+  // Use SWR hook for data fetching
+  const { products, total, pages, current_page, loading, error, mutate } = useProductsSWR(filterParams)
 
   // Intersection observer for infinite scroll
   const { ref: loadMoreRef, inView } = useInView({
@@ -49,72 +57,32 @@ export default function ProductGrid({
     rootMargin: '100px',
   })
 
-  const fetchProducts = useCallback(async (page: number = 1, append: boolean = false) => {
-      try {
-      if (page === 1) {
-        setLoading(true)
-      } else {
-        setLoadingMore(true)
-      }
-        setError(null)
-      
-      console.log('Fetching products for category:', category, 'page:', page)
-        
-        // Set filter parameters based on category
-        const filterParams: ProductsParams = {
-          is_featured: category === 'featured',
-          is_new: category === 'new-arrivals',
-          is_sale: category === 'special-offers',
-        limit: limit,
-        page: page
-        }
-        
-        const response = await productsApi.getAll(filterParams)
-        
-        console.log('API Response:', {
-          total: response.total,
-        currentPage: response.current_page,
-        totalPages: response.pages,
-        products: response.products.length
-      })
-      
-      if (append) {
-        setProducts(prev => [...prev, ...response.products])
-      } else {
-        setProducts(response.products)
-      }
-      
-      setCurrentPage(response.current_page)
-      setTotalPages(response.pages)
-      setHasMore(response.current_page < response.pages)
-      
-      } catch (err) {
-        console.error('Error fetching products:', err)
-        setError(err instanceof Error ? err.message : 'An error occurred while fetching products')
-      } finally {
-        setLoading(false)
+  // Handle infinite scroll
+  const handleLoadMore = useCallback(async () => {
+    if (current_page < pages && !loadingMore) {
+      setLoadingMore(true)
+      setCurrentPage(prev => prev + 1)
       setLoadingMore(false)
     }
-  }, [category, limit])
+  }, [current_page, pages, loadingMore])
 
-  // Initial load
-  useEffect(() => {
-    fetchProducts(1, false)
-  }, [fetchProducts])
+  // Load more when intersection observer triggers
+  if (inView && enableInfiniteScroll && hasMore && !loadingMore) {
+    handleLoadMore()
+  }
 
-  // Infinite scroll effect
-  useEffect(() => {
-    if (inView && hasMore && !loadingMore && enableInfiniteScroll) {
-      fetchProducts(currentPage + 1, true)
-    }
-  }, [inView, hasMore, loadingMore, enableInfiniteScroll, currentPage, fetchProducts])
+  // Update hasMore when data changes
+  if (current_page >= pages && hasMore) {
+    setHasMore(false)
+  }
+
+
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-    fetchProducts(page, false)
   }
 
-  if (loading) {
+  if (loading && products.length === 0) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
         {[...Array(limit)].map((_, index) => (
@@ -126,13 +94,13 @@ export default function ProductGrid({
     )
   }
 
-  if (error) {
+  if (error && products.length === 0) {
     return (
       <div className="text-center py-12" role="alert" aria-live="polite">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md mx-auto">
-          <p className="text-red-600 mb-4 font-medium">{error}</p>
+          <p className="text-red-600 mb-4 font-medium">{error.message}</p>
           <Button 
-            onClick={() => fetchProducts(1, false)} 
+            onClick={() => mutate()} 
             className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 min-h-[44px] font-medium shadow-lg hover:shadow-xl"
           aria-label="Retry loading products"
         >
@@ -143,7 +111,7 @@ export default function ProductGrid({
     )
   }
 
-  if (!products || products.length === 0) {
+  if (!loading && products.length === 0) {
     return (
       <div className="text-center py-12" role="status">
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 max-w-md mx-auto">
@@ -183,22 +151,22 @@ export default function ProductGrid({
       )}
 
       {/* Pagination */}
-      {showPagination && totalPages > 1 && (
+      {showPagination && pages > 1 && (
         <div className="flex justify-center items-center gap-2 py-6">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage <= 1}
+            onClick={() => handlePageChange(current_page - 1)}
+            disabled={current_page <= 1}
             className="min-h-[40px] min-w-[40px] p-2"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
           
           <div className="flex items-center gap-1">
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            {Array.from({ length: Math.min(5, pages) }, (_, i) => {
               const page = i + 1
-              const isActive = page === currentPage
+              const isActive = page === current_page
               
               return (
                 <Button
@@ -218,13 +186,13 @@ export default function ProductGrid({
             })}
           </div>
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage >= totalPages}
-            className="min-h-[40px] min-w-[40px] p-2"
-          >
+                      <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(current_page + 1)}
+              disabled={current_page >= pages}
+              className="min-h-[40px] min-w-[40px] p-2"
+            >
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>

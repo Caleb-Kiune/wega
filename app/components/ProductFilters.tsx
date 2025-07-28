@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useBrands } from '@/lib/hooks/use-brands';
-import { useCategories } from '@/lib/hooks/use-categories';
-import { usePriceRange } from '@/lib/hooks/use-price-range';
+import { useBrandsSWR } from '@/lib/hooks/use-brands-swr';
+import { useCategoriesSWR } from '@/lib/hooks/use-categories-swr';
+import { usePriceRangeSWR } from '@/lib/hooks/use-price-range-swr';
 import PriceRangeFilter, { PriceRange } from '@/components/PriceRangeFilter';
 import { Button } from '@/components/ui/button';
 import { 
@@ -51,9 +51,9 @@ interface FilterSectionConfig {
 }
 
 export default function ProductFilters({ filters, onFiltersChange, loading }: ProductFiltersProps) {
-  const { brands, loading: brandsLoading } = useBrands();
-  const { categories, loading: categoriesLoading } = useCategories();
-  const { priceRange, priceStats, loading: priceRangeLoading } = usePriceRange();
+  const { brands, loading: brandsLoading } = useBrandsSWR();
+  const { categories, loading: categoriesLoading } = useCategoriesSWR();
+  const { priceRange, priceStats, loading: priceRangeLoading } = usePriceRangeSWR();
 
   // Collapsible sections state - all collapsed by default for user control
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
