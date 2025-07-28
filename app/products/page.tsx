@@ -243,7 +243,7 @@ export default function ProductsPage() {
 
   // Add ref for main content after hero
   const mainContentRef = useRef<HTMLDivElement>(null);
-  const scrollToProducts = useScrollToProducts(mainContentRef);
+  const scrollToProducts = useScrollToProducts(mainContentRef as React.RefObject<HTMLDivElement>);
 
   const handleClearSearch = () => {
     const updatedFilters = { ...filters, search: undefined, page: 1 };

@@ -55,12 +55,12 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
   const { categories, loading: categoriesLoading } = useCategories();
   const { priceRange, priceStats, loading: priceRangeLoading } = usePriceRange();
 
-  // Collapsible sections state
+  // Collapsible sections state - all collapsed by default for user control
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    'product-status': true, // Always expanded by default
-    'categories': false,    // Collapsed by default
-    'brands': false,        // Collapsed by default
-    'price-range': true,    // Always expanded by default
+    'product-status': false, // Collapsed by default
+    'categories': false,     // Collapsed by default
+    'brands': false,         // Collapsed by default
+    'price-range': false,    // Collapsed by default
   });
 
   // Current price range from filters
@@ -160,26 +160,7 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
     }));
   };
 
-  // Auto-expand sections with active filters
-  useEffect(() => {
-    const newExpandedSections = { ...expandedSections };
-    
-    // Auto-expand sections with active filters
-    if (hasActiveFilters('product-status') && !newExpandedSections['product-status']) {
-      newExpandedSections['product-status'] = true;
-    }
-    if (hasActiveFilters('categories') && !newExpandedSections['categories']) {
-      newExpandedSections['categories'] = true;
-    }
-    if (hasActiveFilters('brands') && !newExpandedSections['brands']) {
-      newExpandedSections['brands'] = true;
-    }
-    if (hasActiveFilters('price-range') && !newExpandedSections['price-range']) {
-      newExpandedSections['price-range'] = true;
-    }
-
-    setExpandedSections(newExpandedSections);
-  }, [filters]);
+  // No auto-expand logic - sections remain user-controlled
 
   const activeFiltersCount = getActiveFiltersCount();
 
@@ -188,14 +169,12 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
     id,
     title, 
     children,
-    icon: Icon,
-    defaultExpanded = false
+    icon: Icon
   }: { 
     id: string;
     title: string; 
     children: React.ReactNode;
     icon?: React.ComponentType<{ className?: string }>;
-    defaultExpanded?: boolean;
   }) => {
     const isExpanded = expandedSections[id];
     const activeCount = getSectionActiveCount(id);
@@ -307,7 +286,6 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
           id="product-status"
           title="Product Status" 
           icon={Star}
-          defaultExpanded={true}
         >
           <div className="space-y-1">
             <NativeCheckbox
@@ -333,7 +311,6 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
           id="categories"
           title="Categories" 
           icon={Tag}
-          defaultExpanded={false}
         >
           {categoriesLoading ? (
             <div className="flex items-center justify-center py-6">
@@ -358,7 +335,6 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
           id="brands"
           title="Brands" 
           icon={Building2}
-          defaultExpanded={false}
         >
           {brandsLoading ? (
             <div className="flex items-center justify-center py-6">
@@ -383,7 +359,6 @@ export default function ProductFilters({ filters, onFiltersChange, loading }: Pr
           id="price-range"
           title="Price Range" 
           icon={DollarSign}
-          defaultExpanded={true}
         >
           {priceRangeLoading ? (
             <div className="flex items-center justify-center py-6">
