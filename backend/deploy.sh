@@ -35,7 +35,8 @@ if [ "$FLASK_ENV" = "production" ]; then
     if [ $? -eq 0 ]; then
         echo "✅ Database initialization completed"
     else
-        echo "⚠️  Database initialization had issues, but continuing..."
+        echo "⚠️  Database initialization had issues, trying to fix table structure..."
+        python scripts/fix_admin_users_table.py
     fi
 else
     echo "🔧 Development environment detected"

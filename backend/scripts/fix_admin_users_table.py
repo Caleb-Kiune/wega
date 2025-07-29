@@ -1,240 +1,186 @@
 #!/usr/bin/env python3
 """
-Comprehensive script to fix admin_users table issue
+Fix admin_users table by adding missing security columns
 """
 
 import os
 import sys
-import sqlite3
 from datetime import datetime
 
-# Add the current directory to Python path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Add the parent directory to the path so we can import our models
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-def check_database():
-    """Check current database state"""
-    
-    db_path = os.path.join(os.path.dirname(__file__), 'app.db')
-    print(f"🔍 Checking database: {db_path}")
-    
-    if not os.path.exists(db_path):
-        print("❌ Database file does not exist!")
-        return False
-    
-    # Connect to database
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    
-    try:
-        # Check if admin_users table exists
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='admin_users'")
-        admin_users_exists = cursor.fetchone() is not None
-        
-        if admin_users_exists:
-            print("✅ admin_users table exists in database")
-            
-            # Check table structure
-            cursor.execute("PRAGMA table_info(admin_users)")
-            columns = cursor.fetchall()
-            print(f"Table columns: {[col[1] for col in columns]}")
-            
-            # Check if there are any users
-            cursor.execute("SELECT COUNT(*) FROM admin_users")
-            count = cursor.fetchone()[0]
-            print(f"Number of admin users: {count}")
-            
-            if count > 0:
-                cursor.execute("SELECT username, email, role, is_active FROM admin_users")
-                users = cursor.fetchall()
-                print("\nAdmin users:")
-                for user in users:
-                    print(f"  - Username: {user[0]}, Email: {user[1]}, Role: {user[2]}, Active: {user[3]}")
-            
-            conn.close()
-            return True
-        else:
-            print("❌ admin_users table does not exist in database")
-            conn.close()
-            return False
-            
-    except Exception as e:
-        print(f"❌ Error checking database: {e}")
-        conn.close()
-        return False
+from app_factory import create_app
+from models import db
 
-def create_admin_users_table():
-    """Create admin_users table manually"""
+def fix_admin_users_table():
+    """Add missing security columns to admin_users table"""
     
-    print("\n🔧 Creating admin_users table...")
-    
-    db_path = os.path.join(os.path.dirname(__file__), 'app.db')
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    
-    try:
-        # Create admin_users table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS admin_users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username VARCHAR(80) UNIQUE NOT NULL,
-                email VARCHAR(120) UNIQUE NOT NULL,
-                password_hash VARCHAR(255) NOT NULL,
-                role VARCHAR(20) DEFAULT 'admin',
-                is_active BOOLEAN DEFAULT 1,
-                created_at DATETIME NOT NULL,
-                last_login DATETIME,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
-        # Create indexes
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_admin_users_username ON admin_users(username)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_admin_users_email ON admin_users(email)')
-        
-        conn.commit()
-        print("✅ admin_users table created successfully!")
-        
-        conn.close()
-        return True
-        
-    except Exception as e:
-        print(f"❌ Error creating table: {e}")
-        conn.rollback()
-        conn.close()
-        return False
-
-def create_default_admin():
-    """Create default admin user"""
-    
-    print("\n👤 Creating default admin user...")
-    
-    db_path = os.path.join(os.path.dirname(__file__), 'app.db')
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    
-    try:
-        # Check if admin user exists
-        cursor.execute("SELECT COUNT(*) FROM admin_users")
-        count = cursor.fetchone()[0]
-        
-        if count == 0:
-            # Import here to avoid circular imports
-            from werkzeug.security import generate_password_hash
-            
-            admin_data = {
-                'username': 'admin',
-                'email': 'admin@wega-kitchenware.com',
-                'password_hash': generate_password_hash('Admin123!'),
-                'role': 'super_admin',
-                'is_active': True,
-                'created_at': datetime.utcnow()
-            }
-            
-            cursor.execute('''
-                INSERT INTO admin_users 
-                (username, email, password_hash, role, is_active, created_at)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (
-                admin_data['username'],
-                admin_data['email'],
-                admin_data['password_hash'],
-                admin_data['role'],
-                admin_data['is_active'],
-                admin_data['created_at']
-            ))
-            
-            conn.commit()
-            print("✅ Default admin user created!")
-            print("Username: admin")
-            print("Email: admin@wega-kitchenware.com")
-            print("Password: Admin123!")
-            print("\n⚠️  IMPORTANT: Change this password after first login!")
-        else:
-            print("✅ Admin users already exist")
-        
-        conn.close()
-        return True
-        
-    except Exception as e:
-        print(f"❌ Error creating admin user: {e}")
-        conn.rollback()
-        conn.close()
-        return False
-
-def test_flask_connection():
-    """Test Flask SQLAlchemy connection"""
-    
-    print("\n🧪 Testing Flask SQLAlchemy connection...")
-    
-    try:
-        from app_factory import create_app
-        from models import db, AdminUser
-        
-        app = create_app()
-        
-        with app.app_context():
-            # Test query
-            try:
-                admin_count = AdminUser.query.count()
-                print(f"✅ Flask SQLAlchemy connection successful!")
-                print(f"Number of admin users: {admin_count}")
-                return True
-            except Exception as e:
-                print(f"❌ Flask SQLAlchemy query failed: {e}")
-                return False
-                
-    except Exception as e:
-        print(f"❌ Error testing Flask connection: {e}")
-        return False
-
-def main():
-    """Main function to fix admin_users table"""
-    
-    print("🚀 Fixing admin_users table issue")
+    print("🔧 Fixing admin_users table structure...")
     print("=" * 50)
     
-    # Step 1: Check current database state
-    if check_database():
-        print("\n✅ Database is properly configured")
-        
-        # Test Flask connection
-        if test_flask_connection():
-            print("\n🎉 Everything is working correctly!")
-            return True
-        else:
-            print("\n❌ Flask connection failed")
-            return False
-    else:
-        print("\n❌ Database needs to be fixed")
-        
-        # Step 2: Create admin_users table
-        if create_admin_users_table():
-            # Step 3: Create default admin user
-            if create_default_admin():
-                # Step 4: Test Flask connection
-                if test_flask_connection():
-                    print("\n🎉 Database fixed successfully!")
-                    return True
-                else:
-                    print("\n❌ Flask connection still failing")
-                    return False
+    # Create app with production config
+    app = create_app('production')
+    
+    with app.app_context():
+        try:
+            # Test database connection
+            print("🔍 Testing database connection...")
+            db.engine.execute("SELECT 1")
+            print("✅ Database connection successful")
+            
+            # Check if columns exist
+            inspector = db.inspect(db.engine)
+            admin_columns = [col['name'] for col in inspector.get_columns('admin_users')]
+            
+            print(f"Current columns: {admin_columns}")
+            
+            # Columns that need to be added
+            missing_columns = []
+            
+            if 'failed_login_attempts' not in admin_columns:
+                missing_columns.append('failed_login_attempts INTEGER DEFAULT 0')
+            
+            if 'locked_until' not in admin_columns:
+                missing_columns.append('locked_until TIMESTAMP')
+            
+            if 'last_failed_attempt' not in admin_columns:
+                missing_columns.append('last_failed_attempt TIMESTAMP')
+            
+            if missing_columns:
+                print(f"Missing columns: {missing_columns}")
+                print("🔧 Adding missing columns...")
+                
+                for column_def in missing_columns:
+                    column_name = column_def.split()[0]
+                    print(f"  Adding column: {column_name}")
+                    db.engine.execute(f"ALTER TABLE admin_users ADD COLUMN {column_def}")
+                
+                print("✅ All missing columns added successfully")
             else:
-                print("\n❌ Failed to create admin user")
+                print("✅ All required columns already exist")
+            
+            # Verify the fix
+            print("\n🔍 Verifying table structure...")
+            inspector = db.inspect(db.engine)
+            admin_columns = [col['name'] for col in inspector.get_columns('admin_users')]
+            
+            required_columns = [
+                'id', 'username', 'email', 'password_hash', 'role',
+                'is_active', 'created_at', 'last_login', 'updated_at',
+                'failed_login_attempts', 'locked_until', 'last_failed_attempt'
+            ]
+            
+            all_good = True
+            for column in required_columns:
+                if column in admin_columns:
+                    print(f"   ✅ {column}")
+                else:
+                    print(f"   ❌ {column} - MISSING!")
+                    all_good = False
+            
+            if all_good:
+                print("\n🎉 admin_users table structure is now correct!")
+                return True
+            else:
+                print("\n❌ Some columns are still missing")
                 return False
-        else:
-            print("\n❌ Failed to create admin_users table")
+                
+        except Exception as e:
+            print(f"❌ Error fixing admin_users table: {e}")
+            print(f"Error type: {type(e).__name__}")
+            return False
+
+def create_admin_user():
+    """Create admin user if it doesn't exist"""
+    
+    print("\n👤 Checking admin user...")
+    
+    app = create_app('production')
+    
+    with app.app_context():
+        try:
+            from models import AdminUser
+            
+            # Check if admin user exists
+            admin_user = AdminUser.query.filter_by(username='admin').first()
+            
+            if not admin_user:
+                print("👤 Creating default admin user...")
+                
+                # Create default admin user
+                admin_user = AdminUser(
+                    username='admin',
+                    email='admin@wega-kitchenware.com',
+                    role='super_admin',
+                    is_active=True,
+                    created_at=datetime.utcnow()
+                )
+                admin_user.set_password('Admin123!')
+                
+                db.session.add(admin_user)
+                db.session.commit()
+                
+                print("✅ Default admin user created successfully")
+                print("   Username: admin")
+                print("   Email: admin@wega-kitchenware.com")
+                print("   Password: Admin123!")
+                print("   ⚠️  Remember to change the password after first login!")
+            else:
+                print("✅ Admin user already exists")
+            
+            return True
+                
+        except Exception as e:
+            print(f"❌ Error creating admin user: {e}")
+            return False
+
+def test_login():
+    """Test login functionality"""
+    
+    print("\n🔐 Testing login functionality...")
+    
+    app = create_app('production')
+    
+    with app.app_context():
+        try:
+            from models import AdminUser
+            
+            # Test admin user query
+            admin_user = AdminUser.query.filter_by(username='admin').first()
+            
+            if admin_user:
+                print("✅ Admin user found")
+                print(f"   Username: {admin_user.username}")
+                print(f"   Email: {admin_user.email}")
+                print(f"   Role: {admin_user.role}")
+                print(f"   Active: {admin_user.is_active}")
+                
+                # Test password verification
+                if admin_user.check_password('Admin123!'):
+                    print("✅ Password verification successful")
+                else:
+                    print("❌ Password verification failed")
+                    return False
+                
+                return True
+            else:
+                print("❌ Admin user not found")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Login test failed: {e}")
             return False
 
 if __name__ == '__main__':
-    success = main()
-    
-    if success:
-        print("\n" + "=" * 50)
-        print("🎉 Setup complete! You can now login to the admin panel.")
-        print("\nDefault credentials:")
-        print("Username: admin")
-        print("Email: admin@wega-kitchenware.com")
-        print("Password: Admin123!")
+    # Fix table structure
+    if fix_admin_users_table():
+        # Create admin user
+        if create_admin_user():
+            # Test login
+            test_login()
+        else:
+            print("❌ Failed to create admin user")
     else:
-        print("\n❌ Setup failed!")
+        print("❌ Failed to fix admin_users table")
         sys.exit(1) 
