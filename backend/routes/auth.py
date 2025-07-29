@@ -43,6 +43,16 @@ def login():
             return jsonify({'error': error_message}), 400
     
     try:
+        # Test database connection first
+        try:
+            db.engine.execute("SELECT 1")
+        except Exception as db_error:
+            current_app.logger.error(f"Database connection error: {db_error}")
+            return jsonify({
+                'error': 'Database connection failed',
+                'message': 'Service temporarily unavailable. Please try again later.'
+            }), 503
+        
         # Find user by username or email
         user = AdminUser.query.filter(
             (AdminUser.username == username) | (AdminUser.email == username)
@@ -90,7 +100,24 @@ def login():
         
     except Exception as e:
         current_app.logger.error(f"Login error: {e}")
-        return jsonify({'error': 'Login failed', 'message': 'Internal server error'}), 500
+        current_app.logger.error(f"Error type: {type(e).__name__}")
+        
+        # Provide more specific error messages based on error type
+        if 'connection' in str(e).lower() or 'database' in str(e).lower():
+            return jsonify({
+                'error': 'Database connection error',
+                'message': 'Service temporarily unavailable. Please try again later.'
+            }), 503
+        elif 'table' in str(e).lower() or 'column' in str(e).lower():
+            return jsonify({
+                'error': 'Database schema error',
+                'message': 'Service configuration error. Please contact support.'
+            }), 500
+        else:
+            return jsonify({
+                'error': 'Login failed',
+                'message': 'Internal server error. Please try again later.'
+            }), 500
 
 @auth_bp.route('/refresh', methods=['POST'])
 def refresh_token():

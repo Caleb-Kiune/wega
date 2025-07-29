@@ -10,6 +10,8 @@ class Config:
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_pre_ping': True,
         'pool_recycle': 300,
+        'pool_timeout': 20,
+        'max_overflow': 10,
     }
     
     # Upload configuration
@@ -33,8 +35,10 @@ class Config:
         # Production URLs
         'https://wega-one.vercel.app',  # Your actual Vercel frontend URL
         'https://wega-kitchenware.vercel.app',  # Alternative Vercel URL
+        'https://wega-chi.vercel.app',  # Your current Vercel URL
         # Backend URLs for testing
-        'https://wega-backend.onrender.com'  # Your Render backend URL
+        'https://wega-backend.onrender.com',  # Your Render backend URL
+        'https://wega-production-28c0.up.railway.app'  # Your Railway backend URL
     ]
     CORS_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
     CORS_ALLOW_HEADERS = ['Content-Type', 'Authorization', 'X-CSRF-Token']
@@ -56,11 +60,32 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
-    BASE_URL = os.environ.get('BASE_URL', 'https://wega-backend.onrender.com')
     
-    # Production CORS settings
-    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(',')
+    # Handle database URL with fallback
+    _database_url = os.environ.get('DATABASE_URL')
+    if _database_url:
+        # Handle Railway's PostgreSQL URL format
+        if _database_url.startswith('postgres://'):
+            _database_url = _database_url.replace('postgres://', 'postgresql://', 1)
+        SQLALCHEMY_DATABASE_URI = _database_url
+    else:
+        # Fallback to SQLite for production if no DATABASE_URL is set
+        SQLALCHEMY_DATABASE_URI = 'sqlite:///app.db'
+        print("⚠️  WARNING: No DATABASE_URL found, using SQLite fallback")
+    
+    BASE_URL = os.environ.get('BASE_URL', 'https://wega-production-28c0.up.railway.app')
+    
+    # Production CORS settings - allow multiple origins
+    cors_origins = os.environ.get('CORS_ORIGINS')
+    if cors_origins:
+        CORS_ORIGINS = cors_origins.split(',')
+    else:
+        # Default production origins
+        CORS_ORIGINS = [
+            'https://wega-chi.vercel.app',
+            'https://wega-one.vercel.app',
+            'https://wega-kitchenware.vercel.app'
+        ]
 
 class TestingConfig(Config):
     """Testing configuration"""

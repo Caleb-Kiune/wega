@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, send_from_directory, current_app
 import os
+from models import db
 
 main_bp = Blueprint('main', __name__)
 
@@ -18,6 +19,23 @@ def index():
             'upload': '/api/upload'
         }
     })
+
+@main_bp.route('/api/health')
+def health_check():
+    """Health check endpoint for deployment monitoring"""
+    try:
+        # Test database connection
+        db.engine.execute("SELECT 1")
+        db_status = "healthy"
+    except Exception as e:
+        db_status = f"unhealthy: {str(e)}"
+    
+    return jsonify({
+        'status': 'ok',
+        'database': db_status,
+        'environment': current_app.config.get('ENV', 'development'),
+        'debug': current_app.config.get('DEBUG', False)
+    }), 200
 
 @main_bp.route('/static/<path:filename>')
 def serve_static(filename):
