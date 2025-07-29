@@ -7,12 +7,6 @@ class Config:
     """Base configuration class"""
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_pre_ping': True,
-        'pool_recycle': 300,
-        'pool_timeout': 20,
-        'max_overflow': 10,
-    }
     
     # Upload configuration
     UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static', 'uploads')
@@ -56,6 +50,11 @@ class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
     BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5000')
+    
+    # SQLite doesn't support PostgreSQL-specific options
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,
+    }
 
 class ProductionConfig(Config):
     """Production configuration"""
@@ -68,10 +67,21 @@ class ProductionConfig(Config):
         if _database_url.startswith('postgres://'):
             _database_url = _database_url.replace('postgres://', 'postgresql://', 1)
         SQLALCHEMY_DATABASE_URI = _database_url
+        # PostgreSQL supports all connection pooling options
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'pool_pre_ping': True,
+            'pool_recycle': 300,
+            'pool_timeout': 20,
+            'max_overflow': 10,
+        }
     else:
         # Fallback to SQLite for production if no DATABASE_URL is set
         SQLALCHEMY_DATABASE_URI = 'sqlite:///app.db'
         print("⚠️  WARNING: No DATABASE_URL found, using SQLite fallback")
+        # SQLite doesn't support PostgreSQL-specific options
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'pool_pre_ping': True,
+        }
     
     BASE_URL = os.environ.get('BASE_URL', 'https://wega-production-28c0.up.railway.app')
     
@@ -92,6 +102,11 @@ class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     WTF_CSRF_ENABLED = False
+    
+    # SQLite doesn't support PostgreSQL-specific options
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,
+    }
 
 # Configuration dictionary
 config = {

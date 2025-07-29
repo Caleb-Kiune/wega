@@ -81,15 +81,15 @@ def fix_admin_users_table():
             
             if all_good:
                 print("\n🎉 admin_users table structure is now correct!")
-                return True
+        return True
             else:
                 print("\n❌ Some columns are still missing")
                 return False
-                
-        except Exception as e:
+        
+    except Exception as e:
             print(f"❌ Error fixing admin_users table: {e}")
             print(f"Error type: {type(e).__name__}")
-            return False
+        return False
 
 def create_admin_user():
     """Create admin user if it doesn't exist"""
@@ -129,11 +129,11 @@ def create_admin_user():
             else:
                 print("✅ Admin user already exists")
             
-            return True
-                
-        except Exception as e:
-            print(f"❌ Error creating admin user: {e}")
-            return False
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error creating admin user: {e}")
+        return False
 
 def test_login():
     """Test login functionality"""
@@ -141,8 +141,8 @@ def test_login():
     print("\n🔐 Testing login functionality...")
     
     app = create_app('production')
-    
-    with app.app_context():
+        
+        with app.app_context():
         try:
             from models import AdminUser
             
