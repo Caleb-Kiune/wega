@@ -9,6 +9,14 @@ export interface WishlistItem {
     price: number;
     image: string;
     slug?: string;
+    description?: string;
+    category?: string;
+    brand?: string;
+    stock?: number;
+    originalPrice?: number;
+    images?: any[];
+    specifications?: any[];
+    features?: any[];
   };
   added_at: number;
   is_guest: boolean;
@@ -99,7 +107,15 @@ export const guestWishlistApi = {
           name: product.name,
           price: product.price,
           image: getImageUrl(product.image),
-          slug: product.slug
+          slug: product.slug,
+          description: product.description,
+          category: product.category,
+          brand: product.brand,
+          stock: product.stock,
+          originalPrice: product.originalPrice,
+          images: product.images,
+          specifications: product.specifications,
+          features: product.features
         },
         added_at: Date.now(),
         is_guest: true

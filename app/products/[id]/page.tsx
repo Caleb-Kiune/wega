@@ -90,7 +90,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         name: product.name,
         price: product.price,
         image: product.images?.[0]?.image_url || '',
-        slug: product.slug
+        slug: product.slug,
+        description: product.description,
+        category: product.category,
+        brand: product.brand,
+        stock: product.stock,
+        originalPrice: product.originalPrice,
+        images: product.images,
+        specifications: product.specifications,
+        features: product.features
       })
     }
   }
@@ -221,12 +229,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     <button
                       onClick={handleWishlistClick}
                       className={`p-2 rounded-full border min-h-[44px] min-w-[44px] flex items-center justify-center ${
-                        isInWishlist(product.id.toString())
+                        isInWishlist(product.id)
                           ? "bg-red-50 border-red-200 text-red-600"
                           : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600"
                       }`}
                     >
-                      <Heart className="h-5 w-5" fill={isInWishlist(product.id.toString()) ? "currentColor" : "none"} />
+                      <Heart className="h-5 w-5" fill={isInWishlist(product.id) ? "currentColor" : "none"} />
                     </button>
                   </div>
 

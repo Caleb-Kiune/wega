@@ -7,7 +7,6 @@ import ProductCard from "@/components/product-card"
 import { Product } from "@/lib/types"
 import Link from "next/link"
 import { useState, useEffect } from "react"
-import { productsApi } from "@/lib/products"
 
 export default function WishlistPage() {
   const { wishlist, removeFromWishlist, clearWishlist } = useWishlist()
@@ -16,9 +15,9 @@ export default function WishlistPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch full product data for wishlist items
+  // Convert wishlist items to product format
   useEffect(() => {
-    const fetchProducts = async () => {
+    const convertWishlistItemsToProducts = () => {
       if (items.length === 0) {
         setProducts([])
         return
@@ -28,32 +27,33 @@ export default function WishlistPage() {
       setError(null)
 
       try {
-        // Get product IDs from wishlist items
-        const productIds = items.map(item => parseInt(item.id))
+        // Convert wishlist items to product format using stored data
+        const convertedProducts = items.map(item => ({
+          id: item.product_id,
+          name: item.product.name,
+          price: item.product.price,
+          image: item.product.image,
+          slug: item.product.slug,
+          description: item.product.description || '',
+          category: item.product.category || '',
+          brand: item.product.brand || '',
+          stock: item.product.stock || 0,
+          originalPrice: item.product.originalPrice || null,
+          images: item.product.images || [],
+          specifications: item.product.specifications || [],
+          features: item.product.features || []
+        })) as Product[]
         
-        // Fetch full product data for each wishlist item
-        const productPromises = productIds.map(async (id) => {
-          try {
-            return await productsApi.getById(id)
-          } catch (err) {
-            console.error(`Failed to fetch product ${id}:`, err)
-            return null
-          }
-        })
-
-        const fetchedProducts = await Promise.all(productPromises)
-        const validProducts = fetchedProducts.filter((product): product is Product => product !== null)
-        
-        setProducts(validProducts)
+        setProducts(convertedProducts)
       } catch (err) {
-        console.error('Error fetching wishlist products:', err)
-        setError('Failed to load product details')
+        console.error('Error converting wishlist items:', err)
+        setError('Failed to load wishlist items')
       } finally {
         setLoading(false)
       }
     }
 
-    fetchProducts()
+    convertWishlistItemsToProducts()
   }, [items])
 
   return (

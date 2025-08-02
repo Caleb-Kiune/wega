@@ -310,7 +310,15 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
         name: product.name,
         price: product.price,
         image: getImageUrl(primaryImage) || "/placeholder.svg",
-        slug: product.slug
+        slug: product.slug,
+        description: product.description,
+        category: product.category,
+        brand: product.brand,
+        stock: product.stock,
+        originalPrice: product.original_price,
+        images: product.images,
+        specifications: product.specifications,
+        features: product.features
       })
     }
   }

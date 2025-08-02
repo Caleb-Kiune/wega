@@ -295,12 +295,11 @@ export const cartApi = {
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const response = await fetch(`${API_BASE_URL}/cart/clear`, {
-          method: 'POST',
+        const response = await fetch(`${API_BASE_URL}/cart?session_id=${sessionId}`, {
+          method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ session_id: sessionId }),
         });
         
         if (!response.ok) {
@@ -310,7 +309,13 @@ export const cartApi = {
         
         const data = await response.json();
         console.log('Cart cleared:', data);
-        return data;
+        
+        // Return empty cart structure
+        return {
+          id: 0,
+          session_id: sessionId,
+          items: []
+        };
       } catch (error) {
         console.error(`Clear cart attempt ${attempt} failed:`, error);
         lastError = error as Error;
