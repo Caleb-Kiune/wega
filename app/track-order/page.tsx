@@ -1,635 +1,428 @@
-'use client';
+"use client"
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Image from 'next/image';
-import { motion, AnimatePresence } from "framer-motion"
-import { ordersApi, Order } from '@/lib/orders';
-import { getImageUrl } from '@/lib/products';
-import { format, isValid, parseISO } from 'date-fns';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { 
-  Package, 
-  Truck, 
-  CheckCircle, 
-  XCircle, 
-  CreditCard, 
-  HelpCircle,
-  User,
-  MapPin,
-  Mail,
-  Phone,
-  FileText,
-  ShoppingBag,
-  Calendar,
-  ChevronDown,
-  ChevronUp,
-  Search,
-  RefreshCw,
-  Home,
-  ArrowRight
-} from 'lucide-react';
-import { useToast } from '@/lib/hooks/use-toast';
-import { Skeleton } from '@/components/ui/skeleton';
-import Link from 'next/link';
-import OrderTimeline from '@/components/order-timeline';
-
-// Utility functions for order status
-const getStatusColor = (status: Order['status']) => {
-  switch (status) {
-    case 'pending':
-      return 'bg-amber-50 text-amber-700 border-amber-200';
-    case 'processing':
-      return 'bg-blue-50 text-blue-700 border-blue-200';
-    case 'shipped':
-      return 'bg-purple-50 text-purple-700 border-purple-200';
-    case 'delivered':
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    case 'cancelled':
-      return 'bg-red-50 text-red-700 border-red-200';
-    default:
-      return 'bg-slate-50 text-slate-700 border-slate-200';
-  }
-};
-
-const getStatusIcon = (status: Order['status']) => {
-  switch (status) {
-    case 'pending':
-      return <Package className="h-4 w-4 text-amber-500" />;
-    case 'processing':
-      return <Package className="h-4 w-4 text-blue-500" />;
-    case 'shipped':
-      return <Truck className="h-4 w-4 text-purple-500" />;
-    case 'delivered':
-      return <CheckCircle className="h-4 w-4 text-emerald-500" />;
-    case 'cancelled':
-      return <XCircle className="h-4 w-4 text-red-500" />;
-    default:
-      return <Package className="h-4 w-4 text-slate-500" />;
-  }
-};
-
-const getPaymentStatusColor = (status: Order['payment_status']) => {
-  switch (status) {
-    case 'paid':
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    case 'pending':
-      return 'bg-amber-50 text-amber-700 border-amber-200';
-    case 'failed':
-      return 'bg-red-50 text-red-700 border-red-200';
-    default:
-      return 'bg-slate-50 text-slate-700 border-slate-200';
-  }
-};
-
-const getPaymentMethodDisplay = (method?: string) => {
-  switch (method) {
-    case 'cod': return 'Cash on Delivery'
-    case 'mpesa': return 'M-Pesa'
-    case 'card': return 'Credit Card'
-    default: return method || 'Not specified'
-  }
-}
-
-// Safe date formatting helper
-const safeFormat = (dateString: string | null | undefined, fmt: string) => {
-  if (!dateString) return 'N/A';
-  const date = typeof dateString === 'string' ? parseISO(dateString) : new Date(dateString);
-  if (!isValid(date)) return 'N/A';
-  return format(date, fmt);
-};
+import { useState } from "react"
+import { Search, Package, Clock, CheckCircle, XCircle, Truck, User } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { orderTrackingApi, Order } from "@/lib/customer-auth"
+import { useToast } from "@/lib/hooks/use-toast"
+import { useCustomerAuth } from "@/lib/hooks/use-customer-auth"
+import { getSessionId } from "@/lib/session"
 
 export default function TrackOrderPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { toast } = useToast();
-  const [orderNumber, setOrderNumber] = useState('');
-  const [email, setEmail] = useState('');
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isClient, setIsClient] = useState(false);
-  const [expandedSections, setExpandedSections] = useState({
-    items: false,
-    details: false,
-    timeline: false
-  });
+  const { toast } = useToast()
+  const { isAuthenticated, customer } = useCustomerAuth()
+  const [trackingMethod, setTrackingMethod] = useState<'email' | 'guest'>('email')
+  const [email, setEmail] = useState("")
+  const [orderNumber, setOrderNumber] = useState("")
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(false)
+  const [searched, setSearched] = useState(false)
 
-  // Handle client-side hydration
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Handle URL parameters
-  useEffect(() => {
-    const orderNumberParam = searchParams.get('orderNumber');
-    const emailParam = searchParams.get('email');
-
-    if (orderNumberParam && emailParam) {
-      setOrderNumber(orderNumberParam);
-      setEmail(emailParam);
-      handleTrackOrder(undefined, orderNumberParam, emailParam);
+  const getStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return <Clock className="h-5 w-5 text-yellow-500" />
+      case 'processing':
+        return <Package className="h-5 w-5 text-blue-500" />
+      case 'shipped':
+        return <Truck className="h-5 w-5 text-blue-600" />
+      case 'delivered':
+        return <CheckCircle className="h-5 w-5 text-green-500" />
+      case 'cancelled':
+        return <XCircle className="h-5 w-5 text-red-500" />
+      default:
+        return <Package className="h-5 w-5 text-gray-500" />
     }
-  }, [searchParams]);
+  }
 
-  const handleTrackOrder = async (
-    e?: React.FormEvent,
-    orderNumberValue?: string,
-    emailValue?: string
-  ) => {
-    if (e) e.preventDefault();
-    setError(null);
-    setLoading(true);
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'processing':
+        return 'bg-blue-100 text-blue-800'
+      case 'shipped':
+        return 'bg-blue-100 text-blue-800'
+      case 'delivered':
+        return 'bg-green-100 text-green-800'
+      case 'cancelled':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
 
-    const finalOrderNumber = orderNumberValue || orderNumber;
-    const finalEmail = emailValue || email;
-
-    try {
-      const response = await ordersApi.getByOrderNumber(finalOrderNumber, finalEmail);
-      console.log('Order tracking response:', response);
-      setOrder(response);
+  const handleTrackByEmail = async () => {
+    if (!email.trim()) {
       toast({
-        title: "Order Found",
-        description: "Your order details have been loaded successfully.",
-      });
-    } catch (error) {
-      console.error('Error tracking order:', error);
-      setError('Order not found. Please check your order number and email.');
-      setOrder(null);
-      toast({
+        title: "Error",
+        description: "Please enter your email address.",
         variant: "destructive",
-        title: "Order Not Found",
-        description: "We couldn't find an order with the provided details.",
-      });
-    } finally {
-      setLoading(false);
+      })
+      return
     }
-  };
 
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }))
+    setLoading(true)
+    try {
+      const response = await orderTrackingApi.getOrdersByEmail(email.trim())
+      setOrders(response.orders)
+      setSearched(true)
+      
+      if (response.orders.length === 0) {
+        toast({
+          title: "No orders found",
+          description: "No orders found for this email address.",
+        })
+      } else {
+        toast({
+          title: "Orders found",
+          description: `Found ${response.orders.length} order(s) for this email.`,
+        })
+      }
+    } catch (error) {
+      console.error('Failed to track orders:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to track orders.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleTrackByOrderNumber = async () => {
+    if (!email.trim() || !orderNumber.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter both email and order number.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setLoading(true)
+    try {
+      const response = await orderTrackingApi.trackOrder({
+        email: email.trim(),
+        order_number: orderNumber.trim()
+      })
+      setOrders([response.order])
+      setSearched(true)
+      
+      toast({
+        title: "Order found",
+        description: "Order details retrieved successfully.",
+      })
+    } catch (error) {
+      console.error('Failed to track order:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to track order.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleTrackGuestOrders = async () => {
+    setLoading(true)
+    try {
+      const sessionId = getSessionId()
+      const response = await orderTrackingApi.getGuestOrders(sessionId)
+      setOrders(response.orders)
+      setSearched(true)
+      
+      if (response.orders.length === 0) {
+        toast({
+          title: "No guest orders",
+          description: "No orders found for your current session.",
+        })
+      } else {
+        toast({
+          title: "Guest orders found",
+          description: `Found ${response.orders.length} order(s) from your session.`,
+        })
+      }
+    } catch (error) {
+      console.error('Failed to get guest orders:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to get guest orders.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleReorder = async (order: Order) => {
+    try {
+      await orderTrackingApi.reorder(order.id)
+      toast({
+        title: "Reorder created",
+        description: "A new order has been created based on your previous order.",
+      })
+    } catch (error) {
+      console.error('Failed to create reorder:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create reorder.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleCancelOrder = async (order: Order) => {
+    try {
+      await orderTrackingApi.cancelOrder(order.id)
+      toast({
+        title: "Order cancelled",
+        description: "Your order has been cancelled successfully.",
+      })
+      // Refresh orders
+      if (trackingMethod === 'email') {
+        await handleTrackByEmail()
+      } else {
+        await handleTrackGuestOrders()
+      }
+    } catch (error) {
+      console.error('Failed to cancel order:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to cancel order.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-      <div className="container mx-auto px-4 py-6">
-        <div className="max-w-5xl mx-auto">
-          {/* Compact Header */}
-          <motion.div 
-            className="text-center mb-8"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <div className="flex justify-center mb-6">
-              <motion.div 
-                className="relative"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-              >
-                <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center shadow-2xl">
-                  <Search className="w-10 h-10 text-white" />
-                </div>
-                <div className="absolute -inset-3 bg-emerald-500/20 rounded-full blur-xl animate-pulse"></div>
-              </motion.div>
-            </div>
-            <motion.h1 
-              className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent mb-3"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              Track Your Order
-            </motion.h1>
-            <motion.p 
-              className="text-slate-600 text-lg max-w-2xl mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-            >
-            Enter your order number and email to track your order status
-            </motion.p>
-          </motion.div>
-
-          {/* Search Form */}
-          <motion.div 
-            className="bg-white rounded-2xl shadow-xl border border-slate-200 mb-6 overflow-hidden"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-          >
-            <div className="bg-gradient-to-r from-emerald-50 to-green-50 p-6 border-b border-slate-200">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-                  <Search className="w-4 h-4 text-emerald-600" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900">Order Tracking</h2>
-                  <p className="text-slate-600 text-sm">Find your order details</p>
-                </div>
+    <div className="bg-gray-50 min-h-screen py-8">
+      <div className="container mx-auto max-w-4xl px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Track Your Orders</h1>
+          <p className="text-gray-600">Find and manage your orders easily</p>
         </div>
+
+        {/* Tracking Methods */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <Button
+              variant={trackingMethod === 'email' ? 'default' : 'outline'}
+              onClick={() => setTrackingMethod('email')}
+              className="flex-1"
+            >
+              <User className="h-4 w-4 mr-2" />
+              Track by Email
+            </Button>
+            <Button
+              variant={trackingMethod === 'guest' ? 'default' : 'outline'}
+              onClick={() => setTrackingMethod('guest')}
+              className="flex-1"
+            >
+              <Package className="h-4 w-4 mr-2" />
+              Guest Orders
+            </Button>
+          </div>
+
+          {trackingMethod === 'email' && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Email Address
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email address"
+                  className="mt-1"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Button
+                  onClick={handleTrackByEmail}
+                  disabled={loading || !email.trim()}
+                  className="w-full"
+                >
+                  <Search className="h-4 w-4 mr-2" />
+                  {loading ? "Searching..." : "Find All Orders"}
+                </Button>
+
+                <div className="space-y-2">
+                  <Input
+                    type="text"
+                    value={orderNumber}
+                    onChange={(e) => setOrderNumber(e.target.value)}
+                    placeholder="Order number (optional)"
+                    className="w-full"
+                  />
+                  <Button
+                    onClick={handleTrackByOrderNumber}
+                    disabled={loading || !email.trim() || !orderNumber.trim()}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Search className="h-4 w-4 mr-2" />
+                    {loading ? "Searching..." : "Track Specific Order"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {trackingMethod === 'guest' && (
+            <div className="text-center">
+              <p className="text-gray-600 mb-4">
+                Find orders from your current browsing session
+              </p>
+              <Button
+                onClick={handleTrackGuestOrders}
+                disabled={loading}
+                className="w-full sm:w-auto"
+              >
+                <Search className="h-4 w-4 mr-2" />
+                {loading ? "Searching..." : "Find Guest Orders"}
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Results */}
+        {searched && (
+          <div className="bg-white rounded-lg shadow-sm">
+            <div className="p-6 border-b">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {orders.length > 0 ? `Found ${orders.length} Order(s)` : "No Orders Found"}
+              </h2>
             </div>
 
-            <div className="p-6">
-              {!isClient ? (
-                <div className="flex justify-center items-center h-32">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-          </div>
-        ) : (
-              <form onSubmit={handleTrackOrder} className="space-y-4" suppressHydrationWarning>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                      <label htmlFor="orderNumber" className="block text-sm font-medium text-slate-700 mb-2">
-                      Order Number
-                    </label>
-                    <Input
-                      id="orderNumber"
-                      type="text"
-                      placeholder="Enter order number"
-                      value={orderNumber}
-                      onChange={(e) => setOrderNumber(e.target.value)}
-                      required
-                      className="w-full min-h-[44px] text-base"
-                      aria-label="Order Number"
-                    />
-                  </div>
-                  <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
-                      Email Address
-                    </label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="w-full min-h-[44px] text-base"
-                      aria-label="Email Address"
-                    />
-                  </div>
-                </div>
+            {orders.length > 0 && (
+              <div className="divide-y">
+                {orders.map((order) => (
+                  <div key={order.id} className="p-6">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            Order #{order.order_number}
+                          </h3>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                            {order.status}
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
+                          <div>
+                            <span className="font-medium">Customer:</span>
+                            <p>{order.first_name} {order.last_name}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium">Email:</span>
+                            <p>{order.email}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium">Total:</span>
+                            <p>KES {order.total_amount.toLocaleString()}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium">Date:</span>
+                            <p>{new Date(order.created_at || '').toLocaleDateString()}</p>
+                          </div>
+                        </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full min-h-[56px] text-base font-medium rounded-2xl flex items-center justify-center gap-3 text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ 
-                    background: 'linear-gradient(to right, #059669, #16a34a)',
-                    border: 'none',
-                    color: 'white'
-                  }}
-                >
-                  {loading ? (
-                    <>
-                      <RefreshCw className="w-5 h-5 animate-spin" />
-                      Tracking...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-5 h-5" />
-                      Track Order
-                    </>
-                  )}
-                </button>
-              </form>
+                        {order.items && order.items.length > 0 && (
+                          <div className="mt-4">
+                            <h4 className="font-medium text-gray-900 mb-2">Order Items:</h4>
+                            <div className="space-y-2">
+                              {order.items.map((item: any, index: number) => (
+                                <div key={index} className="flex justify-between text-sm">
+                                  <span>{item.product?.name || `Item ${index + 1}`}</span>
+                                  <span>Qty: {item.quantity} × KES {item.price}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col gap-2 lg:flex-shrink-0">
+                        {order.status.toLowerCase() === 'pending' && (
+                          <Button
+                            onClick={() => handleCancelOrder(order)}
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            Cancel Order
+                          </Button>
+                        )}
+                        
+                        <Button
+                          onClick={() => handleReorder(order)}
+                          variant="outline"
+                          size="sm"
+                        >
+                          Reorder
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {orders.length === 0 && (
+              <div className="p-6 text-center">
+                <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Orders Found</h3>
+                <p className="text-gray-600 mb-4">
+                  {trackingMethod === 'email' 
+                    ? "No orders found for this email address. Please check your email or try a different email."
+                    : "No guest orders found for your current session."
+                  }
+                </p>
+                <Button onClick={() => setSearched(false)} variant="outline">
+                  Try Again
+                </Button>
+              </div>
             )}
           </div>
-          </motion.div>
-
-          {/* Error Message */}
-        {error && (
-            <motion.div 
-              className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6" 
-              role="alert"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                <p className="text-sm">{error}</p>
-              <Link
-                href="/contact"
-                  className="text-red-700 hover:text-red-800 flex items-center gap-1 text-sm"
-              >
-                <HelpCircle className="h-4 w-4" />
-                Contact Support
-              </Link>
-            </div>
-            </motion.div>
         )}
 
-          {/* Loading State */}
-        {loading && (
-            <motion.div 
-              className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <div className="p-6">
-                <Skeleton className="h-6 w-1/3 mb-4" />
-                <Skeleton className="h-4 w-1/4 mb-6" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <Skeleton className="h-5 w-1/2 mb-4" />
-                  <Skeleton className="h-4 w-3/4 mb-2" />
-                  <Skeleton className="h-4 w-2/3 mb-2" />
-                  <Skeleton className="h-4 w-1/2" />
-                </div>
-                <div>
-                    <Skeleton className="h-5 w-1/2 mb-4" />
-                  <Skeleton className="h-4 w-3/4 mb-2" />
-                  <Skeleton className="h-4 w-2/3 mb-2" />
-                  <Skeleton className="h-4 w-1/2" />
+        {/* Customer Account Benefits */}
+        {!isAuthenticated && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6 mt-8">
+            <div className="flex items-start gap-4">
+              <div className="bg-green-100 p-2 rounded-full">
+                <User className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-green-900 mb-2">
+                  Create an Account for Better Order Management
+                </h3>
+                <p className="text-green-700 mb-4">
+                  Sign up for a free account to easily track all your orders, save your information, 
+                  and get faster checkout on future purchases.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button className="bg-green-600 hover:bg-green-700 text-white">
+                    Create Account
+                  </Button>
+                  <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
+                    Sign In
+                  </Button>
                 </div>
               </div>
             </div>
-            </motion.div>
-        )}
-
-          {/* Order Results */}
-        {order && (
-            <motion.div 
-              className="bg-white rounded-2xl shadow-xl border border-slate-200 mb-6 overflow-hidden"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <div className="bg-gradient-to-r from-emerald-50 to-green-50 p-6 border-b border-slate-200">
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-                        <Package className="w-4 h-4 text-emerald-600" />
-                      </div>
-                <div>
-                        <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-                    Order #{order.order_number}
-                  </h2>
-                        <p className="text-slate-600 text-sm">
-                          Placed on {safeFormat(order.created_at, 'MMM d, yyyy \'at\' h:mm a')}
-                  </p>
-                </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="flex items-center gap-2">
-                    {getStatusIcon(order.status)}
-                      <Badge className={`${getStatusColor(order.status)} border font-medium px-3 py-1`}>
-                      {order.status
-                        ? order.status.charAt(0).toUpperCase() + order.status.slice(1)
-                        : "Unknown"}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4 text-slate-500" />
-                      <Badge className={`${getPaymentStatusColor(order.payment_status)} border font-medium px-3 py-1`}>
-                      {order.payment_status
-                        ? order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)
-                        : "Unknown"}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-              <div className="p-6">
-                {/* Quick Info Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                    <User className="w-4 h-4 text-slate-500" />
-                    <div>
-                      <p className="text-xs text-slate-500">Customer</p>
-                      <p className="text-sm font-medium text-slate-700">{order.first_name} {order.last_name}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                    <CreditCard className="w-4 h-4 text-slate-500" />
-                    <div>
-                      <p className="text-xs text-slate-500">Payment</p>
-                      <p className="text-sm font-medium text-slate-700">{getPaymentMethodDisplay(order.payment_method)}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                    <MapPin className="w-4 h-4 text-slate-500" />
-                <div>
-                      <p className="text-xs text-slate-500">Location</p>
-                      <p className="text-sm font-medium text-slate-700">{order.city}, {order.state}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Order Summary */}
-                <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-4 border border-emerald-200">
-                  <div className="flex justify-between items-center">
-                <div>
-                      <p className="text-sm text-slate-600">Total Amount</p>
-                      <p className="text-2xl font-bold text-emerald-700">
-                        KES {(order.total_amount || 0).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-slate-600">{order.items?.length || 0} items</p>
-                      <p className="text-sm text-slate-600">Shipping: KES {(order.shipping_cost || 0).toLocaleString()}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Collapsible Sections */}
-          {order && (
-            <div className="space-y-4 mb-8">
-              {/* Order Items Section */}
-              <Collapsible open={expandedSections.items} onOpenChange={() => toggleSection('items')}>
-                <Card className="border-slate-200 bg-white/90 shadow-lg">
-                  <CollapsibleTrigger asChild>
-                    <CardHeader className="cursor-pointer hover:bg-slate-50 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                            <ShoppingBag className="w-5 h-5 text-emerald-600" />
-                          </div>
-                <div>
-                            <CardTitle className="text-lg">Order Items ({order.items?.length || 0})</CardTitle>
-                            <p className="text-slate-600 text-sm">View your purchased items</p>
-                  </div>
-                </div>
-                        {expandedSections.items ? (
-                          <ChevronUp className="w-5 h-5 text-slate-500" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5 text-slate-500" />
-                        )}
-              </div>
-                    </CardHeader>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <CardContent className="pt-0">
-                      <div className="space-y-3">
-                      {order.items && order.items.length > 0 ? (
-                          order.items.map((item, index) => (
-                            <motion.div
-                              key={item.id}
-                              className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg border border-slate-200"
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ duration: 0.3, delay: 0.1 * index }}
-                            >
-                              <div className="flex-shrink-0">
-                                <div className="w-12 h-12 relative rounded-lg overflow-hidden border border-slate-200">
-                                  <Image
-                                    src={getImageUrl(item.product?.image_url) || '/placeholder-product.jpg'}
-                                    alt={item.product?.name || 'Product'}
-                                    fill
-                                    className="object-cover"
-                                    sizes="48px"
-                                  />
-                                </div>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-medium text-slate-900 truncate">
-                                    {item.product?.name || 'Unknown Product'}
-                                </h4>
-                                <p className="text-sm text-slate-600">Qty: {item.quantity}</p>
-                                  </div>
-                              <div className="text-right">
-                                <p className="font-semibold text-slate-900">
-                                  KES {(item.price * item.quantity)?.toLocaleString()}
-                                </p>
-                              </div>
-                            </motion.div>
-                        ))
-                      ) : (
-                          <div className="text-center py-6 text-slate-500">
-                            <Package className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                            <p className="text-sm">No items found for this order.</p>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </CollapsibleContent>
-                </Card>
-              </Collapsible>
-
-              {/* Order Details Section */}
-              <Collapsible open={expandedSections.details} onOpenChange={() => toggleSection('details')}>
-                <Card className="border-slate-200 bg-white/90 shadow-lg">
-                  <CollapsibleTrigger asChild>
-                    <CardHeader className="cursor-pointer hover:bg-slate-50 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                            <FileText className="w-5 h-5 text-emerald-600" />
-                          </div>
-                          <div>
-                            <CardTitle className="text-lg">Order Details</CardTitle>
-                            <p className="text-slate-600 text-sm">Customer info, shipping & payment details</p>
-                          </div>
-                        </div>
-                        {expandedSections.details ? (
-                          <ChevronUp className="w-5 h-5 text-slate-500" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5 text-slate-500" />
-                        )}
-                      </div>
-                    </CardHeader>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <CardContent className="pt-0">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                          <h4 className="font-semibold text-slate-900 flex items-center gap-2">
-                            <User className="w-4 h-4 text-emerald-600" />
-                            Customer Information
-                          </h4>
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
-                              <Mail className="w-4 h-4 text-slate-500" />
-                              <span className="text-sm text-slate-700">{order.email}</span>
-                            </div>
-                            <div className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
-                              <Phone className="w-4 h-4 text-slate-500" />
-                              <span className="text-sm text-slate-700">{order.phone}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="space-y-4">
-                          <h4 className="font-semibold text-slate-900 flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-emerald-600" />
-                            Shipping Address
-                          </h4>
-                          <div className="p-3 bg-slate-50 rounded-lg">
-                            <p className="text-sm text-slate-700">{order.address}</p>
-                            <p className="text-sm text-slate-700">{order.city}, {order.state}</p>
-                            {order.postal_code && order.postal_code !== 'N/A' && (
-                              <p className="text-sm text-slate-700">{order.postal_code}</p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      {order.notes && (
-                        <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                          <div className="flex items-start gap-3">
-                            <FileText className="w-4 h-4 text-amber-600 mt-0.5" />
-                            <div>
-                              <p className="text-amber-800 font-medium text-sm mb-1">Order Notes</p>
-                              <p className="text-amber-700 text-sm">{order.notes}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </CollapsibleContent>
-                </Card>
-              </Collapsible>
-
-              {/* Order Timeline Section */}
-              <Collapsible open={expandedSections.timeline} onOpenChange={() => toggleSection('timeline')}>
-                <Card className="border-slate-200 bg-white/90 shadow-lg">
-                  <CollapsibleTrigger asChild>
-                    <CardHeader className="cursor-pointer hover:bg-slate-50 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                            <Calendar className="w-5 h-5 text-emerald-600" />
-                          </div>
-                          <div>
-                            <CardTitle className="text-lg">Order Timeline</CardTitle>
-                            <p className="text-slate-600 text-sm">Track your order progress</p>
-                          </div>
-                        </div>
-                        {expandedSections.timeline ? (
-                          <ChevronUp className="w-5 h-5 text-slate-500" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5 text-slate-500" />
-                        )}
-                      </div>
-                    </CardHeader>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <CardContent className="pt-0">
-                      <OrderTimeline order={order} />
-                    </CardContent>
-                  </CollapsibleContent>
-                </Card>
-              </Collapsible>
-            </div>
-          )}
-
-
           </div>
+        )}
       </div>
     </div>
-  );
+  )
 } 

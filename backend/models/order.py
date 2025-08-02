@@ -22,6 +22,10 @@ class Order(db.Model):
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
+    
+    # Customer relationship (optional for guest orders)
+    customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=True)
+    guest_session_id = db.Column(db.String(100), nullable=True, index=True)
 
     # Relationships
     items = db.relationship('OrderItem', backref='order', lazy=True, cascade='all, delete-orphan')
@@ -49,5 +53,7 @@ class Order(db.Model):
             'notes': self.notes,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'customer_id': self.customer_id,
+            'guest_session_id': self.guest_session_id,
             'items': [item.to_dict() for item in self.items]
         } 
