@@ -2,7 +2,8 @@ from flask import Blueprint, request, jsonify
 from models import db
 from models.customer import Customer, CustomerAddress
 from models.order import Order
-from models.cart import Cart, CartItem
+from models.cart import Cart
+from models.cart_item import CartItem
 from werkzeug.security import generate_password_hash
 from datetime import datetime, timedelta
 import jwt

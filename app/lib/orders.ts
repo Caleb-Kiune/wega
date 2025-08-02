@@ -111,6 +111,25 @@ export const ordersApi = {
       console.log('Creating order with data:', orderData);
       console.log('API URL:', `${API_BASE_URL}/orders`);
       
+      // Validate required fields before sending request
+      const requiredFields = ['session_id', 'first_name', 'last_name', 'email', 'phone', 'address', 'city', 'state'];
+      const missingFields = requiredFields.filter(field => !orderData[field as keyof CreateOrderRequest]);
+      
+      if (missingFields.length > 0) {
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+      }
+      
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(orderData.email)) {
+        throw new Error('Invalid email format');
+      }
+      
+      // Validate phone number (basic validation)
+      if (!orderData.phone || orderData.phone.length < 10) {
+        throw new Error('Phone number must be at least 10 digits');
+      }
+      
       const response = await fetch(`${API_BASE_URL}/orders`, {
         method: 'POST',
         headers: {
@@ -129,11 +148,32 @@ export const ordersApi = {
         try {
           const errorData = await response.json();
           console.error('Error response data:', errorData);
-          errorMessage = errorData.error || errorData.message || errorMessage;
+          
+          // Handle specific error cases
+          if (response.status === 400) {
+            errorMessage = errorData.error || 'Invalid order data provided';
+          } else if (response.status === 404) {
+            errorMessage = 'Product not found in cart';
+          } else if (response.status === 422) {
+            errorMessage = errorData.error || 'Validation error';
+          } else if (response.status === 500) {
+            errorMessage = 'Server error occurred. Please try again later.';
+          } else {
+            errorMessage = errorData.error || errorData.message || errorMessage;
+          }
         } catch (parseError) {
           console.error('Failed to parse error response:', parseError);
           const responseText = await response.text();
           console.error('Raw response text:', responseText);
+          
+          // Provide more specific error messages based on status
+          if (response.status === 500) {
+            errorMessage = 'Server error occurred. Please try again later.';
+          } else if (response.status === 404) {
+            errorMessage = 'API endpoint not found. Please check your configuration.';
+          } else if (response.status === 0) {
+            errorMessage = 'Network error. Please check your internet connection.';
+          }
         }
         
         throw new Error(errorMessage);
@@ -144,7 +184,13 @@ export const ordersApi = {
       return order;
     } catch (error) {
       console.error('Error creating order:', error);
-      throw error;
+      
+      // Re-throw with better error context
+      if (error instanceof Error) {
+        throw error;
+      } else {
+        throw new Error('An unexpected error occurred while creating the order');
+      }
     }
   },
 

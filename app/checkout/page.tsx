@@ -43,6 +43,7 @@ export default function CheckoutPage() {
   const [showCvv, setShowCvv] = useState(false)
   const [cardType, setCardType] = useState<string | null>(null)
   const [selectedLocation, setSelectedLocation] = useState<string>("")
+  const [isRedirecting, setIsRedirecting] = useState(false)
 
   // Load selected location from localStorage on mount
   useEffect(() => {
@@ -151,14 +152,48 @@ export default function CheckoutPage() {
     const form = e.target as HTMLFormElement
     const formData = new FormData(form)
 
-    // Validate required fields
+    // Enhanced validation
     const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'county']
-    const missingFields = requiredFields.filter(field => !formData.get(field))
+    const missingFields = requiredFields.filter(field => !formData.get(field) || (formData.get(field) as string).trim() === '')
     
     if (missingFields.length > 0) {
+      const fieldNames = {
+        firstName: 'First Name',
+        lastName: 'Last Name',
+        email: 'Email Address',
+        phone: 'Phone Number',
+        address: 'Address',
+        county: 'County'
+      }
+      
       toast({
-        title: "Error",
-        description: `Please fill in all required fields: ${missingFields.join(', ')}`,
+        title: "Missing Information",
+        description: `Please fill in: ${missingFields.map(field => fieldNames[field as keyof typeof fieldNames]).join(', ')}`,
+        variant: "destructive",
+      })
+      setIsSubmitting(false)
+      return
+    }
+
+    // Validate email format
+    const email = formData.get('email') as string
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      })
+      setIsSubmitting(false)
+      return
+    }
+
+    // Validate phone number
+    const phone = formData.get('phone') as string
+    if (phone.length < 10) {
+      toast({
+        title: "Invalid Phone Number",
+        description: "Please enter a valid phone number (at least 10 digits)",
         variant: "destructive",
       })
       setIsSubmitting(false)
@@ -185,6 +220,18 @@ export default function CheckoutPage() {
       const selectedDeliveryLocation = deliveryLocations.find(location => location.slug === selectedLocation)
       const deliveryLocationId = selectedLocation && selectedLocation !== "none" && selectedDeliveryLocation ? selectedDeliveryLocation.id : null
 
+      // Validate cart items
+      const validCartItems = items.filter(item => item.product?.id && item.quantity > 0)
+      if (validCartItems.length === 0) {
+        toast({
+          title: "Empty Cart",
+          description: "Your cart is empty or contains invalid items. Please refresh the page and try again.",
+          variant: "destructive",
+        })
+        setIsSubmitting(false)
+        return
+      }
+
       const orderData: CreateOrderRequest = {
         session_id: sessionId,
         first_name: formData.get('firstName') as string,
@@ -198,10 +245,10 @@ export default function CheckoutPage() {
         delivery_location_id: deliveryLocationId,
         payment_method: paymentMethod,
         notes: formData.get('notes') as string || undefined,
-        cart_items: items.map(item => ({
-          product_id: item.product?.id,
+        cart_items: validCartItems.map(item => ({
+          product_id: item.product!.id,
           quantity: item.quantity,
-          price: item.product?.price || 0
+          price: item.product!.price || 0
         }))
       }
 
@@ -217,19 +264,53 @@ export default function CheckoutPage() {
         description: `Order #${order.order_number} has been submitted successfully. We'll contact you shortly.`,
       })
 
+      // Set redirecting state to prevent showing empty cart message
+      setIsRedirecting(true)
+      
       // Clear cart after successful order
       clearCart()
       
-      // Redirect to order success page
-      router.push(`/order-success?orderId=${order.id}`)
+      // Small delay to ensure smooth transition
+      setTimeout(() => {
+        router.push(`/order-success?orderId=${order.id}`)
+      }, 100)
+      
+      // Fallback redirect after 2 seconds in case the first one fails
+      setTimeout(() => {
+        if (isRedirecting) {
+          window.location.href = `/order-success?orderId=${order.id}`
+        }
+      }, 2000)
       
     } catch (error) {
       console.error('Error submitting order:', error)
       
-      const errorMessage = error instanceof Error ? error.message : 'Failed to submit order'
+      // Reset redirecting state since there was an error
+      setIsRedirecting(false)
+      
+      let errorMessage = 'Failed to submit order'
+      
+      if (error instanceof Error) {
+        // Handle specific error types
+        if (error.message.includes('Missing required fields')) {
+          errorMessage = 'Please fill in all required fields'
+        } else if (error.message.includes('Invalid email format')) {
+          errorMessage = 'Please enter a valid email address'
+        } else if (error.message.includes('Phone number must be at least 10 digits')) {
+          errorMessage = 'Please enter a valid phone number (at least 10 digits)'
+        } else if (error.message.includes('Network error')) {
+          errorMessage = 'Network error. Please check your internet connection and try again.'
+        } else if (error.message.includes('Server error')) {
+          errorMessage = 'Server error. Please try again in a few moments.'
+        } else if (error.message.includes('Product not found')) {
+          errorMessage = 'Some items in your cart are no longer available. Please refresh and try again.'
+        } else {
+          errorMessage = error.message
+        }
+      }
       
       toast({
-        title: "Error",
+        title: "Order Submission Failed",
         description: errorMessage,
         variant: "destructive",
       })
@@ -238,7 +319,7 @@ export default function CheckoutPage() {
     }
   }
 
-  if (!items || items.length === 0) {
+  if ((!items || items.length === 0) && !isRedirecting) {
     return (
       <div className="bg-gray-50 min-h-screen py-8 px-4">
         <div className="container mx-auto max-w-7xl">
@@ -246,8 +327,23 @@ export default function CheckoutPage() {
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Your cart is empty</h2>
             <p className="text-gray-600 mb-6">You need to add items to your cart before proceeding to checkout.</p>
             <Link href="/products">
-              <Button className="bg-green-600 hover:bg-green-700 text-white">Browse Products</Button>
+              <Button className="bg-green-700 hover:bg-green-800 text-white">Browse Products</Button>
             </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show loading state during redirect
+  if (isRedirecting) {
+    return (
+      <div className="bg-gray-50 min-h-screen py-8 px-4">
+        <div className="container mx-auto max-w-7xl">
+          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Processing Your Order</h2>
+            <p className="text-gray-600">Please wait while we redirect you to your order confirmation...</p>
           </div>
         </div>
       </div>

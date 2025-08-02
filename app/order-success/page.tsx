@@ -30,7 +30,9 @@ import {
   Share2,
   ChevronDown,
   ChevronUp,
-  ExternalLink
+  ExternalLink,
+  AlertCircle,
+  X
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -41,6 +43,7 @@ import { ordersApi, Order } from "@/lib/orders"
 import { getImageUrl } from '@/lib/products'
 import { format, isValid, parseISO } from 'date-fns'
 import OrderTimeline from '@/components/order-timeline'
+import CustomerRegistrationModal from '@/components/customer-registration-modal'
 
 export default function OrderSuccessPage() {
   const searchParams = useSearchParams()
@@ -50,6 +53,8 @@ export default function OrderSuccessPage() {
   const [error, setError] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [showConfetti, setShowConfetti] = useState(true)
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false)
+  const [showRegistrationPrompt, setShowRegistrationPrompt] = useState(true)
   const [expandedSections, setExpandedSections] = useState({
     items: false,
     details: false,
@@ -106,55 +111,55 @@ export default function OrderSuccessPage() {
   }
 
   const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
+    switch (status.toLowerCase()) {
       case 'pending':
-        return 'bg-amber-50 text-amber-700 border-amber-200'
+        return 'bg-yellow-100 text-yellow-800'
       case 'processing':
-        return 'bg-blue-50 text-blue-700 border-blue-200'
+        return 'bg-blue-100 text-blue-800'
       case 'shipped':
-        return 'bg-purple-50 text-purple-700 border-purple-200'
+        return 'bg-blue-100 text-blue-800'
       case 'delivered':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        return 'bg-green-100 text-green-800'
       case 'cancelled':
-        return 'bg-red-50 text-red-700 border-red-200'
+        return 'bg-red-100 text-red-800'
       default:
-        return 'bg-slate-50 text-slate-700 border-slate-200'
+        return 'bg-gray-100 text-gray-800'
     }
   }
 
   const getStatusIcon = (status: string) => {
-    switch (status?.toLowerCase()) {
+    switch (status.toLowerCase()) {
       case 'pending':
-        return <Clock className="h-4 w-4 text-amber-500" />
+        return <Clock className="w-4 h-4" />
       case 'processing':
-        return <Package className="h-4 w-4 text-blue-500" />
+        return <RefreshCw className="w-4 h-4" />
       case 'shipped':
-        return <Truck className="h-4 w-4 text-purple-500" />
+        return <Truck className="w-4 h-4" />
       case 'delivered':
-        return <CheckCircle className="h-4 w-4 text-emerald-500" />
+        return <CheckCircle className="w-4 h-4" />
       case 'cancelled':
-        return <div className="w-3 h-3 bg-red-400 rounded-full" />
+        return <X className="w-4 h-4" />
       default:
-        return <Package className="h-4 w-4 text-slate-500" />
+        return <Package className="w-4 h-4" />
     }
   }
 
   const getPaymentStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
+    switch (status.toLowerCase()) {
       case 'paid':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        return 'bg-green-100 text-green-800'
       case 'pending':
-        return 'bg-amber-50 text-amber-700 border-amber-200'
+        return 'bg-yellow-100 text-yellow-800'
       case 'failed':
-        return 'bg-red-50 text-red-700 border-red-200'
+        return 'bg-red-100 text-red-800'
       default:
-        return 'bg-slate-50 text-slate-700 border-slate-200'
+        return 'bg-gray-100 text-gray-800'
     }
   }
 
   const safeFormat = (dateString: string | null | undefined, fmt: string) => {
-    if (!dateString) return 'Unknown date'
-    const date = parseISO(dateString)
+    if (!dateString) return 'N/A';
+    const date = parseISO(dateString);
     return isValid(date) ? format(date, fmt) : 'Invalid date'
   }
 
@@ -180,6 +185,13 @@ export default function OrderSuccessPage() {
       ...prev,
       [section]: !prev[section]
     }))
+  }
+
+  const handleRegistrationSuccess = () => {
+    setShowRegistrationModal(false)
+    setShowRegistrationPrompt(false)
+    // Show success message
+    // You can add a toast notification here
   }
 
   if (loading) {
@@ -210,36 +222,23 @@ export default function OrderSuccessPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
         <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto text-center">
             <motion.div 
-              className="text-center"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-200">
-                <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
-                    <Package className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-                <h1 className="text-2xl font-bold text-slate-900 mb-4">Order Not Found</h1>
-                <p className="text-slate-600 mb-8 max-w-md mx-auto">{error || "Unable to load order details"}</p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link href="/track-order">
-                    <Button className="bg-emerald-600 hover:bg-emerald-700 px-6 py-3">
-                      <Package className="w-5 h-5 mr-2" />
-                      Track Another Order
-                    </Button>
-                  </Link>
-            <Link href="/">
-                    <Button variant="outline" className="px-6 py-3 border-slate-300 hover:bg-slate-50">
-                      <Home className="w-5 h-5 mr-2" />
-                      Continue Shopping
-                    </Button>
-            </Link>
-                </div>
+              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <AlertCircle className="w-10 h-10 text-red-600" />
               </div>
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">Order Not Found</h2>
+              <p className="text-slate-600 mb-6">{error || 'Unable to load order details'}</p>
+              <Link href="/">
+                <Button className="bg-emerald-600 hover:bg-emerald-700">
+                  <Home className="w-4 h-4 mr-2" />
+                  Return to Home
+                </Button>
+              </Link>
             </motion.div>
           </div>
         </div>
@@ -253,35 +252,17 @@ export default function OrderSuccessPage() {
       <AnimatePresence>
         {showConfetti && (
           <motion.div
-            className="absolute inset-0 pointer-events-none z-10"
+            className="fixed inset-0 pointer-events-none z-10"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {[...Array(20)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute text-emerald-400"
-                initial={{ 
-                  x: Math.random() * window.innerWidth, 
-                  y: -20,
-                  rotate: 0 
-                }}
-                animate={{ 
-                  y: window.innerHeight + 20,
-                  rotate: 360,
-                  x: Math.random() * window.innerWidth
-                }}
-                transition={{ 
-                  duration: 3 + Math.random() * 2,
-                  ease: "linear",
-                  delay: Math.random() * 0.5
-                }}
-              >
-                <Sparkles className="w-4 h-4" />
-              </motion.div>
-            ))}
+            <div className="absolute top-0 left-1/4 w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+            <div className="absolute top-0 left-1/2 w-2 h-2 bg-pink-400 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }}></div>
+            <div className="absolute top-0 left-3/4 w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '1s' }}></div>
+            <div className="absolute top-10 left-1/3 w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '1.5s' }}></div>
+            <div className="absolute top-20 left-2/3 w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '2s' }}></div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -326,90 +307,98 @@ export default function OrderSuccessPage() {
             </motion.p>
           </motion.div>
 
-          {/* Compact Order Summary */}
+                    {/* Post-Purchase Registration Prompt */}
           <motion.div 
-            className="bg-white rounded-2xl shadow-xl border border-slate-200 mb-6 overflow-hidden"
-            initial={{ opacity: 0, y: 30 }}
+            className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-6 mb-6 shadow-lg"
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            <div className="bg-gradient-to-r from-emerald-50 to-green-50 p-6 border-b border-slate-200">
-              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-                      <Package className="w-4 h-4 text-emerald-600" />
-          </div>
-                    <div>
-                      <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-                        Order #{order.order_number}
-                      </h2>
-                      <p className="text-slate-600 text-sm">
-                        Placed on {safeFormat(order.created_at, 'MMM d, yyyy \'at\' h:mm a')}
-                      </p>
-        </div>
-                  </div>
-                  </div>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="flex items-center gap-2">
-                    {getStatusIcon(order.status)}
-                    <Badge className={`${getStatusColor(order.status)} border font-medium px-3 py-1`}>
-                      {order.status
-                        ? order.status.charAt(0).toUpperCase() + order.status.slice(1)
-                        : "Unknown"}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-slate-500" />
-                    <Badge className={`${getPaymentStatusColor(order.payment_status)} border font-medium px-3 py-1`}>
-                      {order.payment_status
-                        ? order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)
-                        : "Unknown"}
-                    </Badge>
-                  </div>
-                  </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <User className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-blue-900 mb-2">
+                🎉 Create Your Account
+              </h3>
+              <p className="text-blue-700 mb-4 max-w-md mx-auto">
+                Get exclusive benefits, track orders easily, save your information for faster checkout, and never lose your order history.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button 
+                  onClick={() => setShowRegistrationModal(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Create Account
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowRegistrationPrompt(false)}
+                  className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                >
+                  Maybe Later
+                </Button>
+              </div>
+              <div className="mt-4 text-sm text-blue-600">
+                <div className="flex items-center justify-center gap-4 text-xs">
+                  <span className="flex items-center gap-1">
+                    <Shield className="w-3 h-3" />
+                    Secure
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    Quick Setup
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Gift className="w-3 h-3" />
+                    Free Benefits
+                  </span>
                 </div>
               </div>
+            </div>
+          </motion.div>
 
-            <div className="p-6">
-              {/* Quick Info Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                  <User className="w-4 h-4 text-slate-500" />
+          {/* Compact Order Summary */}
+          <motion.div 
+            className="bg-white rounded-xl shadow-lg border border-slate-200 p-6 mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+          >
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                    <p className="text-xs text-slate-500">Customer</p>
-                    <p className="text-sm font-medium text-slate-700">{order.first_name} {order.last_name}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                  <CreditCard className="w-4 h-4 text-slate-500" />
-                  <div>
-                    <p className="text-xs text-slate-500">Payment</p>
-                    <p className="text-sm font-medium text-slate-700">{getPaymentMethodDisplay(order.payment_method)}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                  <MapPin className="w-4 h-4 text-slate-500" />
-                  <div>
-                    <p className="text-xs text-slate-500">Location</p>
-                    <p className="text-sm font-medium text-slate-700">{order.city}, {order.state}</p>
-                  </div>
-                </div>
+                <h2 className="text-xl font-bold text-slate-900 mb-1">
+                  Order #{order.order_number}
+                </h2>
+                <p className="text-slate-600 text-sm">
+                  Placed on {safeFormat(order.created_at, 'MMM dd, yyyy')}
+                </p>
               </div>
-
-              {/* Order Summary */}
-              <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-4 border border-emerald-200">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm text-slate-600">Total Amount</p>
-                    <p className="text-2xl font-bold text-emerald-700">
-                      KES {(order.total_amount || 0).toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-slate-600">{order.items?.length || 0} items</p>
-                    <p className="text-sm text-slate-600">Shipping: KES {(order.shipping_cost || 0).toLocaleString()}</p>
-                  </div>
+              <div className="flex items-center gap-3">
+                <Badge className={getStatusColor(order.status)}>
+                  {getStatusIcon(order.status)}
+                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                </Badge>
+                <Badge className={getPaymentStatusColor(order.payment_status)}>
+                  <CreditCard className="w-3 h-3 mr-1" />
+                  {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
+                </Badge>
+              </div>
+            </div>
+            
+            {/* Order Summary */}
+            <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-4 border border-emerald-200 mt-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-sm text-slate-600">Total Amount</p>
+                  <p className="text-2xl font-bold text-emerald-700">
+                    KES {(order.total_amount || 0).toLocaleString()}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-slate-600">{order.items?.length || 0} items</p>
+                  <p className="text-sm text-slate-600">Shipping: KES {(order.shipping_cost || 0).toLocaleString()}</p>
                 </div>
               </div>
             </div>
@@ -431,13 +420,13 @@ export default function OrderSuccessPage() {
                           <CardTitle className="text-lg">Order Items ({order.items?.length || 0})</CardTitle>
                           <p className="text-slate-600 text-sm">View your purchased items</p>
                         </div>
-              </div>
+                      </div>
                       {expandedSections.items ? (
                         <ChevronUp className="w-5 h-5 text-slate-500" />
                       ) : (
                         <ChevronDown className="w-5 h-5 text-slate-500" />
                       )}
-              </div>
+                    </div>
                   </CardHeader>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -461,7 +450,7 @@ export default function OrderSuccessPage() {
                                   className="object-cover"
                                   sizes="48px"
                                 />
-              </div>
+                              </div>
                             </div>
                             <div className="flex-1 min-w-0">
                               <h4 className="font-medium text-slate-900 truncate">
@@ -482,10 +471,10 @@ export default function OrderSuccessPage() {
                           <p className="text-sm">No items found for this order.</p>
                         </div>
                       )}
-            </div>
-          </CardContent>
+                    </div>
+                  </CardContent>
                 </CollapsibleContent>
-        </Card>
+              </Card>
             </Collapsible>
 
             {/* Order Details Section */}
@@ -509,7 +498,7 @@ export default function OrderSuccessPage() {
                         <ChevronDown className="w-5 h-5 text-slate-500" />
                       )}
                     </div>
-          </CardHeader>
+                  </CardHeader>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <CardContent className="pt-0">
@@ -530,7 +519,7 @@ export default function OrderSuccessPage() {
                           </div>
                         </div>
                       </div>
-            <div className="space-y-4">
+                      <div className="space-y-4">
                         <h4 className="font-semibold text-slate-900 flex items-center gap-2">
                           <MapPin className="w-4 h-4 text-emerald-600" />
                           Shipping Address
@@ -546,7 +535,7 @@ export default function OrderSuccessPage() {
                     </div>
                     {order.notes && (
                       <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
-              <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-3">
                           <FileText className="w-4 h-4 text-amber-600 mt-0.5" />
                           <div>
                             <p className="text-amber-800 font-medium text-sm mb-1">Order Notes</p>
@@ -569,8 +558,8 @@ export default function OrderSuccessPage() {
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
                           <Calendar className="w-5 h-5 text-emerald-600" />
-                </div>
-                <div>
+                        </div>
+                        <div>
                           <CardTitle className="text-lg">Order Timeline</CardTitle>
                           <p className="text-slate-600 text-sm">Track your order progress</p>
                         </div>
@@ -588,13 +577,48 @@ export default function OrderSuccessPage() {
                     <OrderTimeline order={order} />
                   </CardContent>
                 </CollapsibleContent>
-        </Card>
+              </Card>
             </Collapsible>
           </div>
 
-
+          {/* Action Buttons */}
+          <motion.div 
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.9 }}
+          >
+            <Link href="/">
+              <Button variant="outline" className="w-full sm:w-auto">
+                <Home className="w-4 h-4 mr-2" />
+                Continue Shopping
+              </Button>
+            </Link>
+            <Link href="/track-order">
+              <Button className="w-full sm:w-auto">
+                <Eye className="w-4 h-4 mr-2" />
+                Track Order
+              </Button>
+            </Link>
+            <Button 
+              variant="outline" 
+              onClick={shareOrder}
+              className="w-full sm:w-auto"
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              Share Order
+            </Button>
+          </motion.div>
         </div>
       </div>
+
+      {/* Customer Registration Modal */}
+      <CustomerRegistrationModal 
+        isOpen={showRegistrationModal}
+        onClose={() => setShowRegistrationModal(false)}
+        onSuccess={handleRegistrationSuccess}
+        showLoginLink={false}
+      />
     </div>
   )
 } 

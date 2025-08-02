@@ -191,6 +191,8 @@ export default function Footer() {
               <Link href="/terms" className="hover:text-green-400 transition-colors hover:underline py-1 min-h-[44px]">Terms of Service</Link>
               <span className="hidden sm:inline text-gray-400">•</span>
               <Link href="/cookies" className="hover:text-green-400 transition-colors hover:underline py-1 min-h-[44px]">Cookie Policy</Link>
+              <span className="hidden sm:inline text-gray-400">•</span>
+              <Link href="/admin/login" className="hover:text-green-400 transition-colors hover:underline py-1 min-h-[44px]">Admin Login</Link>
             </div>
 
             {/* Copyright */}

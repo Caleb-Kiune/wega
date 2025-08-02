@@ -14,6 +14,7 @@ from .review import Review
 from .cart import Cart
 from .cart_item import CartItem
 from .delivery_location import DeliveryLocation
+from .customer import Customer, CustomerAddress
 from .order import Order
 from .order_item import OrderItem
 from .admin_user import AdminUser
@@ -31,6 +32,8 @@ __all__ = [
     'Cart',
     'CartItem',
     'DeliveryLocation',
+    'Customer',
+    'CustomerAddress',
     'Order',
     'OrderItem',
     'AdminUser'
