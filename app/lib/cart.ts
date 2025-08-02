@@ -1,10 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
 import { API_BASE_URL } from './config';
+import { getSessionId, getSessionData, isSessionStale } from './session';
 
 // Get or create session ID
 const getSessionId = () => {
   if (typeof window === 'undefined') {
-    // Server-side rendering
     return 'server-session';
   }
   
@@ -38,11 +38,9 @@ const getImageUrl = (path: string) => {
   if (!path) return "/placeholder.svg";
   if (path.startsWith("http")) return path;
   
-  // Get the base URL from environment variable, fallback to localhost
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://washing-district-nail-customise.trycloudflare.com';
-  const apiBaseUrl = baseUrl.replace('/api', ''); // Remove /api to get the root URL
+  const apiBaseUrl = baseUrl.replace('/api', '');
   
-  // If the path is just a filename, assume it's in the uploads directory
   if (!path.includes("/")) {
     return `${apiBaseUrl}/static/uploads/${path}`;
   }
@@ -64,23 +62,38 @@ export interface DeliveryLocation {
   isActive: boolean;
 }
 
+// Enhanced cart API with better error handling and offline support
 export const cartApi = {
   getCart: async (): Promise<Cart> => {
     const sessionId = getSessionId();
     console.log('Getting cart with session ID:', sessionId);
-    console.log('API URL:', `${API_BASE_URL}/cart?session_id=${sessionId}`);
     
     const maxRetries = 3;
     let lastError: Error | null = null;
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const response = await fetch(`${API_BASE_URL}/cart?session_id=${sessionId}`);
+        const response = await fetch(`${API_BASE_URL}/cart?session_id=${sessionId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
         if (!response.ok) {
-          console.error('Failed to fetch cart:', response.status, response.statusText);
+          if (response.status === 404) {
+            // Cart doesn't exist, return empty cart
+            return {
+              id: 0,
+              session_id: sessionId,
+              items: []
+            };
+          }
           throw new Error(`Failed to fetch cart: ${response.status} ${response.statusText}`);
         }
+        
         const data = await response.json();
+        
         // Update image URLs in the response
         if (data.items) {
           data.items = data.items.map((item: CartItem) => ({
@@ -93,6 +106,7 @@ export const cartApi = {
             }
           }));
         }
+        
         console.log('Cart data received:', data);
         return data;
       } catch (error) {
@@ -101,137 +115,242 @@ export const cartApi = {
         
         if (attempt < maxRetries) {
           // Wait before retrying (exponential backoff)
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-          continue;
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
         }
       }
     }
     
-    // All retries failed
-    if (lastError instanceof TypeError && lastError.message.includes('Failed to fetch')) {
-      throw new Error('Cannot connect to server. Please ensure the backend is running.');
-    }
-    throw lastError || new Error('Failed to fetch cart after multiple attempts');
+    // If all retries failed, return empty cart
+    console.error('All retry attempts failed, returning empty cart');
+    return {
+      id: 0,
+      session_id: sessionId,
+      items: []
+    };
   },
 
-  addItem: async (productId: number, quantity: number): Promise<Cart> => {
+  addItem: async (productId: number, quantity: number = 1): Promise<Cart> => {
     const sessionId = getSessionId();
-    console.log('Adding item to cart:', { sessionId, productId, quantity });
-    const response = await fetch(`${API_BASE_URL}/cart/items`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        session_id: sessionId,
-        product_id: productId, 
-        quantity 
-      }),
-    });
-    if (!response.ok) {
-      console.error('Failed to add item:', response.status, response.statusText);
-      throw new Error('Failed to add item to cart');
-    }
-    const data = await response.json();
-    console.log('Add item response:', data);
+    console.log('Adding item to cart:', { productId, quantity, sessionId });
     
-    // Transform the response to match the frontend interface
-    if (data.items) {
-      data.items = data.items.map((item: any) => ({
-        ...item,
-        product: {
-          id: item.product.id,
-          name: item.product.name,
-          price: item.product.price,
-          image: getImageUrl(item.product.image_url || item.product.image)
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/cart/items`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            session_id: sessionId,
+            product_id: productId,
+            quantity: quantity
+          }),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to add item: ${response.status}`);
         }
-      }));
+        
+        const data = await response.json();
+        
+        // Update image URLs
+        if (data.items) {
+          data.items = data.items.map((item: CartItem) => ({
+            ...item,
+            product: {
+              id: item.product.id,
+              name: item.product.name,
+              price: item.product.price,
+              image: getImageUrl((item.product as any).image_url || item.product.image)
+            }
+          }));
+        }
+        
+        console.log('Item added to cart:', data);
+        return data;
+      } catch (error) {
+        console.error(`Add item attempt ${attempt} failed:`, error);
+        lastError = error as Error;
+        
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+        }
+      }
     }
     
-    return data;
+    throw lastError || new Error('Failed to add item to cart after all retries');
   },
 
   updateItem: async (itemId: number, quantity: number): Promise<Cart> => {
-    const sessionId = getSessionId();
-    const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}?session_id=${sessionId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ quantity }),
-    });
-    if (!response.ok) throw new Error('Failed to update cart item');
-    const data = await response.json();
+    console.log('Updating cart item:', { itemId, quantity });
     
-    // Transform the response to match the frontend interface
-    if (data.items) {
-      data.items = data.items.map((item: any) => ({
-        ...item,
-        product: {
-          id: item.product.id,
-          name: item.product.name,
-          price: item.product.price,
-          image: getImageUrl(item.product.image_url || item.product.image)
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ quantity }),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to update item: ${response.status}`);
         }
-      }));
+        
+        const data = await response.json();
+        
+        // Update image URLs
+        if (data.items) {
+          data.items = data.items.map((item: CartItem) => ({
+            ...item,
+            product: {
+              id: item.product.id,
+              name: item.product.name,
+              price: item.product.price,
+              image: getImageUrl((item.product as any).image_url || item.product.image)
+            }
+          }));
+        }
+        
+        console.log('Cart item updated:', data);
+        return data;
+      } catch (error) {
+        console.error(`Update item attempt ${attempt} failed:`, error);
+        lastError = error as Error;
+        
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+        }
+      }
     }
     
-    return data;
+    throw lastError || new Error('Failed to update cart item after all retries');
   },
 
   removeItem: async (itemId: number): Promise<Cart> => {
-    const sessionId = getSessionId();
-    const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}?session_id=${sessionId}`, {
-      method: 'DELETE',
-    });
-    if (!response.ok) throw new Error('Failed to remove item from cart');
-    const data = await response.json();
+    console.log('Removing cart item:', itemId);
     
-    // Handle case where item doesn't exist (backend returns success)
-    if (data.message === 'Item not found in cart') {
-      console.log('Item not found in cart, returning empty cart state');
-      return {
-        id: 0,
-        session_id: sessionId,
-        items: []
-      };
-    }
+    const maxRetries = 3;
+    let lastError: Error | null = null;
     
-    // Transform the response to match the frontend interface
-    if (data.items) {
-      data.items = data.items.map((item: any) => ({
-        ...item,
-        product: {
-          id: item.product.id,
-          name: item.product.name,
-          price: item.product.price,
-          image: getImageUrl(item.product.image_url || item.product.image)
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/cart/items/${itemId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to remove item: ${response.status}`);
         }
-      }));
+        
+        const data = await response.json();
+        
+        // Update image URLs
+        if (data.items) {
+          data.items = data.items.map((item: CartItem) => ({
+            ...item,
+            product: {
+              id: item.product.id,
+              name: item.product.name,
+              price: item.product.price,
+              image: getImageUrl((item.product as any).image_url || item.product.image)
+            }
+          }));
+        }
+        
+        console.log('Cart item removed:', data);
+        return data;
+      } catch (error) {
+        console.error(`Remove item attempt ${attempt} failed:`, error);
+        lastError = error as Error;
+        
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+        }
+      }
     }
     
-    return data;
+    throw lastError || new Error('Failed to remove cart item after all retries');
   },
 
   clearCart: async (): Promise<Cart> => {
     const sessionId = getSessionId();
-    const response = await fetch(`${API_BASE_URL}/cart?session_id=${sessionId}`, {
-      method: 'DELETE',
-    });
-    if (!response.ok) throw new Error('Failed to clear cart');
-    const data = await response.json();
+    console.log('Clearing cart for session:', sessionId);
     
-    // Transform the response to match the frontend interface
-    if (data.items) {
-      data.items = data.items.map((item: any) => ({
-        ...item,
-        product: {
-          id: item.product.id,
-          name: item.product.name,
-          price: item.product.price,
-          image: getImageUrl(item.product.image_url || item.product.image)
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/cart/clear`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ session_id: sessionId }),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to clear cart: ${response.status}`);
         }
-      }));
+        
+        const data = await response.json();
+        console.log('Cart cleared:', data);
+        return data;
+      } catch (error) {
+        console.error(`Clear cart attempt ${attempt} failed:`, error);
+        lastError = error as Error;
+        
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+        }
+      }
     }
     
-    return data;
+    throw lastError || new Error('Failed to clear cart after all retries');
   },
+
+  // New method to check cart health
+  checkCartHealth: async (): Promise<{ healthy: boolean; message?: string }> => {
+    try {
+      const sessionData = getSessionData();
+      if (isSessionStale()) {
+        return { healthy: false, message: 'Session is stale' };
+      }
+      
+      const cart = await cartApi.getCart();
+      return { healthy: true };
+    } catch (error) {
+      return { healthy: false, message: 'Cart health check failed' };
+    }
+  },
+
+  // New method to get cart summary
+  getCartSummary: async (): Promise<{ itemCount: number; total: number }> => {
+    try {
+      const cart = await cartApi.getCart();
+      const itemCount = cart.items.reduce((total, item) => total + item.quantity, 0);
+      const total = cart.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+      return { itemCount, total };
+    } catch (error) {
+      console.error('Failed to get cart summary:', error);
+      return { itemCount: 0, total: 0 };
+    }
+  }
 };
 
 export const deliveryLocationsApi = {

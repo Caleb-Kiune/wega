@@ -67,7 +67,8 @@ export default function Header() {
   const mobileSearchRef = useRef<HTMLDivElement>(null)
   
   const { cartCount } = useCart()
-  const { items: wishlistItems } = useWishlist()
+  const { wishlist } = useWishlist()
+  const wishlistItems = wishlist?.items || []
 
   // Handle scroll effect
   useEffect(() => {

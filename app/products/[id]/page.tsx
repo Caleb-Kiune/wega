@@ -22,7 +22,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const { toast } = useToast()
   const resolvedParams = use(params)
-  const { addItem, removeItem, isInWishlist } = useWishlist()
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -82,15 +82,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   }
 
   const handleWishlistClick = () => {
-    if (isInWishlist(product.id.toString())) {
-      removeItem(product.id.toString())
+    if (isInWishlist(product.id)) {
+      removeFromWishlist(product.id)
     } else {
-      addItem({
-        id: product.id.toString(),
+      addToWishlist({
+        id: product.id,
         name: product.name,
         price: product.price,
         image: product.images?.[0]?.image_url || '',
-        category: product.category,
+        slug: product.slug
       })
     }
   }

@@ -10,7 +10,8 @@ import { useState, useEffect } from "react"
 import { productsApi } from "@/lib/products"
 
 export default function WishlistPage() {
-  const { items, removeItem, clearWishlist } = useWishlist()
+  const { wishlist, removeFromWishlist, clearWishlist } = useWishlist()
+  const items = wishlist?.items || []
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)

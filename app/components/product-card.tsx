@@ -254,8 +254,8 @@ const QuickViewModal = ({
 
 export default function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
   const { addToCart, removeFromCart, cart } = useCart()
-  const { addItem, removeItem, isInWishlist } = useWishlist()
-  const isWishlisted = isInWishlist(String(product.id))
+  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist()
+  const isWishlisted = isInWishlist(product.id)
   const [imageLoaded, setImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
   const [showQuickView, setShowQuickView] = useState(false)
@@ -303,17 +303,15 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
 
   const handleToggleWishlist = () => {
     if (isWishlisted) {
-      removeItem(String(product.id))
-      toast.success(`${product.name} has been removed from your wishlist.`)
+      removeFromWishlist(product.id)
     } else {
-      addItem({
-        id: String(product.id),
+      addToWishlist({
+        id: product.id,
         name: product.name,
         price: product.price,
         image: getImageUrl(primaryImage) || "/placeholder.svg",
-        category: product.category,
+        slug: product.slug
       })
-      toast.success(`${product.name} has been added to your wishlist.`)
     }
   }
 

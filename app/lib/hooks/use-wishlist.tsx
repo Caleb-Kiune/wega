@@ -1,88 +1,123 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect } from "react"
+import { createContext, useContext, useState, useEffect, ReactNode } from "react"
+import { useToast } from "@/lib/hooks/use-toast"
+import { guestWishlistApi, Wishlist, WishlistItem } from "@/lib/wishlist"
 
-type WishlistItem = {
-  id: string
-  name: string
-  price: number
-  image: string
-  category: string
-}
-
-type WishlistContextType = {
-  items: WishlistItem[]
-  addItem: (item: WishlistItem) => void
-  removeItem: (id: string) => void
-  isInWishlist: (id: string) => boolean
+interface WishlistContextType {
+  wishlist: Wishlist | null
+  wishlistCount: number
+  isInWishlist: (productId: number) => boolean
+  addToWishlist: (product: any) => void
+  removeFromWishlist: (productId: number) => void
   clearWishlist: () => void
+  loading: boolean
 }
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined)
 
-export function WishlistProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<WishlistItem[]>([])
-  const [isClient, setIsClient] = useState(false)
+export function WishlistProvider({ children }: { children: ReactNode }) {
+  const [wishlist, setWishlist] = useState<Wishlist | null>(null)
+  const [wishlistCount, setWishlistCount] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
 
-  // Set client flag on mount
+  // Load wishlist from localStorage on initial render
   useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  // Load wishlist from localStorage on mount (client-side only)
-  useEffect(() => {
-    if (!isClient) return
-    
-    try {
-      const savedWishlist = localStorage.getItem("wishlist")
-      if (savedWishlist) {
-        setItems(JSON.parse(savedWishlist))
+    const loadWishlist = async () => {
+      try {
+        setLoading(true)
+        const wishlistData = guestWishlistApi.getWishlist()
+        setWishlist(wishlistData)
+        setWishlistCount(wishlistData.items.length)
+      } catch (error) {
+        console.error("Failed to load wishlist:", error)
+        toast({
+          title: "Error",
+          description: "Failed to load wishlist. Please refresh the page.",
+          variant: "destructive",
+        })
+      } finally {
+        setLoading(false)
       }
-    } catch (error) {
-      console.error("Failed to load wishlist from localStorage:", error)
     }
-  }, [isClient])
+    loadWishlist()
+  }, [toast])
 
-  // Save wishlist to localStorage whenever it changes (client-side only)
-  useEffect(() => {
-    if (!isClient) return
-    
+  const addToWishlist = (product: any) => {
     try {
-      localStorage.setItem("wishlist", JSON.stringify(items))
+      const updatedWishlist = guestWishlistApi.addItem(product)
+      setWishlist(updatedWishlist)
+      setWishlistCount(updatedWishlist.items.length)
+      
+      toast({
+        title: "Added to wishlist",
+        description: `${product.name} has been added to your wishlist.`,
+      })
     } catch (error) {
-      console.error("Failed to save wishlist to localStorage:", error)
+      console.error("Failed to add item to wishlist:", error)
+      toast({
+        title: "Error",
+        description: "Failed to add item to wishlist. Please try again.",
+        variant: "destructive",
+      })
     }
-  }, [items, isClient])
-
-  const addItem = (item: WishlistItem) => {
-    setItems((prev) => {
-      if (!prev.find((i) => i.id === item.id)) {
-        return [...prev, item]
-      }
-      return prev
-    })
   }
 
-  const removeItem = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id))
-  }
-
-  const isInWishlist = (id: string) => {
-    return items.some((item) => item.id === id)
+  const removeFromWishlist = (productId: number) => {
+    try {
+      const updatedWishlist = guestWishlistApi.removeItem(productId)
+      setWishlist(updatedWishlist)
+      setWishlistCount(updatedWishlist.items.length)
+      
+      toast({
+        title: "Removed from wishlist",
+        description: "Item has been removed from your wishlist.",
+      })
+    } catch (error) {
+      console.error("Failed to remove item from wishlist:", error)
+      toast({
+        title: "Error",
+        description: "Failed to remove item from wishlist. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   const clearWishlist = () => {
-    setItems([])
+    try {
+      const updatedWishlist = guestWishlistApi.clearWishlist()
+      setWishlist(updatedWishlist)
+      setWishlistCount(0)
+      
+      toast({
+        title: "Wishlist cleared",
+        description: "All items have been removed from your wishlist.",
+      })
+    } catch (error) {
+      console.error("Failed to clear wishlist:", error)
+      toast({
+        title: "Error",
+        description: "Failed to clear wishlist. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const isInWishlist = (productId: number): boolean => {
+    return guestWishlistApi.isInWishlist(productId)
   }
 
   return (
     <WishlistContext.Provider
       value={{
-        items,
-        addItem,
-        removeItem,
+        wishlist,
+        wishlistCount,
         isInWishlist,
+        addToWishlist,
+        removeFromWishlist,
         clearWishlist,
+        loading,
       }}
     >
       {children}
