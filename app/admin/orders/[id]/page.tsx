@@ -2,8 +2,9 @@ import { Suspense } from 'react';
 import OrderDetailsClient from './OrderDetailsClient';
 import { ordersApi } from '@/lib/orders';
 
-export default async function OrderDetailsPage({ params }: { params: { id: string } }) {
-  const order = await ordersApi.getById(parseInt(params.id));
+export default async function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const order = await ordersApi.getById(parseInt(id));
 
   return (
     <Suspense fallback={

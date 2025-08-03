@@ -37,10 +37,7 @@ import {
 import { cn } from "@/lib/utils"
 import { useCart } from "@/lib/hooks/use-cart"
 import { useWishlist } from "@/lib/hooks/use-wishlist"
-import { useCustomerAuth } from "@/lib/hooks/use-customer-auth"
 import { motion, AnimatePresence } from "framer-motion"
-import CustomerLoginModal from "./customer-login-modal"
-import CustomerRegistrationModal from "./customer-registration-modal"
 
 interface Product {
   id: string;
@@ -68,8 +65,6 @@ export default function Header() {
   const [isSearching, setIsSearching] = useState(false)
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
-  const [showLoginModal, setShowLoginModal] = useState(false)
-  const [showRegisterModal, setShowRegisterModal] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const accountDropdownRef = useRef<HTMLDivElement>(null)
@@ -78,7 +73,6 @@ export default function Header() {
   const { cartCount } = useCart()
   const { wishlist } = useWishlist()
   const wishlistItems = wishlist?.items || []
-  const { customer, isAuthenticated, logout } = useCustomerAuth()
 
   // Handle scroll effect
   useEffect(() => {
@@ -719,17 +713,10 @@ export default function Header() {
                         aria-label="Account"
                         aria-expanded={isAccountDropdownOpen}
                       >
-                        {isAuthenticated ? (
-                          <div className="relative">
-                            <User className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
-                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                          </div>
-                        ) : (
-                          <User className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
-                        )}
+                        <User className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
                       </Link>
                     </TooltipTrigger>
-                    <TooltipContent>{isAuthenticated ? "My Account" : "Account"}</TooltipContent>
+                    <TooltipContent>Account</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
                 
@@ -744,131 +731,44 @@ export default function Header() {
                       transition={{ duration: 0.2 }}
                     >
                       <div className="py-2">
-                        {isAuthenticated ? (
-                          <>
-                            {/* Customer Profile Section */}
-                            <div className="px-4 py-3 border-b border-gray-100">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                                  <User className="h-5 w-5 text-green-600" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-gray-900 truncate">
-                                    {customer?.first_name} {customer?.last_name}
-                                  </p>
-                                  <p className="text-sm text-gray-500 truncate">{customer?.email}</p>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            {/* Customer Menu Items */}
-                            <div className="px-3 py-2">
-                              <Link
-                                href="/profile"
-                                className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 group"
-                                onClick={() => setIsAccountDropdownOpen(false)}
-                              >
-                                <UserCheck className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                                <span className="font-medium">My Profile</span>
-                              </Link>
-                              
-                              <Link
-                                href="/orders"
-                                className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group"
-                                onClick={() => setIsAccountDropdownOpen(false)}
-                              >
-                                <Package className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                                <span className="font-medium">My Orders</span>
-                              </Link>
-                              
-                              <Link
-                                href="/wishlist"
-                                className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group"
-                                onClick={() => setIsAccountDropdownOpen(false)}
-                              >
-                                <Heart className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                                <span className="font-medium">Wishlist</span>
-                              </Link>
-                            </div>
-                            
-                            <div className="border-t border-gray-200 my-2"></div>
-                            
-                            {/* Logout */}
-                            <div className="px-3 py-2">
-                              <button
-                                onClick={() => {
-                                  logout()
-                                  setIsAccountDropdownOpen(false)
-                                }}
-                                className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group w-full"
-                              >
-                                <LogOut className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                                <span className="font-medium">Sign Out</span>
-                              </button>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            {/* Guest Menu Items */}
-                            <div className="px-3 py-2">
-                              <Link
-                                href="/"
-                                className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 group"
-                                onClick={() => setIsAccountDropdownOpen(false)}
-                              >
-                                <Home className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                                <span className="font-medium">Home</span>
-                              </Link>
-                              
-                              <Link
-                                href="/products"
-                                className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group"
-                                onClick={() => setIsAccountDropdownOpen(false)}
-                              >
-                                <ShoppingBag className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                                <span className="font-medium">Shop</span>
-                              </Link>
-                              
-                              <Link
-                                href="/track-order"
-                                className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all duration-200 group"
-                                onClick={() => setIsAccountDropdownOpen(false)}
-                              >
-                                <Package className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                                <span className="font-medium">Track Order</span>
-                              </Link>
-                            </div>
-                            
-                            <div className="border-t border-gray-200 my-2"></div>
-                            
-                            {/* Guest Auth Options */}
-                            <div className="px-3 py-2 space-y-2">
-                              <button
-                                onClick={() => {
-                                  setShowLoginModal(true)
-                                  setIsAccountDropdownOpen(false)
-                                }}
-                                className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 group w-full"
-                              >
-                                <UserCheck className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                                <span className="font-medium">Sign In</span>
-                              </button>
-                              
-                              <button
-                                onClick={() => {
-                                  setShowRegisterModal(true)
-                                  setIsAccountDropdownOpen(false)
-                                }}
-                                className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group w-full"
-                              >
-                                <UserPlus className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                                <span className="font-medium">Create Account</span>
-                              </button>
-                            </div>
-                            
-
-                          </>
-                        )}
+                        {/* Guest Menu Items */}
+                        <div className="px-3 py-2">
+                          <Link
+                            href="/"
+                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 group"
+                            onClick={() => setIsAccountDropdownOpen(false)}
+                          >
+                            <Home className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                            <span className="font-medium">Home</span>
+                          </Link>
+                          
+                          <Link
+                            href="/products"
+                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group"
+                            onClick={() => setIsAccountDropdownOpen(false)}
+                          >
+                            <ShoppingBag className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                            <span className="font-medium">Shop</span>
+                          </Link>
+                          
+                          <Link
+                            href="/track-order"
+                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all duration-200 group"
+                            onClick={() => setIsAccountDropdownOpen(false)}
+                          >
+                            <Package className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                            <span className="font-medium">Track Order</span>
+                          </Link>
+                          
+                          <Link
+                            href="/wishlist"
+                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group"
+                            onClick={() => setIsAccountDropdownOpen(false)}
+                          >
+                            <Heart className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                            <span className="font-medium">Wishlist</span>
+                          </Link>
+                        </div>
                       </div>
                     </motion.div>
                   )}
@@ -919,92 +819,19 @@ export default function Header() {
                     <span className="font-medium">Track Order</span>
                   </Link>
 
-                  {isAuthenticated ? (
-                    <>
-                      {/* Customer Mobile Menu */}
-                      <div className="border-t border-gray-200 pt-4 space-y-3">
-                        <div className="px-4 py-3 bg-green-50 rounded-2xl">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                              <User className="h-4 w-4 text-green-600" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-gray-900 truncate text-sm">
-                                {customer?.first_name} {customer?.last_name}
-                              </p>
-                              <p className="text-xs text-gray-500 truncate">{customer?.email}</p>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <Link
-                          href="/profile"
-                          onClick={handleNavigationClick}
-                          className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-2xl transition-all duration-300 group"
-                        >
-                          <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-green-100 transition-colors duration-300">
-                            <UserCheck className="h-5 w-5" />
-                          </div>
-                          <span className="font-medium">My Profile</span>
-                        </Link>
-                        
-                        <Link
-                          href="/orders"
-                          onClick={handleNavigationClick}
-                          className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all duration-300 group"
-                        >
-                          <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-blue-100 transition-colors duration-300">
-                            <Package className="h-5 w-5" />
-                          </div>
-                          <span className="font-medium">My Orders</span>
-                        </Link>
-                        
-                        <button
-                          onClick={() => {
-                            logout()
-                            handleNavigationClick()
-                          }}
-                          className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all duration-300 group w-full"
-                        >
-                          <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-red-100 transition-colors duration-300">
-                            <LogOut className="h-5 w-5" />
-                          </div>
-                          <span className="font-medium">Sign Out</span>
-                        </button>
+                  {/* Guest Mobile Menu */}
+                  <div className="border-t border-gray-200 pt-4 space-y-3">
+                    <Link
+                      href="/wishlist"
+                      onClick={handleNavigationClick}
+                      className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all duration-300 group"
+                    >
+                      <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-red-100 transition-colors duration-300">
+                        <Heart className="h-5 w-5" />
                       </div>
-                    </>
-                  ) : (
-                    <>
-                      {/* Guest Mobile Menu */}
-                      <div className="border-t border-gray-200 pt-4 space-y-3">
-                        <button
-                          onClick={() => {
-                            setShowLoginModal(true)
-                            handleNavigationClick()
-                          }}
-                          className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-2xl transition-all duration-300 group w-full"
-                        >
-                          <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-green-100 transition-colors duration-300">
-                            <UserCheck className="h-5 w-5" />
-                          </div>
-                          <span className="font-medium">Sign In</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            setShowRegisterModal(true)
-                            handleNavigationClick()
-                          }}
-                          className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all duration-300 group w-full"
-                        >
-                          <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-blue-100 transition-colors duration-300">
-                            <UserPlus className="h-5 w-5" />
-                          </div>
-                          <span className="font-medium">Create Account</span>
-                        </button>
-                      </div>
-                    </>
-                  )}
+                      <span className="font-medium">Wishlist</span>
+                    </Link>
+                  </div>
 
                   
                 </div>
@@ -1153,33 +980,6 @@ export default function Header() {
           )}
         </AnimatePresence>
       </header>
-      
-      {/* Authentication Modals */}
-      <CustomerLoginModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onSuccess={() => {
-          setShowLoginModal(false)
-          // Optionally redirect or show success message
-        }}
-        onSwitchToRegister={() => {
-          setShowLoginModal(false)
-          setShowRegisterModal(true)
-        }}
-      />
-      
-      <CustomerRegistrationModal
-        isOpen={showRegisterModal}
-        onClose={() => setShowRegisterModal(false)}
-        onSuccess={() => {
-          setShowRegisterModal(false)
-          // Optionally redirect or show success message
-        }}
-        onSwitchToLogin={() => {
-          setShowRegisterModal(false)
-          setShowLoginModal(true)
-        }}
-      />
     </>
   )
 } 

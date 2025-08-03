@@ -253,30 +253,7 @@ def update_payment_status(id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@orders_bp.route('/api/orders/track', methods=['POST'])
-def track_order():
-    """Track order by order number or email"""
-    data = request.get_json()
-    order_number = data.get('order_number', '')
-    email = data.get('email', '')
-    
-    if not order_number and not email:
-        return jsonify({'error': 'Order number or email is required'}), 400
-    
-    query = Order.query
-    
-    if order_number:
-        query = query.filter(Order.order_number == order_number)
-    
-    if email:
-        query = query.filter(Order.email == email)
-    
-    orders = query.all()
-    
-    if not orders:
-        return jsonify({'error': 'Order not found'}), 404
-    
-    return jsonify([order.to_dict() for order in orders])
+
 
 @orders_bp.route('/api/orders/<int:id>', methods=['DELETE'])
 def delete_order(id):

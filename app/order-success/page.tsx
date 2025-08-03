@@ -43,7 +43,7 @@ import { ordersApi, Order } from "@/lib/orders"
 import { getImageUrl } from '@/lib/products'
 import { format, isValid, parseISO } from 'date-fns'
 import OrderTimeline from '@/components/order-timeline'
-import CustomerRegistrationModal from '@/components/customer-registration-modal'
+
 
 export default function OrderSuccessPage() {
   const searchParams = useSearchParams()
@@ -53,8 +53,7 @@ export default function OrderSuccessPage() {
   const [error, setError] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [showConfetti, setShowConfetti] = useState(true)
-  const [showRegistrationModal, setShowRegistrationModal] = useState(false)
-  const [showRegistrationPrompt, setShowRegistrationPrompt] = useState(true)
+  const [showRegistrationPrompt, setShowRegistrationPrompt] = useState(false)
   const [expandedSections, setExpandedSections] = useState({
     items: false,
     details: false,
@@ -187,12 +186,7 @@ export default function OrderSuccessPage() {
     }))
   }
 
-  const handleRegistrationSuccess = () => {
-    setShowRegistrationModal(false)
-    setShowRegistrationPrompt(false)
-    // Show success message
-    // You can add a toast notification here
-  }
+
 
   if (loading) {
     return (
@@ -307,57 +301,7 @@ export default function OrderSuccessPage() {
             </motion.p>
           </motion.div>
 
-                    {/* Post-Purchase Registration Prompt */}
-          <motion.div 
-            className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-6 mb-6 shadow-lg"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-          >
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <User className="w-8 h-8 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-blue-900 mb-2">
-                🎉 Create Your Account
-              </h3>
-              <p className="text-blue-700 mb-4 max-w-md mx-auto">
-                Get exclusive benefits, track orders easily, save your information for faster checkout, and never lose your order history.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button 
-                  onClick={() => setShowRegistrationModal(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  <User className="w-4 h-4 mr-2" />
-                  Create Account
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => setShowRegistrationPrompt(false)}
-                  className="border-blue-200 text-blue-700 hover:bg-blue-50"
-                >
-                  Maybe Later
-                </Button>
-              </div>
-              <div className="mt-4 text-sm text-blue-600">
-                <div className="flex items-center justify-center gap-4 text-xs">
-                  <span className="flex items-center gap-1">
-                    <Shield className="w-3 h-3" />
-                    Secure
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    Quick Setup
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Gift className="w-3 h-3" />
-                    Free Benefits
-                  </span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+
 
           {/* Compact Order Summary */}
           <motion.div 
@@ -612,13 +556,7 @@ export default function OrderSuccessPage() {
         </div>
       </div>
 
-      {/* Customer Registration Modal */}
-      <CustomerRegistrationModal 
-        isOpen={showRegistrationModal}
-        onClose={() => setShowRegistrationModal(false)}
-        onSuccess={handleRegistrationSuccess}
-        showLoginLink={false}
-      />
+
     </div>
   )
 } 

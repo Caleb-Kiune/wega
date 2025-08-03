@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from models import db
 from models.order import Order
-from models.customer import Customer
+
 from datetime import datetime
 import re
 
@@ -256,41 +256,4 @@ def update_order_status(order_id):
         db.session.rollback()
         return jsonify({'error': 'Failed to update order status'}), 500
 
-@order_tracking_bp.route('/api/orders/guest-migration/<session_id>', methods=['POST'])
-def migrate_guest_orders(session_id):
-    """Migrate guest orders to customer account"""
-    data = request.get_json()
-    customer_id = data.get('customer_id')
-    
-    if not customer_id:
-        return jsonify({'error': 'Customer ID is required'}), 400
-    
-    try:
-        # Find customer
-        customer = Customer.query.get(customer_id)
-        if not customer:
-            return jsonify({'error': 'Customer not found'}), 404
-        
-        # Find guest orders
-        orders = Order.query.filter_by(guest_session_id=session_id).all()
-        
-        if not orders:
-            return jsonify({'error': 'No guest orders found'}), 404
-        
-        # Migrate orders
-        migrated_count = 0
-        for order in orders:
-            order.customer_id = customer_id
-            order.guest_session_id = None
-            migrated_count += 1
-        
-        db.session.commit()
-        
-        return jsonify({
-            'message': 'Guest orders migrated successfully',
-            'migrated_orders': migrated_count
-        })
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': 'Failed to migrate guest orders'}), 500 
+ 

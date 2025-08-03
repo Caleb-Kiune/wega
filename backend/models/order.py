@@ -24,7 +24,7 @@ class Order(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
     
     # Customer relationship (optional for guest orders)
-    customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=True)
+    customer_id = db.Column(db.Integer, nullable=True)  # Removed foreign key constraint
     guest_session_id = db.Column(db.String(100), nullable=True, index=True)
 
     # Relationships
