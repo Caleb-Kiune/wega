@@ -38,6 +38,8 @@ import { cn } from "@/lib/utils"
 import { useCart } from "@/lib/hooks/use-cart"
 import { useWishlist } from "@/lib/hooks/use-wishlist"
 import { motion, AnimatePresence } from "framer-motion"
+import WishlistModal from "@/components/wishlist-modal"
+import MobileMenuModal from "@/components/mobile-menu-modal"
 
 interface Product {
   id: string;
@@ -56,7 +58,7 @@ interface Product {
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false)
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -211,7 +213,6 @@ export default function Header() {
   }
 
   const handleNavigationClick = () => {
-    setIsMobileMenuOpen(false)
     setIsAccountDropdownOpen(false)
     setIsMobileSearchOpen(false)
   }
@@ -369,19 +370,16 @@ export default function Header() {
           <div className="flex items-center justify-between pr-2 md:pr-0">
             {/* Mobile Menu Button - Left */}
             <div className="md:hidden">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="rounded-xl hover:bg-gray-100 transition-all duration-300"
-                aria-label="Toggle mobile menu"
-              >
-                {isMobileMenuOpen ? (
-                  <X className="h-5 w-5" />
-                ) : (
+              <MobileMenuModal>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="rounded-xl hover:bg-gray-100 transition-all duration-300"
+                  aria-label="Toggle mobile menu"
+                >
                   <Menu className="h-5 w-5" />
-                )}
-              </Button>
+                </Button>
+              </MobileMenuModal>
             </div>
 
             {/* Enhanced Logo - Left on Mobile, Center on Desktop */}
@@ -611,18 +609,19 @@ export default function Header() {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Link
-                        href="/wishlist"
-                        aria-label="Wishlist"
-                        className="text-gray-600 hover:text-red-500 p-3 rounded-xl hover:bg-red-50 relative transition-all duration-300 focus-visible:ring-4 focus-visible:ring-red-200 min-h-[48px] min-w-[48px] flex items-center justify-center group"
-                      >
-                        <Heart className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
-                        {wishlistItems.length > 0 && (
-                          <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
-                            {wishlistItems.length}
-                          </Badge>
-                        )}
-                      </Link>
+                      <WishlistModal>
+                        <div
+                          aria-label="Wishlist"
+                          className="text-gray-600 hover:text-red-500 p-3 rounded-xl hover:bg-red-50 relative transition-all duration-300 focus-visible:ring-4 focus-visible:ring-red-200 min-h-[48px] min-w-[48px] flex items-center justify-center group cursor-pointer"
+                        >
+                          <Heart className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
+                          {wishlistItems.length > 0 && (
+                            <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
+                              {wishlistItems.length}
+                            </Badge>
+                          )}
+                        </div>
+                      </WishlistModal>
                     </TooltipTrigger>
                     <TooltipContent>Wishlist</TooltipContent>
                   </Tooltip>
@@ -667,18 +666,16 @@ export default function Header() {
 
               {/* Mobile Wishlist Icon - Right */}
               <div className="md:hidden">
-                <Link
-                  href="/wishlist"
-                  className="text-gray-600 hover:text-red-500 p-2 rounded-xl hover:bg-red-50 relative transition-all duration-300 focus-visible:ring-4 focus-visible:ring-red-200 min-h-[40px] min-w-[40px] flex items-center justify-center group"
-                  aria-label="Wishlist"
-                >
-                  <Heart className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
-                  {wishlistItems.length > 0 && (
-                    <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1 py-0.5 rounded-full border-2 border-white">
-                      {wishlistItems.length}
-                    </Badge>
-                  )}
-                </Link>
+                <WishlistModal>
+                  <div className="text-gray-600 hover:text-red-500 p-2 rounded-xl hover:bg-red-50 relative transition-all duration-300 focus-visible:ring-4 focus-visible:ring-red-200 min-h-[40px] min-w-[40px] flex items-center justify-center group cursor-pointer">
+                    <Heart className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+                    {wishlistItems.length > 0 && (
+                      <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1 py-0.5 rounded-full border-2 border-white">
+                        {wishlistItems.length}
+                      </Badge>
+                    )}
+                  </div>
+                </WishlistModal>
               </div>
 
               {/* Mobile Cart Icon - Right */}
@@ -760,14 +757,7 @@ export default function Header() {
                             <span className="font-medium">Track Order</span>
                           </Link>
                           
-                          <Link
-                            href="/wishlist"
-                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group"
-                            onClick={() => setIsAccountDropdownOpen(false)}
-                          >
-                            <Heart className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                            <span className="font-medium">Wishlist</span>
-                          </Link>
+
                         </div>
                       </div>
                     </motion.div>
@@ -778,68 +768,7 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Enhanced Mobile Menu */}
-        <AnimatePresence>
-        {isMobileMenuOpen && (
-            <motion.div 
-              className="md:hidden bg-white border-t border-gray-200 shadow-2xl"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="container-responsive py-6">
-              {/* Mobile Navigation */}
-                <nav className="space-y-3">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={handleNavigationClick}
-                      className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-2xl transition-all duration-300 group"
-                  >
-                      <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-green-100 transition-colors duration-300">
-                    <item.icon className="h-5 w-5" />
-                      </div>
-                      <span className="font-medium">{item.name}</span>
-                  </Link>
-                ))}
-                
-                {/* Mobile Account Links */}
-                <div className="pt-4 space-y-3">
-                  
-                  <Link
-                    href="/track-order"
-                    onClick={handleNavigationClick}
-                    className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all duration-300 group"
-                  >
-                    <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-blue-100 transition-colors duration-300">
-                      <Package className="h-5 w-5" />
-                      </div>
-                    <span className="font-medium">Track Order</span>
-                  </Link>
 
-                  {/* Guest Mobile Menu */}
-                  <div className="border-t border-gray-200 pt-4 space-y-3">
-                    <Link
-                      href="/wishlist"
-                      onClick={handleNavigationClick}
-                      className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all duration-300 group"
-                    >
-                      <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-red-100 transition-colors duration-300">
-                        <Heart className="h-5 w-5" />
-                      </div>
-                      <span className="font-medium">Wishlist</span>
-                    </Link>
-                  </div>
-
-                  
-                </div>
-              </nav>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* Mobile Search Bar */}
         <AnimatePresence>

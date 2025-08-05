@@ -12,8 +12,11 @@ export interface Order {
   state: string
   postal_code: string
   total_amount: number
+  shipping_cost: number
   status: string
+  payment_status: string
   payment_method: string
+  notes?: string
   created_at: string
   updated_at: string
   items: any[]
