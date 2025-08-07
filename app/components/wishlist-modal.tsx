@@ -85,7 +85,7 @@ export default function WishlistModal({ children, className }: WishlistModalProp
           {children}
         </div>
       </SheetTrigger>
-      <SheetContent className="w-full sm:w-[400px] md:w-[500px] overflow-y-auto">
+      <SheetContent className="w-[85vw] sm:w-[400px] md:w-[500px] overflow-y-auto">
         <SheetHeader className="pb-4 border-b border-slate-200">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-xl font-semibold text-slate-900">
@@ -146,11 +146,12 @@ export default function WishlistModal({ children, className }: WishlistModalProp
                   {items.map((item, index) => (
                     <motion.div
                       key={item.id}
-                      className="bg-white rounded-lg border border-slate-200 p-4"
+                      className="bg-white rounded-lg border border-slate-200 p-4 hover:shadow-md transition-all duration-200 active:scale-[0.98]"
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -20 }}
                       transition={{ delay: index * 0.1 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       <div className="flex gap-3">
                         {/* Product Image */}
@@ -162,6 +163,7 @@ export default function WishlistModal({ children, className }: WishlistModalProp
                               fill
                               className="object-cover"
                               sizes="64px"
+                              loading="lazy"
                             />
                           </div>
                         </div>

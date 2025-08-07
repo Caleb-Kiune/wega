@@ -28,7 +28,7 @@ export default function MobileMenuModal({ children, className }: MobileMenuModal
           {children}
         </div>
       </SheetTrigger>
-      <SheetContent side="left" className="w-full sm:w-[350px] md:w-[400px] p-0">
+      <SheetContent side="left" className="w-[85vw] sm:w-[350px] md:w-[400px] p-0">
         <SheetHeader className="px-6 py-4 border-b border-slate-200">
           <SheetTitle className="text-xl font-semibold text-slate-900">
             Menu
@@ -52,7 +52,8 @@ export default function MobileMenuModal({ children, className }: MobileMenuModal
                   <Link
                     href={item.href}
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-4 px-4 py-3 text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all duration-200 group"
+                    className="flex items-center gap-4 px-4 py-3 text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all duration-200 group active:bg-slate-100"
+                    whileTap={{ scale: 0.98 }}
                   >
                     <div className={`p-2 rounded-lg group-hover:scale-110 transition-transform duration-200 ${item.bgColor}`}>
                       <item.icon className={`h-5 w-5 ${item.color}`} />

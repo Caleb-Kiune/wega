@@ -858,15 +858,23 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
              className={`w-full bg-white text-gray-800 hover:bg-gray-100 font-semibold rounded-lg min-h-[44px] border border-gray-200 flex items-center justify-center focus:ring-2 focus:ring-green-400 focus:outline-none active:scale-95 transition-transform ${isWishlisted ? 'border-green-500 text-green-600' : ''}`}
              onClick={() => {
                if (isWishlisted) {
-                 removeItem(String(product.id));
+                 removeFromWishlist(product.id);
                  toast.success(`${product.name} has been removed from your wishlist.`);
                } else {
-                 addItem({
-                   id: String(product.id),
+                 addToWishlist({
+                   id: product.id,
                    name: product.name,
                    price: product.price,
                    image: getImageUrl(primaryImage) || "/placeholder.svg",
+                   slug: product.slug,
+                   description: product.description,
                    category: product.category,
+                   brand: product.brand,
+                   stock: product.stock,
+                   originalPrice: product.original_price,
+                   images: product.images,
+                   specifications: product.specifications,
+                   features: product.features
                  });
                  toast.success(`${product.name} has been added to your wishlist.`);
                }
