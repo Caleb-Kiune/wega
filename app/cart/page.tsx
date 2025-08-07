@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Minus, Plus, X, ArrowRight, ShoppingBag } from "lucide-react"
+import { X, ArrowRight, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { QuantitySelector } from "@/components/ui/quantity-selector"
 import { useToast } from "@/lib/hooks/use-toast"
 import { useCart } from "@/lib/hooks/use-cart"
 
@@ -111,21 +112,15 @@ export default function CartPage() {
                         {/* Quantity */}
                         <div>
                           <span className="md:hidden font-medium text-gray-500 mr-2">Quantity:</span>
-                          <div className="flex items-center border rounded-md w-fit">
-                            <button
-                              className="px-3 py-2 text-gray-600 hover:text-gray-800 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                              onClick={() => handleQuantityChange(item.product?.id, item.quantity - 1)}
-                            >
-                              <Minus className="h-4 w-4" />
-                            </button>
-                            <span className="px-4 py-2 border-x min-h-[44px] flex items-center justify-center">{item.quantity}</span>
-                            <button
-                              className="px-3 py-2 text-gray-600 hover:text-gray-800 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                              onClick={() => handleQuantityChange(item.product?.id, item.quantity + 1)}
-                            >
-                              <Plus className="h-4 w-4" />
-                            </button>
-                          </div>
+                          <QuantitySelector
+                            value={item.quantity}
+                            onChange={(newQuantity) => handleQuantityChange(item.product?.id, newQuantity)}
+                            min={1}
+                            size="sm"
+                            variant="outline"
+                            showPresets={false}
+                            showInput={false}
+                          />
                         </div>
 
                         {/* Total */}

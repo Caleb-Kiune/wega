@@ -6,6 +6,7 @@ import Image from "next/image"
 import { ShoppingCart, Heart, Eye, Star, Sparkles, TrendingUp, ExternalLink, ShieldCheck, Truck, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { QuantitySelector } from "@/components/ui/quantity-selector"
 import { useCart } from "@/lib/hooks/use-cart"
 import { useWishlist } from "@/lib/hooks/use-wishlist"
 import { Product } from "@/lib/types"
@@ -41,19 +42,14 @@ const QuickViewModal = ({
   setSelectedImageIndex: (index: number) => void
   isInCart: boolean
   isWishlisted: boolean
-  onToggleCart: () => void
+  onToggleCart: () => void // This now only adds to cart
   onToggleWishlist: () => void
   quantity: number
   setQuantity: (quantity: number | ((prev: number) => number)) => void
 }) => {
   if (!isOpen) return null
 
-  const handleQuantityChange = (increment: boolean) => {
-    setQuantity((prev: number) => {
-      const newQuantity = increment ? prev + 1 : prev - 1
-      return Math.max(1, Math.min(newQuantity, product.stock))
-    })
-  }
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -183,28 +179,17 @@ const QuickViewModal = ({
                 {/* Quantity selector and Wishlist side by side */}
                 {product.stock > 0 && (
                   <div className="flex flex-row gap-2 mb-2 w-full">
-                    <div className="flex items-center gap-2 flex-1">
-                      <label className="block text-sm font-medium text-gray-700 product-feature sr-only mr-2">Qty</label>
-                      <Button
+                    <div className="flex-1">
+                      <QuantitySelector
+                        value={quantity}
+                        onChange={setQuantity}
+                        max={product.stock}
                         size="sm"
                         variant="outline"
-                        onClick={() => handleQuantityChange(false)}
-                        disabled={quantity <= 1}
-                        className="w-8 h-8 p-0 btn-product"
-                      >
-                        -
-                      </Button>
-                      <span className="w-10 text-center text-sm font-medium product-feature">{quantity}</span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleQuantityChange(true)}
-                        disabled={quantity >= product.stock}
-                        className="w-8 h-8 p-0 btn-product"
-                      >
-                        +
-                      </Button>
-                      <span className="text-xs text-gray-500 ml-2 product-feature">Max: {product.stock}</span>
+                        showPresets={false}
+                        showInput={false}
+                        className="product-feature"
+                      />
                     </div>
                     <Button
                       variant="outline"
@@ -221,15 +206,12 @@ const QuickViewModal = ({
                 <div className="flex flex-col sm:flex-row gap-2 w-full">
                   <Button
                     size="default"
-                    className={`w-full sm:w-1/2 ${isInCart 
-                      ? 'bg-green-500 hover:bg-green-600 text-white' 
-                      : 'bg-green-600 hover:bg-green-700 text-white'
-                    } btn-product`}
+                    className="w-full sm:w-1/2 bg-green-600 hover:bg-green-700 text-white btn-product"
                     onClick={onToggleCart}
                     disabled={product.stock === 0}
                   >
                     <ShoppingCart className="h-4 w-4 mr-2" />
-                    {isInCart ? 'Remove from Cart' : 'Add to Cart'}
+                    Add to Cart
                   </Button>
                   <WhatsAppOrderButton product={product} quantity={quantity} className="w-full sm:w-1/2" />
                 </div>
@@ -269,6 +251,24 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
 
   // Get primary image
   const primaryImage = product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url
+
+  const handleAddToCart = useCallback(async () => {
+    const cartItem = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: getImageUrl(primaryImage) || "/placeholder.svg",
+      quantity: quantity
+    }
+    
+    try {
+      await addToCart(cartItem)
+      toast.success(`${product.name} has been added to your cart.`)
+    } catch (error) {
+      console.error('Cart operation failed:', error)
+      toast.error("Failed to add item to cart. Please try again.")
+    }
+  }, [product, primaryImage, addToCart, quantity])
 
   const handleToggleCart = useCallback(async () => {
     const cartItem = {
@@ -689,7 +689,7 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
           setSelectedImageIndex={setSelectedImageIndex}
           isInCart={isInCart}
           isWishlisted={isWishlisted}
-          onToggleCart={handleToggleCart}
+          onToggleCart={handleAddToCart}
           onToggleWishlist={handleToggleWishlist}
           quantity={quantity}
           setQuantity={setQuantity}
@@ -823,14 +823,17 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
             {/* Divider (top) */}
             <div className="w-full border-t border-gray-100 mb-4" />
             {/* Quantity selector */}
-            <div className="flex items-center gap-4 mb-4">
-              <Button size="icon" variant="outline" className="rounded-full focus:ring-2 focus:ring-green-400 focus:outline-none active:scale-95 transition-transform" onClick={() => setMobileQuantity(q => Math.max(1, q - 1))} aria-label="Decrease quantity">
-                <span className="text-2xl font-bold">-</span>
-              </Button>
-              <span className="text-xl font-bold w-8 text-center">{mobileQuantity}</span>
-              <Button size="icon" variant="outline" className="rounded-full focus:ring-2 focus:ring-green-400 focus:outline-none active:scale-95 transition-transform" onClick={() => setMobileQuantity(q => Math.min(product.stock, q + 1))} aria-label="Increase quantity">
-                <span className="text-2xl font-bold">+</span>
-              </Button>
+            <div className="mb-4">
+              <QuantitySelector
+                value={mobileQuantity}
+                onChange={setMobileQuantity}
+                max={product.stock}
+                size="lg"
+                variant="outline"
+                showPresets={false}
+                showInput={true}
+                className="justify-center"
+              />
             </div>
             {/* Divider */}
             <div className="w-full border-t border-gray-100 mb-4" />

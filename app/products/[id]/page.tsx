@@ -4,9 +4,10 @@ import { useState, useEffect, use } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { Minus, Plus, Truck, ShieldCheck, Heart } from "lucide-react"
+import { Truck, ShieldCheck, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { QuantitySelector } from "@/components/ui/quantity-selector"
 import RelatedProductsCarousel from "@/components/related-products-carousel"
 import AddToCartButton from "@/components/add-to-cart-button"
 import WhatsAppOrderButton from "@/components/whatsapp-order-button"
@@ -74,12 +75,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     )
   }
 
-  const handleQuantityChange = (increment: boolean) => {
-    setQuantity((prev) => {
-      const newQuantity = increment ? prev + 1 : prev - 1
-      return Math.max(1, Math.min(newQuantity, product.stock))
-    })
-  }
+
 
   const handleWishlistClick = () => {
     if (isInWishlist(product.id)) {
@@ -209,22 +205,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 {/* Add to Cart */}
                 <div className="mb-4 sm:mb-6">
                   <div className="flex items-center mb-4">
-                    <div className="flex items-center border rounded-md mr-4">
-                      <button 
-                        className="px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                        onClick={() => handleQuantityChange(false)}
-                        disabled={quantity <= 1}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </button>
-                      <span className="px-4 py-2 border-x min-w-[60px] text-center">{quantity}</span>
-                      <button 
-                        className="px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                        onClick={() => handleQuantityChange(true)}
-                        disabled={quantity >= product.stock}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </button>
+                    <div className="mr-4">
+                      <QuantitySelector
+                        value={quantity}
+                        onChange={setQuantity}
+                        max={product.stock}
+                        size="md"
+                        variant="outline"
+                        showPresets={false}
+                        showInput={false}
+                      />
                     </div>
                     <button
                       onClick={handleWishlistClick}
