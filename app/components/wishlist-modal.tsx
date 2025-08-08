@@ -85,137 +85,132 @@ export default function WishlistModal({ children, className }: WishlistModalProp
           {children}
         </div>
       </SheetTrigger>
-      <SheetContent className="w-[85vw] sm:w-[400px] md:w-[500px] overflow-y-auto">
-        <SheetHeader className="pb-4 border-b border-slate-200">
-          <div className="flex items-center justify-between">
-            <SheetTitle className="text-xl font-semibold text-slate-900">
-              My Wishlist
-            </SheetTitle>
-            <div className="flex items-center gap-2">
-              {items.length > 0 && (
-                <Badge className="bg-red-500 text-white">
-                  {items.length}
-                </Badge>
-              )}
-            </div>
-          </div>
+      <SheetContent 
+        side="right" 
+        className="w-[400px] sm:w-[450px] md:w-[500px] p-0 border-l border-gray-200 bg-white"
+      >
+        <SheetHeader className="flex items-center justify-between p-6 border-b border-gray-200 bg-white">
+          <SheetTitle className="text-xl font-semibold text-gray-900 font-display">
+            My Wishlist
+          </SheetTitle>
         </SheetHeader>
 
-        <div className="flex-1 py-4">
-          <AnimatePresence>
-            {items.length === 0 ? (
-              <motion.div 
-                className="text-center py-12"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-              >
-                <Heart className="mx-auto h-12 w-12 text-slate-300 mb-4" />
-                <h3 className="text-lg font-medium text-slate-900 mb-2">
-                  Your wishlist is empty
-                </h3>
-                <p className="text-slate-600 mb-6">
-                  Add items to your wishlist to save them for later.
-                </p>
-                <Button 
-                  onClick={() => setIsOpen(false)}
-                  className="bg-emerald-600 hover:bg-emerald-700"
+        <div className="flex flex-col h-full">
+          {/* Content */}
+          <div className="flex-1 overflow-hidden">
+            <AnimatePresence>
+              {items.length === 0 ? (
+                <motion.div 
+                  className="flex flex-col items-center justify-center h-full p-6 text-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
                 >
-                  <ArrowRight className="w-4 h-4 mr-2" />
-                  Browse Products
-                </Button>
-              </motion.div>
-            ) : (
-              <div className="space-y-4">
-                {/* Clear All Button */}
-                <div className="flex justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleClearWishlist}
-                    disabled={isClearing}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  <Heart className="h-12 w-12 text-gray-300 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2 font-display">
+                    Your wishlist is empty
+                  </h3>
+                  <p className="text-gray-600 mb-6 max-w-sm">
+                    Add items to your wishlist to save them for later.
+                  </p>
+                  <Button 
+                    onClick={() => setIsOpen(false)}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
                   >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Clear All
+                    <ArrowRight className="w-4 h-4 mr-2" />
+                    Browse Products
                   </Button>
-                </div>
-
-                {/* Wishlist Items */}
-                <div className="space-y-3">
-                  {items.map((item, index) => (
-                    <motion.div
-                      key={item.id}
-                      className="bg-white rounded-lg border border-slate-200 p-4 hover:shadow-md transition-all duration-200 active:scale-[0.98]"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ delay: index * 0.1 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <div className="flex gap-3">
-                        {/* Product Image */}
-                        <div className="flex-shrink-0">
-                          <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200">
-                            <Image
-                              src={getImageUrl(item.product.image) || "/placeholder.svg"}
-                              alt={item.product.name}
-                              fill
-                              className="object-cover"
-                              sizes="64px"
-                              loading="lazy"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Product Details */}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-slate-900 truncate">
-                            {item.product.name}
-                          </h4>
-                          <p className="text-sm text-slate-600 mb-2">
-                            KES {item.product.price?.toLocaleString()}
-                          </p>
-                          
-                          {/* Action Buttons */}
-                          <div className="flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              onClick={() => handleAddToCart(item)}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                            >
-                              <ShoppingCart className="w-3 h-3 mr-1" />
-                              Add to Cart
-                            </Button>
-                            
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleRemoveItem(item.product_id, item.product.name)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-
-                {/* Footer Actions */}
-                <div className="pt-4 border-t border-slate-200">
-                  <div className="flex flex-col sm:flex-row gap-3">
+                </motion.div>
+              ) : (
+                <div className="flex flex-col h-full">
+                  {/* Clear All Button */}
+                  <div className="p-4 border-b border-gray-100">
                     <Button
-                      onClick={() => setIsOpen(false)}
-                      className="flex-1 bg-slate-900 hover:bg-slate-800"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleClearWishlist}
+                      disabled={isClearing}
+                      className="w-full border-emerald-600 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 font-medium"
                     >
-                      Continue Shopping
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Clear All
                     </Button>
-                    <Link href="/wishlist" className="flex-1">
+                  </div>
+
+                  {/* Wishlist Items */}
+                  <div className="flex-1 overflow-y-auto">
+                    <div className="p-4 space-y-4">
+                      {items.map((item, index) => (
+                        <motion.div
+                          key={item.id}
+                          className="bg-white border-t border-b border-gray-200 p-3 transition-all duration-200"
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          transition={{ delay: index * 0.1 }}
+                        >
+                          <div className="flex gap-3">
+                            {/* Product Image */}
+                            <div className="flex-shrink-0">
+                              <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
+                                <Image
+                                  src={getImageUrl(item.product.image) || "/placeholder.svg"}
+                                  alt={item.product.name}
+                                  fill
+                                  className="object-cover"
+                                  sizes="80px"
+                                  loading="lazy"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Product Details */}
+                            <div className="flex-1 min-w-0 flex flex-col justify-center h-20">
+                              <div className="flex items-start justify-between mb-1">
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <h4 className="font-medium text-gray-900 truncate text-sm leading-tight flex-1">
+                                      {item.product.name}
+                                    </h4>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleRemoveItem(item.product_id, item.product.name)}
+                                      className="h-6 w-6 p-0 text-red-600 rounded-md flex-shrink-0 ml-2"
+                                      title="Remove from wishlist"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                  <div className="flex items-center justify-between">
+                                    <p className="text-sm font-semibold text-emerald-600">
+                                      KES {item.product.price?.toLocaleString()}
+                                    </p>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleAddToCart(item)}
+                                      className="h-6 w-6 p-0 text-emerald-600 rounded-md flex-shrink-0 ml-2"
+                                      title="Add to cart"
+                                    >
+                                      Add
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* View Full Wishlist Button */}
+                  <div className="p-4 border-t border-gray-200 bg-gray-50">
+                    <Link href="/wishlist" className="block">
                       <Button
                         variant="outline"
-                        className="w-full"
+                        className="w-full border-gray-300 text-gray-700 hover:bg-white hover:border-gray-400 font-medium"
                         onClick={() => setIsOpen(false)}
                       >
                         View Full Wishlist
@@ -223,9 +218,9 @@ export default function WishlistModal({ children, className }: WishlistModalProp
                     </Link>
                   </div>
                 </div>
-              </div>
-            )}
-          </AnimatePresence>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
