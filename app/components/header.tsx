@@ -32,7 +32,10 @@ import {
   LogOut,
   Settings,
   UserCheck,
-  UserPlus
+  UserPlus,
+  Sparkles,
+  ChevronRight,
+  ArrowRight
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCart } from "@/lib/hooks/use-cart"
@@ -64,10 +67,18 @@ export default function Header() {
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<Product[]>([])
+  const [searchSuggestions, setSearchSuggestions] = useState<Array<{
+    text: string
+    type: 'product' | 'category' | 'brand'
+    count: number
+    priority: number
+  }>>([])
   const [showResults, setShowResults] = useState(false)
+  const [showSuggestions, setShowSuggestions] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
+
   const searchRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const accountDropdownRef = useRef<HTMLDivElement>(null)
@@ -115,51 +126,95 @@ export default function Header() {
     }
   }, [])
     
-  // Perform search with improved clearing logic
+  // Debounced search with suggestions
   useEffect(() => {
-    const performSearch = async () => {
-      // Clear results immediately when query is empty
-      if (!searchQuery.trim()) {
-        setSearchResults([])
-        setIsSearching(false)
-        return
+    const timeoutId = setTimeout(() => {
+      if (searchQuery.trim().length >= 2) {
+        fetchSearchSuggestions(searchQuery.trim())
+        setShowSuggestions(true)
+        setShowResults(false)
+      } else if (searchQuery.trim().length === 0 && isSearchFocused && recentSearches.length > 0) {
+        setShowSuggestions(true)
+        setShowResults(false)
+        setSearchSuggestions([])
+      } else {
+        setShowSuggestions(false)
+        setShowResults(false)
       }
+    }, 200)
 
-      // Only search if query has at least 2 characters
-      if (searchQuery.trim().length < 2) {
-        setSearchResults([])
-        setIsSearching(false)
-        return
-      }
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery, isSearchFocused, recentSearches])
 
-      setIsSearching(true)
-      
-      try {
-        // Make API call to search the full database
-        const response = await fetch(`/api/products?search=${encodeURIComponent(searchQuery.trim())}&limit=6`)
-        if (response.ok) {
-          const data = await response.json()
-          setSearchResults(data.products || [])
-        } else {
-          console.error('Search API call failed')
-          setSearchResults([])
-        }
-      } catch (error) {
-        console.error('Search API call error:', error)
+  // Debounced search results
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery.trim().length >= 2) {
+        performSearch()
+      } else {
+        setShowResults(false)
         setSearchResults([])
       }
-      
-      setIsSearching(false)
-    }
+    }, 300)
 
-    const timeoutId = setTimeout(performSearch, 300)
     return () => clearTimeout(timeoutId)
   }, [searchQuery])
+
+  const fetchSearchSuggestions = async (query: string) => {
+    try {
+      const response = await fetch(`/api/products/search-suggestions?q=${encodeURIComponent(query)}&limit=6`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.detailed_suggestions) {
+          setSearchSuggestions(data.detailed_suggestions)
+        } else {
+          setSearchSuggestions([])
+        }
+      } else {
+        setSearchSuggestions([])
+      }
+    } catch (error) {
+      console.error('Error fetching suggestions:', error)
+      setSearchSuggestions([])
+    }
+  }
+
+  const performSearch = async () => {
+    if (!searchQuery.trim() || searchQuery.trim().length < 2) return
+
+    setIsSearching(true)
+    setShowResults(true)
+    setShowSuggestions(false)
+
+    try {
+      const response = await fetch(`/api/products?search=${encodeURIComponent(searchQuery.trim())}&limit=6`)
+      if (response.ok) {
+        const data = await response.json()
+        setSearchResults(data.products || [])
+      } else {
+        setSearchResults([])
+      }
+    } catch (error) {
+      console.error('Search error:', error)
+      setSearchResults([])
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  const handleSuggestionClick = (suggestion: { text: string; type: string; count: number; priority: number }) => {
+    const query = suggestion.text.replace(' (Category)', '').replace(' (Brand)', '')
+    setSearchQuery(query)
+    // Navigate to products page with search query (matching desktop behavior)
+    window.location.href = `/products?search=${encodeURIComponent(query)}`
+  }
 
   // Enhanced clear search function
   const clearSearch = () => {
     setSearchQuery("")
     setSearchResults([])
+    setShowSuggestions(false)
+    setShowResults(false)
     setIsSearching(false)
     // Focus back to input for better UX
     if (searchInputRef.current) {
@@ -172,7 +227,6 @@ export default function Header() {
     // Clear search with Escape key
     if (e.key === 'Escape') {
       clearSearch()
-      setShowResults(false)
       e.preventDefault()
     }
     
@@ -234,6 +288,7 @@ export default function Header() {
 
   const handleSearchResultClick = () => {
     setShowResults(false)
+    setShowSuggestions(false)
     setSearchQuery("")
   }
 
@@ -248,6 +303,7 @@ export default function Header() {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowResults(false)
+        setShowSuggestions(false)
         setIsSearchFocused(false)
       }
       
@@ -266,6 +322,22 @@ export default function Header() {
     if (!url) return null
     if (url.startsWith('http')) return url
     return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${url}`
+  }
+
+  // Highlight search terms in text
+  const highlightText = (text: string, query: string) => {
+    if (!query || query.length < 2) return text
+    
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
+    const parts = text.split(regex)
+    
+    return parts.map((part, index) => 
+      regex.test(part) ? (
+        <mark key={index} className="bg-yellow-200 font-semibold rounded px-1">
+          {part}
+        </mark>
+      ) : part
+    )
   }
 
   const navigation = [
@@ -382,7 +454,7 @@ export default function Header() {
         <div className="container-responsive">
           <div className="flex items-center justify-between pr-2 md:pr-0">
             {/* Mobile Menu Button - Left */}
-            <div className="md:hidden">
+            <div className="md:hidden flex items-center gap-2">
               <MobileMenuModal>
                 <Button 
                   variant="ghost" 
@@ -459,7 +531,14 @@ export default function Header() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onFocus={() => {
                           setIsSearchFocused(true)
-                          setShowResults(true)
+                          // Only show suggestions if there's a query or if we have recent searches
+                          if (searchQuery.trim().length >= 2) {
+                            setShowSuggestions(true)
+                            setShowResults(false)
+                          } else if (searchQuery.trim().length === 0 && recentSearches.length > 0) {
+                            setShowSuggestions(true)
+                            setShowResults(false)
+                          }
                         }}
                         onBlur={() => setIsSearchFocused(false)}
                         onKeyDown={handleSearchKeyDown}
@@ -489,9 +568,91 @@ export default function Header() {
                 
                 {/* Enhanced search results dropdown */}
                 <AnimatePresence>
+                  {showSuggestions && !showResults && (
+                    <motion.div 
+                      className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 mt-2 max-h-96 overflow-y-auto md:max-w-none max-w-[calc(100vw-2rem)]"
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {searchQuery.trim().length >= 2 && searchSuggestions.length > 0 ? (
+                        <div className="p-2">
+                          {/* Search Suggestions */}
+                          <div className="mb-3">
+                            <h3 className="text-sm font-semibold text-gray-700 px-3 py-2 flex items-center gap-2">
+                              <Sparkles className="h-4 w-4 text-green-500" />
+                              Suggestions ({searchSuggestions.length})
+                            </h3>
+                            {searchSuggestions.map((suggestion, index) => (
+                              <motion.div
+                                key={index}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.2, delay: index * 0.05 }}
+                              >
+                                <button
+                                  onClick={() => handleSuggestionClick(suggestion)}
+                                  className="w-full text-left flex items-center p-4 hover:bg-gray-50 rounded-xl transition-all duration-200 group"
+                                >
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-gray-900 group-hover:text-green-700 transition-colors">
+                                      {highlightText(suggestion.text, searchQuery)}
+                                    </div>
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      {suggestion.type.charAt(0).toUpperCase() + suggestion.type.slice(1)} • {suggestion.count} items
+                                    </div>
+                                  </div>
+                                  <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-green-500 transition-colors" />
+                                </button>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : searchQuery.trim().length === 0 ? (
+                        <div className="p-4 space-y-4">
+                          {/* Recent Searches */}
+                          {recentSearches.length > 0 && (
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                                  <Clock className="h-4 w-4 text-green-500" />
+                                  Recent Searches
+                                </h3>
+                                <button
+                                  onClick={clearRecentSearches}
+                                  className="text-xs text-gray-500 hover:text-red-500 transition-colors"
+                                >
+                                  Clear All
+                                </button>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                {recentSearches.map((search, index) => (
+                                  <button
+                                    key={index}
+                                    onClick={() => handleSearchClick(search)}
+                                    className="p-2 text-center bg-gray-100 hover:bg-green-100 hover:text-green-700 text-gray-700 rounded-lg transition-all duration-200 hover:scale-105 text-sm font-medium flex items-center gap-2 justify-center"
+                                  >
+                                    <Clock className="h-3 w-3 text-gray-400" />
+                                    {search}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <Search className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                          <p className="text-gray-500 text-sm">Type at least 2 characters to see suggestions</p>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+
                   {showResults && (
                     <motion.div 
-                      className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 mt-2 max-h-96 overflow-y-auto"
+                      className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 mt-2 max-h-96 overflow-y-auto md:max-w-none max-w-[calc(100vw-2rem)]"
                       initial={{ opacity: 0, y: -10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -506,7 +667,7 @@ export default function Header() {
                         <div className="p-2">
                           {/* Search Results */}
                           <div className="mb-3">
-                            <h3 className="text-sm font-semibold text-gray-700 px-3 py-2">Products {searchResults.length}</h3>
+                            <h3 className="text-sm font-semibold text-gray-700 px-3 py-2">Products ({searchResults.length})</h3>
                             {searchResults.map((product, index) => (
                               <motion.div
                                 key={product.id}
@@ -527,8 +688,15 @@ export default function Header() {
                                     />
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <div className="font-semibold text-gray-900 truncate">{product.name}</div>
+                                    <div className="font-semibold text-gray-900 truncate">
+                                      {highlightText(product.name, searchQuery)}
+                                    </div>
                                     <div className="text-sm text-green-600 font-medium">KES {product.price.toLocaleString()}</div>
+                                    {product.category && (
+                                      <div className="text-xs text-gray-500 mt-1">
+                                        {highlightText(product.category, searchQuery)}
+                                      </div>
+                                    )}
                                   </div>
                                   {product.rating && product.rating > 0 && (
                                     <div className="flex items-center text-yellow-400">
@@ -549,55 +717,18 @@ export default function Header() {
                                 onClick={handleSearch}
                                 className="w-full text-sm font-medium text-green-600 hover:text-green-700 transition-colors py-2"
                               >
-                                View all results ({searchResults.length})
+                                View All Results
                               </button>
                             </div>
                           </div>
                         </div>
                       ) : searchQuery.trim().length >= 2 ? (
-                        <div className="p-6 text-center text-gray-500">
-                          <Search className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                          <p className="font-medium">No products found</p>
-                          <p className="text-sm">Try different keywords</p>
+                        <div className="text-center py-8">
+                          <Search className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                          <h3 className="text-gray-600 font-medium mb-2">No products found</h3>
+                          <p className="text-gray-500 text-sm">Try adjusting your search terms</p>
                         </div>
-                      ) : searchQuery.trim().length > 0 ? (
-                        <div className="p-6 text-center text-gray-500">
-                          <div className="flex items-center justify-center gap-2 mb-2">
-                            <Loader2 className="h-5 w-5 animate-spin text-green-600" />
-                            <span className="text-sm text-gray-600">Searching...</span>
-                          </div>
-                          <p className="text-xs text-gray-400">Type at least 2 characters</p>
-                        </div>
-                      ) : (
-                        <div className="p-4">
-                          {/* Recent Searches */}
-                          {recentSearches.length > 0 && (
-                            <div className="mb-4">
-                              <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-sm font-semibold text-gray-700">Recent Searches</h3>
-                                <button
-                                  onClick={clearRecentSearches}
-                                  className="text-xs text-gray-500 hover:text-red-500 transition-colors"
-                                >
-                                  Clear all
-                                </button>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                {recentSearches.map((search, index) => (
-                                  <button
-                                    key={index}
-                                    onClick={() => handleSearchClick(search)}
-                                    className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-green-100 text-gray-700 hover:text-green-700 rounded-full text-sm transition-all duration-200"
-                                  >
-                                    <ClockIcon className="h-3 w-3" />
-                                    {search}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      ) : null}
                     </motion.div>
                   )}
                 </AnimatePresence>

@@ -184,6 +184,19 @@ export const productsApi = {
     }
     return await response.json();
   },
+
+  getSearchSuggestions: async (query: string, limit: number = 10) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/products/search-suggestions?q=${encodeURIComponent(query)}&limit=${limit}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch search suggestions');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching search suggestions:', error);
+      return { suggestions: [], detailed_suggestions: [], type: 'error' };
+    }
+  },
   
   getById: async (id: number) => {
     console.log('🔄 API getById - Fetching product ID:', id);

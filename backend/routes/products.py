@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app
-from sqlalchemy import or_, and_, case, func
+from sqlalchemy import or_, and_, case, func, literal
 from decimal import Decimal
 from models import db, Product, Category, Brand, ProductImage, ProductSpecification, ProductFeature, Review
 from utils.helpers import validate_product_data, validate_review_data, validate_image_data, validate_specification_data, validate_feature_data, paginate, format_image_url
@@ -27,47 +27,146 @@ def get_price_stats():
                 'total_products': 0
             })
         
-        # Get price distribution for better suggestions
+        # Get price distribution
         price_ranges = [
-            {'label': 'Under KES 5K', 'min': 0, 'max': 5000},
-            {'label': 'KES 5K - 10K', 'min': 5000, 'max': 10000},
-            {'label': 'KES 10K - 20K', 'min': 10000, 'max': 20000},
-            {'label': 'KES 20K - 50K', 'min': 20000, 'max': 50000},
-            {'label': 'Over KES 50K', 'min': 50000, 'max': float('inf')}
+            (0, 1000, 'Under KES 1,000'),
+            (1000, 5000, 'KES 1,000 - 5,000'),
+            (5000, 15000, 'KES 5,000 - 15,000'),
+            (15000, 30000, 'KES 15,000 - 30,000'),
+            (30000, 50000, 'Over KES 30,000')
         ]
         
         distribution = []
-        for price_range in price_ranges:
-            if price_range['max'] == float('inf'):
-                count = db.session.query(Product).filter(
-                    Product.price >= price_range['min']
-                ).count()
-            else:
-                count = db.session.query(Product).filter(
-                    and_(
-                        Product.price >= price_range['min'],
-                        Product.price < price_range['max']
-                    )
-                ).count()
-            
+        for min_price, max_price, label in price_ranges:
+            count = db.session.query(Product).filter(
+                Product.price >= min_price,
+                Product.price < max_price if max_price < 50000 else Product.price >= max_price
+            ).count()
             distribution.append({
-                'label': price_range['label'],
-                'min': price_range['min'],
-                'max': price_range['max'] if price_range['max'] != float('inf') else None,
-                'count': count
+                'range': label,
+                'count': count,
+                'min_price': min_price,
+                'max_price': max_price
             })
         
         return jsonify({
             'min_price': float(stats.min_price),
             'max_price': float(stats.max_price),
-            'avg_price': float(stats.avg_price),
+            'avg_price': float(stats.avg_price) if stats.avg_price else 0,
             'total_products': stats.total_products,
             'distribution': distribution
         })
-        
     except Exception as e:
         current_app.logger.error(f"Error getting price stats: {str(e)}")
         return jsonify({'error': 'Failed to get price statistics'}), 500
+
+@products_bp.route('/api/products/search-suggestions', methods=['GET'])
+def get_search_suggestions():
+    """Get search suggestions for autocomplete"""
+    try:
+        query = request.args.get('q', '').strip()
+        limit = min(int(request.args.get('limit', 10)), 20)  # Max 20 suggestions
+        
+        current_app.logger.info(f"Search suggestions called with query: '{query}', limit: {limit}")
+        
+        if not query or len(query) < 2:
+            return jsonify({
+                'suggestions': [],
+                'detailed_suggestions': [],
+                'type': 'error',
+                'message': 'Query must be at least 2 characters'
+            })
+        
+        # Search in product names, categories, and brands
+        suggestions = []
+        
+        try:
+            # Product name suggestions
+            current_app.logger.info("Querying product names...")
+            product_suggestions = db.session.query(Product.name).filter(
+                Product.name.ilike(f'%{query}%')
+            ).limit(limit // 2).all()
+            current_app.logger.info(f"Found {len(product_suggestions)} product suggestions")
+            
+            for suggestion in product_suggestions:
+                suggestions.append({
+                    'text': suggestion.name,
+                    'type': 'product',
+                    'count': 1,
+                    'priority': 1
+                })
+        except Exception as e:
+            current_app.logger.error(f"Error in product suggestions: {str(e)}")
+            raise e
+        
+        try:
+            # Category suggestions
+            current_app.logger.info("Querying categories...")
+            category_suggestions = db.session.query(Product.category).filter(
+                Product.category.is_not(None),
+                Product.category.ilike(f'%{query}%')
+            ).distinct().limit(limit // 4).all()
+            current_app.logger.info(f"Found {len(category_suggestions)} category suggestions")
+            
+            for suggestion in category_suggestions:
+                suggestions.append({
+                    'text': f"{suggestion.category} (Category)",
+                    'type': 'category',
+                    'count': 1,
+                    'priority': 2
+                })
+        except Exception as e:
+            current_app.logger.error(f"Error in category suggestions: {str(e)}")
+            raise e
+        
+        try:
+            # Brand suggestions
+            current_app.logger.info("Querying brands...")
+            brand_suggestions = db.session.query(Product.brand).filter(
+                Product.brand.is_not(None),
+                Product.brand.is_not(''),
+                Product.brand.ilike(f'%{query}%')
+            ).distinct().limit(limit // 4).all()
+            current_app.logger.info(f"Found {len(brand_suggestions)} brand suggestions")
+            
+            for suggestion in brand_suggestions:
+                suggestions.append({
+                    'text': f"{suggestion.brand} (Brand)",
+                    'type': 'brand',
+                    'count': 1,
+                    'priority': 3
+                })
+        except Exception as e:
+            current_app.logger.error(f"Error in brand suggestions: {str(e)}")
+            raise e
+        
+        # Sort by priority, then limit
+        suggestions.sort(key=lambda x: x['priority'])
+        suggestions = suggestions[:limit]
+        
+        current_app.logger.info(f"Total suggestions found: {len(suggestions)}")
+        
+        # Create simple suggestions list for backward compatibility
+        simple_suggestions = [s['text'] for s in suggestions]
+        
+        return jsonify({
+            'suggestions': simple_suggestions,
+            'detailed_suggestions': suggestions,
+            'type': 'success',
+            'query': query,
+            'total': len(suggestions)
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f"Error getting search suggestions: {str(e)}")
+        current_app.logger.error(f"Error type: {type(e)}")
+        current_app.logger.error(f"Error details: {e}")
+        return jsonify({
+            'suggestions': [],
+            'detailed_suggestions': [],
+            'type': 'error',
+            'message': 'Failed to get search suggestions'
+        }), 500
 
 @products_bp.route('/api/products', methods=['GET'])
 def get_products():
