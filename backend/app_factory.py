@@ -47,6 +47,7 @@ def create_app(config_name='default'):
     from routes.admin import admin_bp
     from routes.auth import auth_bp
     from routes.order_tracking import order_tracking_bp
+    from routes.customer_auth import customer_auth_bp
 
     
     app.register_blueprint(products_bp)
@@ -61,6 +62,7 @@ def create_app(config_name='default'):
     app.register_blueprint(admin_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(order_tracking_bp)
+    app.register_blueprint(customer_auth_bp)
 
     
     # Register main routes

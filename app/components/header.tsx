@@ -808,8 +808,18 @@ export default function Header() {
                 </WishlistModal>
               </div>
 
-              {/* Mobile Cart Icon - Right */}
-              <div className="md:hidden">
+              {/* Mobile Account & Cart Icons - Right */}
+              <div className="md:hidden flex items-center gap-2">
+                {/* Mobile Account Button */}
+                <Link
+                  href="/customer/login"
+                  className="text-gray-600 hover:text-green-600 p-2 rounded-xl hover:bg-green-50 transition-all duration-300 focus-visible:ring-4 focus-visible:ring-green-200 min-h-[40px] min-w-[40px] flex items-center justify-center group"
+                  aria-label="Account"
+                >
+                  <User className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+                </Link>
+                
+                {/* Mobile Cart Icon */}
                 <CartModal>
                   <div className="text-gray-600 hover:text-orange-500 p-2 rounded-xl hover:bg-orange-50 relative transition-all duration-300 focus-visible:ring-4 focus-visible:ring-orange-200 min-h-[40px] min-w-[40px] flex items-center justify-center group cursor-pointer">
                     <ShoppingCart className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
@@ -885,7 +895,27 @@ export default function Header() {
                             <span className="font-medium">Track Order</span>
                           </Link>
                           
-
+                          {/* Divider */}
+                          <div className="border-t border-gray-200 my-2"></div>
+                          
+                          {/* Customer Authentication Links */}
+                          <Link
+                            href="/customer/login"
+                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 group"
+                            onClick={() => setIsAccountDropdownOpen(false)}
+                          >
+                            <UserCheck className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                            <span className="font-medium">Sign In</span>
+                          </Link>
+                          
+                          <Link
+                            href="/customer/register"
+                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 group"
+                            onClick={() => setIsAccountDropdownOpen(false)}
+                          >
+                            <UserPlus className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                            <span className="font-medium">Create Account</span>
+                          </Link>
                         </div>
                       </div>
                     </motion.div>

@@ -5,7 +5,7 @@ import re
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import request, jsonify, current_app, session
-from models import AdminUser, db
+from models import AdminUser, CustomerUser, db
 
 def generate_csrf_token():
     """Generate a CSRF token"""
@@ -86,7 +86,7 @@ def verify_token(token, token_type='access'):
         return None, str(e)
 
 def get_current_user():
-    """Get current user from JWT token"""
+    """Get current user from JWT token (works with both admin and customer users)"""
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         return None
@@ -97,11 +97,30 @@ def get_current_user():
     if error:
         return None
     
-    user = AdminUser.query.get(payload['user_id'])
+    user_id = payload['user_id']
+    role = payload.get('role', '')
+    
+    # Try to find user based on role
+    if role == 'customer':
+        user = CustomerUser.query.get(user_id)
+    else:
+        user = AdminUser.query.get(user_id)
+    
     if not user or not user.is_active:
         return None
     
+    # Add user_id to request for easy access
+    request.user_id = user_id
+    request.user_role = role
+    
     return user
+
+def get_current_customer():
+    """Get current customer user from JWT token"""
+    user = get_current_user()
+    if user and hasattr(user, 'email_verified'):  # CustomerUser has email_verified
+        return user
+    return None
 
 def require_auth(f):
     """Decorator to require authentication"""
@@ -112,6 +131,19 @@ def require_auth(f):
             return jsonify({
                 'error': 'Unauthorized',
                 'message': 'Authentication required'
+            }), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
+def require_customer_auth(f):
+    """Decorator to require customer authentication"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user = get_current_customer()
+        if not user:
+            return jsonify({
+                'error': 'Unauthorized',
+                'message': 'Customer authentication required'
             }), 401
         return f(*args, **kwargs)
     return decorated_function
@@ -154,7 +186,11 @@ def require_csrf(f):
 def update_last_login(user_id):
     """Update user's last login timestamp"""
     try:
+        # Try to find user in both tables
         user = AdminUser.query.get(user_id)
+        if not user:
+            user = CustomerUser.query.get(user_id)
+        
         if user:
             user.last_login = datetime.utcnow()
             db.session.commit()

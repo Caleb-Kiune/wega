@@ -18,6 +18,7 @@ from .delivery_location import DeliveryLocation
 from .order import Order
 from .order_item import OrderItem
 from .admin_user import AdminUser
+from .customer_user import CustomerUser
 
 # Re-export all models
 __all__ = [
@@ -35,5 +36,6 @@ __all__ = [
 
     'Order',
     'OrderItem',
-    'AdminUser'
+    'AdminUser',
+    'CustomerUser'
 ] 

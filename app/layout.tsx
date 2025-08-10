@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/sonner"
 import WhatsAppChat from "@/components/whatsapp-chat"
 import { Providers } from "./providers"
 import { AuthProvider } from '@/contexts/auth-context'
+import { CustomerAuthProvider } from '@/contexts/customer-auth-context'
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -97,28 +98,30 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${playfair.variable}`} suppressHydrationWarning>
       <body className={`${inter.className} antialiased font-sans`} suppressHydrationWarning>
         <AuthProvider>
-          <Providers>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="light"
-              enableSystem
-              disableTransitionOnChange
-              storageKey="wega-theme"
-            >
-              <div className="flex min-h-screen flex-col">
-                <Header />
-                <main className="flex-1">{children}</main>
-                <Footer />
-              </div>
-              <WhatsAppChat />
-              <Toaster 
-                position="bottom-right"
-                richColors
-                closeButton
-                duration={4000}
-              />
-            </ThemeProvider>
-          </Providers>
+          <CustomerAuthProvider>
+            <Providers>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="light"
+                enableSystem
+                disableTransitionOnChange
+                storageKey="wega-theme"
+              >
+                <div className="flex min-h-screen flex-col">
+                  <Header />
+                  <main className="flex-1">{children}</main>
+                  <Footer />
+                </div>
+                <WhatsAppChat />
+                <Toaster 
+                  position="bottom-right"
+                  richColors
+                  closeButton
+                  duration={4000}
+                />
+              </ThemeProvider>
+            </Providers>
+          </CustomerAuthProvider>
         </AuthProvider>
       </body>
     </html>

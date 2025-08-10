@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Home, ShoppingBag, Package } from "lucide-react"
+import { Home, ShoppingBag, Package, UserCheck, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import Link from "next/link"
@@ -16,6 +16,11 @@ const navigation = [
   { name: 'Home', href: '/', icon: Home, color: 'text-green-600', bgColor: 'bg-green-50' },
   { name: 'Shop', href: '/products', icon: ShoppingBag, color: 'text-blue-600', bgColor: 'bg-blue-50' },
   { name: 'Track Order', href: '/track-order', icon: Package, color: 'text-orange-600', bgColor: 'bg-orange-50' },
+]
+
+const authNavigation = [
+  { name: 'Sign In', href: '/customer/login', icon: UserCheck, color: 'text-green-600', bgColor: 'bg-green-50' },
+  { name: 'Create Account', href: '/customer/register', icon: UserPlus, color: 'text-green-600', bgColor: 'bg-green-50' },
 ]
 
 export default function MobileMenuModal({ children, className }: MobileMenuModalProps) {
@@ -48,6 +53,33 @@ export default function MobileMenuModal({ children, className }: MobileMenuModal
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Link
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-4 px-4 py-3 text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all duration-200 group active:bg-slate-100"
+                  >
+                    <div className={`p-2 rounded-lg group-hover:scale-110 transition-transform duration-200 ${item.bgColor}`}>
+                      <item.icon className={`h-5 w-5 ${item.color}`} />
+                    </div>
+                    <span className="font-medium">{item.name}</span>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Customer Authentication */}
+            <div className="space-y-2 mt-6">
+              <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">
+                Account
+              </h3>
+              {authNavigation.map((item, index) => (
+                <motion.div
+                  key={item.name}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: (index + navigation.length) * 0.1 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <Link

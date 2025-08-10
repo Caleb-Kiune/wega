@@ -16,7 +16,9 @@ def index():
             'cart': '/api/cart',
             'orders': '/api/orders',
             'delivery': '/api/delivery-locations',
-            'upload': '/api/upload'
+            'upload': '/api/upload',
+            'customer_auth': '/api/customer/auth',
+            'admin_auth': '/api/auth'
         }
     })
 
