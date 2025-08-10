@@ -48,12 +48,12 @@ export default function MobileMenuModal({ children, className }: MobileMenuModal
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   <Link
                     href={item.href}
                     onClick={() => setIsOpen(false)}
                     className="flex items-center gap-4 px-4 py-3 text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all duration-200 group active:bg-slate-100"
-                    whileTap={{ scale: 0.98 }}
                   >
                     <div className={`p-2 rounded-lg group-hover:scale-110 transition-transform duration-200 ${item.bgColor}`}>
                       <item.icon className={`h-5 w-5 ${item.color}`} />

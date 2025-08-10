@@ -66,33 +66,111 @@
   }
   
   h1 {
-    @apply text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-display font-bold;
+    @apply text-4xl font-display font-bold;
     letter-spacing: -0.02em;
+  }
+  
+  @media (min-width: 640px) {
+    h1 {
+      @apply text-5xl;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    h1 {
+      @apply text-6xl;
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    h1 {
+      @apply text-7xl;
+    }
   }
   
   h2 {
-    @apply text-3xl sm:text-4xl lg:text-5xl font-display font-bold;
+    @apply text-3xl font-display font-bold;
     letter-spacing: -0.02em;
   }
   
+  @media (min-width: 640px) {
+    h2 {
+      @apply text-4xl;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    h2 {
+      @apply text-5xl;
+    }
+  }
+  
   h3 {
-    @apply text-2xl sm:text-3xl lg:text-4xl font-display font-semibold;
+    @apply text-2xl font-display font-semibold;
     letter-spacing: -0.01em;
+  }
+  
+  @media (min-width: 640px) {
+    h3 {
+      @apply text-3xl;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    h3 {
+      @apply text-4xl;
+    }
   }
   
   h4 {
-    @apply text-xl sm:text-2xl lg:text-3xl font-display font-semibold;
+    @apply text-xl font-display font-semibold;
     letter-spacing: -0.01em;
+  }
+  
+  @media (min-width: 640px) {
+    h4 {
+      @apply text-2xl;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    h4 {
+      @apply text-3xl;
+    }
   }
   
   h5 {
-    @apply text-lg sm:text-xl lg:text-2xl font-display font-medium;
+    @apply text-lg font-display font-medium;
     letter-spacing: -0.01em;
   }
   
+  @media (min-width: 640px) {
+    h5 {
+      @apply text-xl;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    h5 {
+      @apply text-2xl;
+    }
+  }
+  
   h6 {
-    @apply text-base sm:text-lg lg:text-xl font-display font-medium;
+    @apply text-base font-display font-medium;
     letter-spacing: -0.01em;
+  }
+  
+  @media (min-width: 640px) {
+    h6 {
+      @apply text-lg;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    h6 {
+      @apply text-xl;
+    }
   }
   
   /* Premium Product Titles */
@@ -413,5 +491,404 @@
 
   .text-shadow-strong {
     text-shadow: 0 4px 24px rgba(0,0,0,0.7), 0 1.5px 0 rgba(0,0,0,0.5);
+  }
+}
+
+@layer components {
+  /* Cart Modal Specific Styles - Optimized for Space */
+  .cart-modal-content {
+    @apply flex flex-col h-full;
+  }
+  
+  .cart-modal-header {
+    @apply flex-shrink-0;
+  }
+  
+  .cart-modal-body {
+    @apply flex flex-col flex-1 min-h-0;
+  }
+  
+  .cart-modal-items {
+    @apply flex-1 overflow-y-auto min-h-0;
+  }
+  
+  .cart-modal-footer {
+    @apply flex-shrink-0 border-t border-gray-200 bg-gray-50 shadow-lg;
+  }
+  
+  .cart-modal-buttons {
+    @apply grid grid-cols-1 xs:grid-cols-2 gap-2;
+  }
+  
+  /* Wishlist Modal Specific Styles - Consistent with Cart Modal */
+  .wishlist-modal-content {
+    @apply flex flex-col h-full;
+  }
+  
+  .wishlist-modal-header {
+    @apply flex-shrink-0;
+  }
+  
+  .wishlist-modal-body {
+    @apply flex flex-col flex-1 min-h-0;
+  }
+  
+  .wishlist-modal-items {
+    @apply flex-1 overflow-y-auto min-h-0;
+  }
+  
+  .wishlist-modal-footer {
+    @apply flex-shrink-0 border-t border-gray-200 bg-gray-50 shadow-lg;
+  }
+  
+  .wishlist-modal-buttons {
+    @apply grid grid-cols-1 xs:grid-cols-2 gap-2;
+  }
+  
+  /* Ensure cart modal buttons are always visible */
+  .cart-modal .cart-modal-footer {
+    @apply sticky bottom-0 z-10;
+  }
+  
+  /* Ensure wishlist modal buttons are always visible */
+  .wishlist-modal .wishlist-modal-footer {
+    @apply sticky bottom-0 z-10;
+  }
+  
+  /* Responsive button layout - Side by side on larger screens */
+  @media (min-width: 475px) {
+    .cart-modal-buttons,
+    .wishlist-modal-buttons {
+      @apply grid-cols-2;
+    }
+  }
+  
+  /* Enhanced cart item styling - Compact */
+  .cart-item {
+    @apply bg-white border border-gray-200 rounded-lg p-2 transition-all duration-200 hover:shadow-sm;
+  }
+  
+  .cart-item:hover {
+    @apply shadow-md border-gray-300;
+  }
+  
+  /* Enhanced wishlist item styling - Compact */
+  .wishlist-item {
+    @apply bg-white border border-gray-200 rounded-lg p-2 transition-all duration-200 hover:shadow-sm;
+  }
+  
+  .wishlist-item:hover {
+    @apply shadow-md border-gray-300;
+  }
+  
+  /* Cart quantity selector improvements */
+  .cart-quantity-selector {
+    @apply flex items-center gap-1;
+  }
+  
+  .cart-quantity-selector button {
+    @apply w-6 h-6 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200;
+  }
+  
+  .cart-quantity-selector input {
+    @apply w-8 h-6 text-center text-sm border-0 bg-transparent focus:outline-none focus:ring-0;
+  }
+  
+  /* Additional cart modal fixes - Space Optimized */
+  .cart-modal {
+    @apply flex flex-col;
+    height: 100vh;
+    max-height: 100vh;
+  }
+  
+  .cart-modal .cart-modal-body {
+    @apply flex-1 overflow-hidden;
+  }
+  
+  .cart-modal .cart-modal-items {
+    @apply flex-1 overflow-y-auto;
+    max-height: calc(100vh - 140px); /* Further reduced for side-by-side buttons */
+  }
+  
+  .cart-modal .cart-modal-footer {
+    @apply flex-shrink-0;
+    position: sticky;
+    bottom: 0;
+    background: rgb(249 250 251); /* bg-gray-50 */
+    z-index: 10;
+  }
+  
+  /* Additional wishlist modal fixes - Space Optimized */
+  .wishlist-modal {
+    @apply flex flex-col;
+    height: 100vh;
+    max-height: 100vh;
+  }
+  
+  .wishlist-modal .wishlist-modal-body {
+    @apply flex-1 overflow-hidden;
+  }
+  
+  .wishlist-modal .wishlist-modal-items {
+    @apply flex-1 overflow-y-auto;
+    max-height: calc(100vh - 140px); /* Further reduced for side-by-side buttons */
+  }
+  
+  .wishlist-modal .wishlist-modal-footer {
+    @apply flex-shrink-0;
+    position: sticky;
+    bottom: 0;
+    background: rgb(249 250 251); /* bg-gray-50 */
+    z-index: 10;
+  }
+  
+  /* Ensure buttons are always visible on mobile */
+  @media (max-width: 640px) {
+    .cart-modal .cart-modal-footer,
+    .wishlist-modal .wishlist-modal-footer {
+      @apply sticky bottom-0;
+      box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  /* Fix for very small screens - More space for items */
+  @media (max-height: 600px) {
+    .cart-modal .cart-modal-items,
+    .wishlist-modal .wishlist-modal-items {
+      max-height: calc(100vh - 120px); /* Further reduced for side-by-side buttons */
+    }
+  }
+  
+  /* Compact header for more item space */
+  .cart-modal .cart-modal-header,
+  .wishlist-modal .wishlist-modal-header {
+    @apply flex-shrink-0;
+    min-height: 60px; /* Reduced from default */
+  }
+  
+  /* Optimized item spacing */
+  .cart-modal .cart-modal-items .space-y-2 > * + *,
+  .wishlist-modal .wishlist-modal-items .space-y-2 > * + * {
+    margin-top: 0.5rem; /* Reduced from 0.75rem */
+  }
+  
+  /* Side-by-side button optimization */
+  .cart-modal .cart-modal-footer .grid,
+  .wishlist-modal .wishlist-modal-footer .grid {
+    @apply gap-2;
+  }
+  
+  /* Button height optimization for side-by-side layout */
+  .cart-modal .cart-modal-footer button,
+  .wishlist-modal .wishlist-modal-footer button {
+    @apply h-10; /* Consistent height for side-by-side alignment */
+  }
+  
+  /* Theme-specific color overrides for consistent theming */
+  .cart-modal .text-green-600 {
+    color: rgb(22 163 74); /* green-600 */
+  }
+  
+  .cart-modal .bg-green-500 {
+    background-color: rgb(34 197 94); /* green-500 */
+  }
+  
+  .cart-modal .bg-green-600 {
+    background-color: rgb(22 163 74); /* green-600 */
+  }
+  
+  .cart-modal .hover\:bg-green-700:hover {
+    background-color: rgb(21 128 61); /* green-700 */
+  }
+  
+  .wishlist-modal .text-red-600 {
+    color: rgb(220 38 38); /* red-600 */
+  }
+  
+  .wishlist-modal .bg-red-500 {
+    background-color: rgb(239 68 68); /* red-500 */
+  }
+  
+  .wishlist-modal .bg-red-600 {
+    background-color: rgb(220 38 38); /* red-600 */
+  }
+  
+  .wishlist-modal .hover\:bg-red-700:hover {
+    background-color: rgb(185 28 28); /* red-700 */
+  }
+  
+  .wishlist-modal .border-red-600 {
+    border-color: rgb(220 38 38); /* red-600 */
+  }
+  
+  .wishlist-modal .hover\:bg-red-50:hover {
+    background-color: rgb(254 242 242); /* red-50 */
+  }
+  
+  .wishlist-modal .hover\:text-red-700:hover {
+    color: rgb(185 28 28); /* red-700 */
+  }
+  
+  /* Enhanced Wishlist Item Button Layout */
+  .wishlist-modal .wishlist-item .wishlist-action-buttons {
+    min-width: 28px; /* Ensure consistent button area for smaller buttons */
+  }
+  
+  .wishlist-modal .wishlist-item button[title="Remove from Wishlist"],
+  .wishlist-modal .wishlist-item button[title="Add to Cart"] {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: rgb(254 242 242); /* red-50 */
+    color: rgb(220 38 38); /* red-600 */
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.75rem; /* text-xs */
+    font-weight: 500;
+  }
+  
+  .wishlist-modal .wishlist-item button[title="Remove from Wishlist"]:hover,
+  .wishlist-modal .wishlist-item button[title="Add to Cart"]:hover {
+    background-color: rgb(254 226 226); /* red-100 */
+    color: rgb(185 28 28); /* red-700 */
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+  }
+  
+  .wishlist-modal .wishlist-item button[title="Remove from Wishlist"]:focus,
+  .wishlist-modal .wishlist-item button[title="Add to Cart"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgb(239 68 68), 0 0 0 1px rgb(255 255 255);
+  }
+  
+  .wishlist-modal .wishlist-item button[title="Remove from Wishlist"]:active,
+  .wishlist-modal .wishlist-item button[title="Add to Cart"]:active {
+    background-color: rgb(254 226 226); /* red-100 */
+    color: rgb(153 27 27); /* red-800 */
+    transform: scale(0.95);
+  }
+  
+  /* Added to Cart State - Green Theme */
+  .wishlist-modal .wishlist-item button[title="Item added to cart"] {
+    background-color: rgb(240 253 244); /* green-50 */
+    color: rgb(22 163 74); /* green-600 */
+    border: 1px solid transparent;
+    cursor: default;
+  }
+  
+  .wishlist-modal .wishlist-item button[title="Item added to cart"]:hover {
+    background-color: rgb(240 253 244); /* green-50 */
+    color: rgb(22 163 74); /* green-600 */
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .wishlist-modal .wishlist-item button[title="Item added to cart"]:focus {
+    outline: none;
+    box-shadow: none;
+  }
+  
+  .wishlist-modal .wishlist-item button[title="Item added to cart"]:active {
+    background-color: rgb(240 253 244); /* green-50 */
+    color: rgb(22 163 74); /* green-600 */
+    transform: none;
+  }
+  
+  /* Loading State for Add to Cart */
+  .wishlist-modal .wishlist-item .wishlist-loading-button {
+    background-color: rgb(249 250 251); /* gray-50 */
+    border: 1px solid rgb(229 231 235); /* gray-200 */
+    width: 28px;
+    height: 28px;
+  }
+  
+  /* Ensure proper touch targets on mobile */
+  @media (max-width: 640px) {
+    .wishlist-modal .wishlist-item button[title="Remove from Wishlist"],
+    .wishlist-modal .wishlist-item button[title="Add to Cart"] {
+      width: 32px;
+      height: 32px;
+      min-height: 32px;
+      min-width: 32px;
+    }
+    
+    .wishlist-modal .wishlist-item .wishlist-loading-button {
+      width: 32px;
+      height: 32px;
+    }
+    
+    .wishlist-modal .wishlist-item .wishlist-action-buttons {
+      min-width: 32px;
+    }
+  }
+}
+
+/* Mobile-First Partial Overlay Modals */
+@media (max-width: 640px) {
+  .cart-modal,
+  .wishlist-modal {
+    /* Ensure smooth transitions for partial overlay */
+    transition: width 0.3s ease-in-out;
+    
+    /* Mobile-specific optimizations */
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+    
+    /* Ensure content doesn't overflow on small screens */
+    overflow-x: hidden;
+  }
+  
+  /* Optimize touch interactions on mobile */
+  .cart-modal .cart-modal-items,
+  .wishlist-modal .wishlist-items {
+    /* Ensure smooth scrolling on mobile */
+    -webkit-overflow-scrolling: touch;
+    
+    /* Optimize padding for mobile */
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  /* Mobile-optimized button sizing */
+  .cart-modal .cart-modal-buttons button,
+  .wishlist-modal .wishlist-modal-buttons button {
+    min-height: 2.5rem; /* 40px for better touch targets */
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* Tablet and Desktop Enhancements */
+@media (min-width: 640px) {
+  .cart-modal,
+  .wishlist-modal {
+    /* Enhanced shadows for larger screens */
+    box-shadow: -8px 0 30px rgba(0, 0, 0, 0.1);
+    
+    /* Smooth width transitions */
+    transition: width 0.3s ease-in-out;
+  }
+}
+
+/* Ensure consistent behavior across all breakpoints */
+.cart-modal,
+.wishlist-modal {
+  /* Maintain aspect ratio and readability */
+  max-height: 100vh;
+  
+  /* Smooth animations */
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
   }
 }

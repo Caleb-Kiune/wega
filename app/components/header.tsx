@@ -39,6 +39,7 @@ import { useCart } from "@/lib/hooks/use-cart"
 import { useWishlist } from "@/lib/hooks/use-wishlist"
 import { motion, AnimatePresence } from "framer-motion"
 import WishlistModal from "@/components/wishlist-modal"
+import CartModal from "@/components/cart-modal"
 import MobileMenuModal from "@/components/mobile-menu-modal"
 
 interface Product {
@@ -630,25 +631,16 @@ export default function Header() {
 
               {/* Desktop Cart Icon */}
               <div className="hidden md:flex items-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link
-                        href="/cart"
-                        aria-label="Cart"
-                        className="text-gray-600 hover:text-orange-500 p-3 rounded-xl hover:bg-orange-50 relative transition-all duration-300 focus-visible:ring-4 focus-visible:ring-orange-200 min-h-[48px] min-w-[48px] flex items-center justify-center group"
-                      >
-                        <ShoppingCart className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
-                        {cartCount > 0 && (
-                          <Badge className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
-                            {cartCount}
-                          </Badge>
-                        )}
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent>Cart</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <CartModal>
+                  <div className="text-gray-600 hover:text-orange-500 p-3 rounded-xl hover:bg-orange-50 relative transition-all duration-300 focus-visible:ring-4 focus-visible:ring-orange-200 min-h-[48px] min-w-[48px] flex items-center justify-center group cursor-pointer">
+                    <ShoppingCart className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
+                    {cartCount > 0 && (
+                      <Badge className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full border-2 border-white">
+                        {cartCount}
+                      </Badge>
+                    )}
+                  </div>
+                </CartModal>
               </div>
 
               {/* Mobile Search Icon - Right */}
@@ -680,18 +672,16 @@ export default function Header() {
 
               {/* Mobile Cart Icon - Right */}
               <div className="md:hidden">
-                <Link
-                  href="/cart"
-                  className="text-gray-600 hover:text-orange-500 p-2 rounded-xl hover:bg-orange-50 relative transition-all duration-300 focus-visible:ring-4 focus-visible:ring-orange-200 min-h-[40px] min-w-[40px] flex items-center justify-center group"
-                  aria-label="Cart"
-                >
-                  <ShoppingCart className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
-                  {cartCount > 0 && (
-                    <Badge className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1 py-0.5 rounded-full border-2 border-white">
-                      {cartCount}
-                    </Badge>
-                  )}
-                </Link>
+                <CartModal>
+                  <div className="text-gray-600 hover:text-orange-500 p-2 rounded-xl hover:bg-orange-50 relative transition-all duration-300 focus-visible:ring-4 focus-visible:ring-orange-200 min-h-[40px] min-w-[40px] flex items-center justify-center group cursor-pointer">
+                    <ShoppingCart className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+                    {cartCount > 0 && (
+                      <Badge className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1 py-0.5 rounded-full border-2 border-white">
+                        {cartCount}
+                      </Badge>
+                    )}
+                  </div>
+                </CartModal>
               </div>
 
               {/* Desktop Account Dropdown */}
