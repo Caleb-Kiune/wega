@@ -273,6 +273,26 @@ def delete_order(id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
+@orders_bp.route('/api/create-tables', methods=['POST'])
+def create_tables():
+    """Create all database tables (one-time use)"""
+    try:
+        from models import db
+        
+        # Create all tables
+        db.create_all()
+        
+        return jsonify({
+            'message': 'Database tables created successfully!',
+            'details': 'All required tables are now available'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'error': 'Failed to create tables',
+            'details': str(e)
+        }), 500
+
 @orders_bp.route('/api/seed-database', methods=['POST'])
 def seed_database():
     """Seed the database with initial data (one-time use)"""
