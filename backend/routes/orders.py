@@ -271,4 +271,29 @@ def delete_order(id):
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500 
+        return jsonify({'error': str(e)}), 500
+
+@orders_bp.route('/api/seed-database', methods=['POST'])
+def seed_database():
+    """Seed the database with initial data (one-time use)"""
+    try:
+        # Import seeding functions
+        import sys
+        import os
+        sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'scripts'))
+        
+        from seed import seed_database as seed_func
+        
+        # Run the seeding function
+        seed_func()
+        
+        return jsonify({
+            'message': 'Database seeded successfully!',
+            'details': 'Added categories, brands, products, delivery locations, and sample data'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'error': 'Failed to seed database',
+            'details': str(e)
+        }), 500 
