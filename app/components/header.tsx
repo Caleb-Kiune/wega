@@ -808,18 +808,8 @@ export default function Header() {
                 </WishlistModal>
               </div>
 
-              {/* Mobile Account & Cart Icons - Right */}
-              <div className="md:hidden flex items-center gap-2">
-                {/* Mobile Account Button */}
-                <Link
-                  href="/customer/login"
-                  className="text-gray-600 hover:text-green-600 p-2 rounded-xl hover:bg-green-50 transition-all duration-300 focus-visible:ring-4 focus-visible:ring-green-200 min-h-[40px] min-w-[40px] flex items-center justify-center group"
-                  aria-label="Account"
-                >
-                  <User className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
-                </Link>
-                
-                {/* Mobile Cart Icon */}
+              {/* Mobile Cart Icon - Right */}
+              <div className="md:hidden">
                 <CartModal>
                   <div className="text-gray-600 hover:text-orange-500 p-2 rounded-xl hover:bg-orange-50 relative transition-all duration-300 focus-visible:ring-4 focus-visible:ring-orange-200 min-h-[40px] min-w-[40px] flex items-center justify-center group cursor-pointer">
                     <ShoppingCart className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
