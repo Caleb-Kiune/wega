@@ -363,4 +363,51 @@ def fix_product_images():
         return jsonify({
             'error': 'Failed to update product images',
             'details': str(e)
+        }), 500
+
+@orders_bp.route('/api/fix-product-images-placeholder', methods=['POST'])
+def fix_product_images_placeholder():
+    """Fix product images to use working placeholder images"""
+    try:
+        from models import Product, ProductImage
+        
+        # Working placeholder images that actually exist
+        placeholder_urls = {
+            1: "https://via.placeholder.com/400x300/4F46E5/FFFFFF?text=Kitchenware+1",
+            2: "https://via.placeholder.com/400x300/059669/FFFFFF?text=Appliances+1", 
+            3: "https://via.placeholder.com/400x300/DC2626/FFFFFF?text=Home+Essentials+1",
+            4: "https://via.placeholder.com/400x300/7C3AED/FFFFFF?text=Appliances+2",
+            5: "https://via.placeholder.com/400x300/EA580C/FFFFFF?text=Home+Essentials+2",
+            6: "https://via.placeholder.com/400x300/16A34A/FFFFFF?text=Tableware+1",
+            7: "https://via.placeholder.com/400x300/0891B2/FFFFFF?text=Home+Essentials+3",
+            8: "https://via.placeholder.com/400x300/9333EA/FFFFFF?text=Home+Essentials+4"
+        }
+        
+        updated_count = 0
+        
+        for product_id, placeholder_url in placeholder_urls.items():
+            product = Product.query.get(product_id)
+            if product:
+                # Update main image URL
+                product.image_url = placeholder_url
+                
+                # Update product images
+                for product_image in product.images:
+                    product_image.image_url = placeholder_url
+                
+                updated_count += 1
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Product images updated with placeholder URLs!',
+            'details': f'Updated {updated_count} products with working placeholder images',
+            'placeholder_urls': placeholder_urls
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'error': 'Failed to update product images',
+            'details': str(e)
         }), 500 
