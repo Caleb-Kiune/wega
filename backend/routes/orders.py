@@ -59,7 +59,9 @@ def create_order():
             subtotal = sum(float(item.product.price) * item.quantity for item in cart_items)
         
         # Calculate shipping cost (0 for pickup, actual cost for delivery)
-        shipping_cost = float(delivery_location.shipping_price) if delivery_location and delivery_location.shipping_price else 0.0
+        shipping_cost = 0.0
+        if delivery_location and delivery_location.shipping_price:
+            shipping_cost = float(delivery_location.shipping_price)
         total_amount = subtotal + shipping_cost
         
         # Determine payment status based on payment method
@@ -85,7 +87,8 @@ def create_order():
             notes=data.get('notes'),
             payment_method=payment_method,
             status='pending',
-            payment_status=payment_status
+            payment_status=payment_status,
+            guest_session_id=data.get('session_id')  # Map session_id to guest_session_id
         )
         
         db.session.add(order)
