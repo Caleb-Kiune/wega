@@ -47,15 +47,27 @@ def seed_database():
         try:
             if 'postgresql' in str(db.engine.url):
                 print("🗄️  Using PostgreSQL - executing TRUNCATE commands...")
+                # Clear in proper order to avoid foreign key violations
+                db.session.execute('TRUNCATE TABLE order_items CASCADE')
+                db.session.execute('TRUNCATE TABLE orders CASCADE')
+                db.session.execute('TRUNCATE TABLE cart_items CASCADE')
+                db.session.execute('TRUNCATE TABLE cart CASCADE')
+                db.session.execute('TRUNCATE TABLE reviews CASCADE')
                 db.session.execute('TRUNCATE TABLE product_features CASCADE')
                 db.session.execute('TRUNCATE TABLE product_specifications CASCADE')
                 db.session.execute('TRUNCATE TABLE product_images CASCADE')
-                db.session.execute('TRUNCATE TABLE reviews CASCADE')
                 db.session.execute('TRUNCATE TABLE products CASCADE')
                 db.session.execute('TRUNCATE TABLE categories CASCADE')
                 db.session.execute('TRUNCATE TABLE brands CASCADE')
             else:
                 print("🗄️  Using SQLite - executing DELETE commands...")
+                # Clear in proper order to avoid foreign key violations
+                from models import OrderItem, Order, CartItem, Cart, Review
+                OrderItem.query.delete()
+                Order.query.delete()
+                CartItem.query.delete()
+                Cart.query.delete()
+                Review.query.delete()
                 ProductImage.query.delete()
                 ProductFeature.query.delete()
                 ProductSpecification.query.delete()
