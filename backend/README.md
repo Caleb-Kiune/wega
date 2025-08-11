@@ -234,4 +234,4 @@ Configuration is managed through the `config.py` file and environment variables.
 
 ## 📄 License
 
-This project is part of the Wega Kitchenware platform. 
+This project is part of the Wega Kitchenware platform. # Force fresh Railway build - Mon Aug 11 11:16:27 EAT 2025
