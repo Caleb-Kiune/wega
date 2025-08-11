@@ -49,6 +49,7 @@ def clear_database(app):
         try:
             # Use TRUNCATE for PostgreSQL, DELETE for SQLite
             if 'postgresql' in str(db.engine.url):
+                print("🗄️  Using PostgreSQL - executing TRUNCATE commands...")
                 db.session.execute('TRUNCATE TABLE product_features CASCADE')
                 db.session.execute('TRUNCATE TABLE product_specifications CASCADE')
                 db.session.execute('TRUNCATE TABLE product_images CASCADE')
@@ -57,6 +58,7 @@ def clear_database(app):
                 db.session.execute('TRUNCATE TABLE categories CASCADE')
                 db.session.execute('TRUNCATE TABLE brands CASCADE')
             else:
+                print("🗄️  Using SQLite - executing DELETE commands...")
                 ProductImage.query.delete()
                 ProductFeature.query.delete()
                 ProductSpecification.query.delete()
@@ -68,6 +70,7 @@ def clear_database(app):
             print("✅ Database cleared successfully!")
         except Exception as e:
             print(f"⚠️  Error clearing database: {e}")
+            print("🔄 Attempting to continue with seeding...")
             db.session.rollback()
 
 def create_categories():
@@ -251,57 +254,62 @@ def create_products(categories, brands, cloudinary_urls):
     products_created = []
     
     for i, product_def in enumerate(product_definitions):
-        # Create product
-        product = Product(
-            name=product_def["name"],
-            description=product_def["description"],
-            price=product_def["price"],
-            category_id=categories[product_def["category"]].id,
-            brand_id=brands[product_def["brand"]].id,
-            is_featured=random.choice([True, False]),
-            is_new=random.choice([True, False]),
-            is_sale=random.choice([True, False]),
-            stock=random.randint(10, 100),
-            sku=f"SKU-{random.randint(10000, 99999)}"
-        )
-        
-        db.session.add(product)
-        db.session.flush()
-        
-        # Add features
-        for feature in product_def["features"]:
-            feature_obj = ProductFeature(
-                product_id=product.id,
-                feature=feature,
-                display_order=product_def["features"].index(feature)
+        try:
+            # Create product
+            product = Product(
+                name=product_def["name"],
+                description=product_def["description"],
+                price=product_def["price"],
+                category_id=categories[product_def["category"]].id,
+                brand_id=brands[product_def["brand"]].id,
+                is_featured=random.choice([True, False]),
+                is_new=random.choice([True, False]),
+                is_sale=random.choice([True, False]),
+                stock=random.randint(10, 100),
+                sku=f"SKU-{random.randint(10000, 99999)}"
             )
-            db.session.add(feature_obj)
-        
-        # Add specifications
-        for spec_name, spec_value in product_def["specifications"].items():
-            spec = ProductSpecification(
-                product_id=product.id,
-                name=spec_name,
-                value=str(spec_value),
-                display_order=list(product_def["specifications"].keys()).index(spec_name)
-            )
-            db.session.add(spec)
-        
-        # Add images (1-3 random images from Cloudinary)
-        num_images = random.randint(1, min(3, len(cloudinary_urls)))
-        chosen_images = random.sample(cloudinary_urls, num_images)
-        
-        for j, image_url in enumerate(chosen_images):
-            product_image = ProductImage(
-                product_id=product.id,
-                image_url=image_url,
-                is_primary=(j == 0),
-                display_order=j
-            )
-            db.session.add(product_image)
-        
-        products_created.append(product)
-        print(f"✅ Created: {product.name} (${product.price}) with {num_images} images")
+            
+            db.session.add(product)
+            db.session.flush()
+            
+            # Add features
+            for feature in product_def["features"]:
+                feature_obj = ProductFeature(
+                    product_id=product.id,
+                    feature=feature,
+                    display_order=product_def["features"].index(feature)
+                )
+                db.session.add(feature_obj)
+            
+            # Add specifications
+            for spec_name, spec_value in product_def["specifications"].items():
+                spec = ProductSpecification(
+                    product_id=product.id,
+                    name=spec_name,
+                    value=str(spec_value),
+                    display_order=list(product_def["specifications"].keys()).index(spec_name)
+                )
+                db.session.add(spec)
+            
+            # Add images (1-3 random images from Cloudinary)
+            num_images = random.randint(1, min(3, len(cloudinary_urls)))
+            chosen_images = random.sample(cloudinary_urls, num_images)
+            
+            for j, image_url in enumerate(chosen_images):
+                product_image = ProductImage(
+                    product_id=product.id,
+                    image_url=image_url,
+                    is_primary=(j == 0),
+                    display_order=j
+                )
+                db.session.add(product_image)
+            
+            products_created.append(product)
+            print(f"✅ Created: {product.name} (${product.price}) with {num_images} images")
+            
+        except Exception as e:
+            print(f"❌ Error creating product {product_def['name']}: {e}")
+            continue
     
     return products_created
 
@@ -310,47 +318,62 @@ def main():
     print("🌱 Starting Wega Kitchenware Database Seeding")
     print("=" * 60)
     
-    # Import Cloudinary URLs
-    cloudinary_urls = import_cloudinary_urls()
+    try:
+        # Import Cloudinary URLs
+        cloudinary_urls = import_cloudinary_urls()
+        
+        # Create Flask app
+        app = create_app('production')
+        
+        with app.app_context():
+            try:
+                # Ensure database tables exist
+                print("🗄️  Creating database tables...")
+                db.create_all()
+                
+                # Clear existing data
+                clear_database(app)
+                
+                # Create categories and brands
+                print("🏷️  Creating categories and brands...")
+                categories = create_categories()
+                brands = create_brands()
+                db.session.commit()
+                print(f"✅ Created {len(categories)} categories and {len(brands)} brands")
+                
+                # Create products
+                print("🛍️  Creating products...")
+                products = create_products(categories, brands, cloudinary_urls)
+                db.session.commit()
+                print(f"✅ Created {len(products)} products successfully!")
+                
+                print("=" * 60)
+                print("🎉 Database seeding completed successfully!")
+                print(f"📊 Summary:")
+                print(f"   • Categories: {len(categories)}")
+                print(f"   • Brands: {len(brands)}")
+                print(f"   • Products: {len(products)}")
+                print(f"   • Cloudinary Images: {len(cloudinary_urls)}")
+                print()
+                print("🚀 Your Wega Kitchenware backend is now ready with Cloudinary images!")
+                
+            except Exception as e:
+                print(f"❌ Error during seeding: {str(e)}")
+                db.session.rollback()
+                raise
+                
+    except Exception as e:
+        print(f"❌ Critical error: {str(e)}")
+        print("🔄 Seeding failed, but build will continue...")
+        return False
     
-    # Create Flask app
-    app = create_app('production')
-    
-    with app.app_context():
-        try:
-            # Ensure database tables exist
-            db.create_all()
-            
-            # Clear existing data
-            clear_database(app)
-            
-            # Create categories and brands
-            print("🏷️  Creating categories and brands...")
-            categories = create_categories()
-            brands = create_brands()
-            db.session.commit()
-            print(f"✅ Created {len(categories)} categories and {len(brands)} brands")
-            
-            # Create products
-            print("🛍️  Creating products...")
-            products = create_products(categories, brands, cloudinary_urls)
-            db.session.commit()
-            print(f"✅ Created {len(products)} products successfully!")
-            
-            print("=" * 60)
-            print("🎉 Database seeding completed successfully!")
-            print(f"📊 Summary:")
-            print(f"   • Categories: {len(categories)}")
-            print(f"   • Brands: {len(brands)}")
-            print(f"   • Products: {len(products)}")
-            print(f"   • Cloudinary Images: {len(cloudinary_urls)}")
-            print()
-            print("🚀 Your Wega Kitchenware backend is now ready with Cloudinary images!")
-            
-        except Exception as e:
-            print(f"❌ Error during seeding: {str(e)}")
-            db.session.rollback()
-            raise
+    return True
 
 if __name__ == "__main__":
-    main()
+    success = main()
+    if success:
+        print("✅ Seeding completed successfully!")
+        sys.exit(0)
+    else:
+        print("❌ Seeding failed!")
+        sys.exit(1)

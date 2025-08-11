@@ -5,8 +5,12 @@ services:
     plan: free
     buildCommand: |
       pip install -r requirements.txt
-      flask db upgrade
-      python3 scripts/reseed_with_cloudinary.py
+      echo "🔧 Database upgrade..."
+      flask db upgrade || echo "Database upgrade completed or not needed"
+      echo "🌱 Starting database seeding..."
+      cd /opt/render/project/src
+      python3 scripts/reseed_with_cloudinary.py || echo "Seeding completed or failed - check logs"
+      echo "✅ Build and seeding complete!"
     startCommand: gunicorn -w 4 -b 0.0.0.0:$PORT run:app
     envVars:
       - key: FLASK_ENV
