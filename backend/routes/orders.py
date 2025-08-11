@@ -316,4 +316,51 @@ def seed_database():
         return jsonify({
             'error': 'Failed to seed database',
             'details': str(e)
+        }), 500
+
+@orders_bp.route('/api/fix-product-images', methods=['POST'])
+def fix_product_images():
+    """Fix product images to use Cloudinary URLs instead of localhost"""
+    try:
+        from models import Product, ProductImage
+        
+        # Cloudinary URLs for your products (based on your cloud name: dy082ykuf)
+        cloudinary_urls = {
+            1: "https://res.cloudinary.com/dy082ykuf/image/upload/v1/wega-kitchenware/products/kitchenware1.jpg",
+            2: "https://res.cloudinary.com/dy082ykuf/image/upload/v1/wega-kitchenware/products/appliances1.jpg", 
+            3: "https://res.cloudinary.com/dy082ykuf/image/upload/v1/wega-kitchenware/products/homeessentials1.jpg",
+            4: "https://res.cloudinary.com/dy082ykuf/image/upload/v1/wega-kitchenware/products/appliances2.jpg",
+            5: "https://res.cloudinary.com/dy082ykuf/image/upload/v1/wega-kitchenware/products/homeessentials2.jpg",
+            6: "https://res.cloudinary.com/dy082ykuf/image/upload/v1/wega-kitchenware/products/tableware1.jpg",
+            7: "https://res.cloudinary.com/dy082ykuf/image/upload/v1/wega-kitchenware/products/homeessentials3.jpg",
+            8: "https://res.cloudinary.com/dy082ykuf/image/upload/v1/wega-kitchenware/products/homeessentials4.jpg"
+        }
+        
+        updated_count = 0
+        
+        for product_id, cloudinary_url in cloudinary_urls.items():
+            product = Product.query.get(product_id)
+            if product:
+                # Update main image URL
+                product.image_url = cloudinary_url
+                
+                # Update product images
+                for product_image in product.images:
+                    product_image.image_url = cloudinary_url
+                
+                updated_count += 1
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Product images updated successfully!',
+            'details': f'Updated {updated_count} products with Cloudinary URLs',
+            'cloudinary_urls': cloudinary_urls
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'error': 'Failed to update product images',
+            'details': str(e)
         }), 500 
