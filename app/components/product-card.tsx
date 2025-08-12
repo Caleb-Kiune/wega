@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import OptimizedImage from "./optimized-image"
 import { ShoppingCart, Heart, Eye, Star, Sparkles, TrendingUp, ExternalLink, ShieldCheck, Truck, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -79,7 +80,7 @@ const QuickViewModal = ({
           {/* Image Section */}
           <div className="w-full lg:w-72 p-4 flex-shrink-0">
             <div className="relative aspect-square bg-gray-50 rounded-lg overflow-hidden mb-3">
-              <Image
+              <OptimizedImage
                 src={getImageUrl(product.images?.[selectedImageIndex]?.image_url || product.images?.[0]?.image_url)}
                 alt={product.name}
                 fill
@@ -100,7 +101,7 @@ const QuickViewModal = ({
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <Image
+                    <OptimizedImage
                       src={getImageUrl(image.image_url)}
                       alt={`${product.name} - Image ${index + 1}`}
                       fill
@@ -354,18 +355,15 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
   // Common image component
   const ProductImage = () => (
     <div className="relative aspect-[4/3] w-full bg-gray-50 overflow-hidden">
-      <Image 
-        src={getImageUrl(primaryImage) || "/placeholder.svg"} 
+      <OptimizedImage
+        src={getImageUrl(primaryImage) || "/placeholder.svg"}
         alt={`${product.name} product image`}
-        fill 
+        fill
         className="object-cover transition-all duration-500 group-hover:scale-110"
-        loading="lazy"
         sizes={viewMode === 'list' 
           ? "(max-width: 768px) 100vw, 224px"
           : "(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 25vw"
         }
-        placeholder="blur"
-        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
         onLoad={() => setImageLoaded(true)}
         onError={handleImageError}
       />
@@ -479,15 +477,12 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
               {/* Enhanced Image Section */}
               <div className="relative sm:w-48 lg:w-56 xl:w-64 flex-shrink-0">
                 <div className="relative aspect-[4/3] w-full bg-gray-50 overflow-hidden">
-                  <Image 
-                    src={getImageUrl(primaryImage) || "/placeholder.svg"} 
+                  <OptimizedImage
+                    src={getImageUrl(primaryImage) || "/placeholder.svg"}
                     alt={`${product.name} product image`}
-                    fill 
+                    fill
                     className="object-cover transition-all duration-500 group-hover:scale-110"
-                    loading="lazy"
                     sizes="(max-width: 640px) 100vw, (max-width: 768px) 224px, (max-width: 1024px) 224px, 256px"
-                    placeholder="blur"
-                    blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                     onLoad={() => setImageLoaded(true)}
                     onError={handleImageError}
                   />

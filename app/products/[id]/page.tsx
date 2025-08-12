@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
+import OptimizedImage from "@/components/optimized-image"
 import Link from "next/link"
 import { Truck, ShieldCheck, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -130,7 +131,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <div className="flex flex-col items-center h-full w-full">
               {/* Main Large Image - Reduced height for better proportions */}
               <div className="relative w-full aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center mb-4 border border-gray-200">
-                <Image
+                <OptimizedImage
                   src={getImageUrl(product.images?.[selectedImageIndex]?.image_url)}
                   alt={product.name}
                   fill
@@ -153,7 +154,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       onClick={() => setSelectedImageIndex(index)}
                       aria-label={`Show image ${index + 1}`}
                     >
-                      <Image
+                      <OptimizedImage
                         src={getImageUrl(image.image_url)}
                         alt={`${product.name} - Image ${index + 1}`}
                         fill

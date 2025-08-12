@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import OptimizedImage from "./optimized-image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -681,10 +682,11 @@ export default function Header() {
                                   onClick={handleSearchResultClick}
                                 >
                                   <div className="relative w-12 h-12 rounded-lg overflow-hidden mr-4 bg-gray-100">
-                                    <img 
-                                      src={getImageUrl(product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url) || "/placeholder.svg"} 
+                                    <OptimizedImage
+                                      src={getImageUrl(product.images?.find(img => img.is_primary)?.image_url || product.images?.[0]?.image_url) || "/placeholder.svg"}
                                       alt={product.name}
-                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
+                                      fill
+                                      className="object-cover group-hover:scale-110 transition-transform duration-200"
                                     />
                                   </div>
                                   <div className="flex-1 min-w-0">

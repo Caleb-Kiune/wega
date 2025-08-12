@@ -7,6 +7,8 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    loader: 'custom',
+    loaderFile: './cloudinary-loader.js',
     domains: [
       'wega-production-28c0.up.railway.app',
       'res.cloudinary.com',
@@ -48,6 +50,11 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'your-domain.com',
         pathname: '/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/dy082ykuf/image/upload/**',
       },
     ],
   },
