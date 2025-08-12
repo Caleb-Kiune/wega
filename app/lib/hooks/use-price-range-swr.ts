@@ -1,7 +1,7 @@
 import useSWR from 'swr';
 import { PriceRange, PriceStats } from '@/lib/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export interface UsePriceRangeSWRResult {
   priceRange: PriceRange;

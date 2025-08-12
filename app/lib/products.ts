@@ -11,7 +11,7 @@ export const getImageUrl = (path: string) => {
   
   let baseUrl: string;
   if (isDevelopment && isLocalhost) {
-    baseUrl = 'http://localhost:5000';
+    baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
   } else if (process.env.NEXT_PUBLIC_API_URL) {
     baseUrl = process.env.NEXT_PUBLIC_API_URL.replace('/api', '');
   } else {

@@ -2,7 +2,7 @@ import useSWR from 'swr';
 import { Product, ProductsParams } from '@/lib/types';
 import { createSWRKey } from '@/lib/swr-config';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export interface UseProductsSWRResult {
   products: Product[];
