@@ -42,6 +42,9 @@ class Config:
     # Security Configuration
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-secret-key-here'
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(',')
+    CORS_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
+    CORS_ALLOW_HEADERS = ['Content-Type', 'Authorization', 'X-CSRF-Token']
+    CORS_SUPPORTS_CREDENTIALS = True
     
     # Pagination Configuration
     DEFAULT_PAGE_SIZE = 10
