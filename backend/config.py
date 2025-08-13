@@ -126,11 +126,25 @@ class ProductionConfig(Config):
     if cors_origins:
         CORS_ORIGINS = cors_origins.split(',')
     else:
-        # Default production origins
+        # Default production origins - comprehensive list
         CORS_ORIGINS = [
+            # Vercel deployments
             'https://wega-chi.vercel.app',
             'https://wega-one.vercel.app',
-            'https://wega-kitchenware.vercel.app'
+            'https://wega-kitchenware.vercel.app',
+            'https://wega-kitchenware-frontend.vercel.app',
+            # Netlify deployments
+            'https://wega-kitchenware.netlify.app',
+            # Railway deployments
+            'https://wega-frontend.railway.app',
+            # Custom domains
+            'https://wega-kitchenware.com',
+            'https://www.wega-kitchenware.com',
+            # Development
+            'http://localhost:3000',
+            'http://localhost:3001',
+            'http://127.0.0.1:3000',
+            'http://127.0.0.1:3001'
         ]
 
 class TestingConfig(Config):

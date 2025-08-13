@@ -128,6 +128,9 @@ export default function AdminLoginPage() {
       setLockoutInfo(null);
       setErrorMessage(null);
       
+      // Log API URL for debugging
+      console.log('Attempting login with API URL:', process.env.NEXT_PUBLIC_API_URL);
+      
       await login({
         ...formData,
         remember_me: rememberMe
@@ -146,12 +149,16 @@ export default function AdminLoginPage() {
           setLockoutInfo({ isLocked: true, remainingSeconds: 900 }); // 15 minutes
         } else if (message.includes('invalid username or password') || message.includes('invalid credentials')) {
           errorMessage = 'Invalid username or password. Please check your credentials and try again.';
-        } else if (message.includes('network') || message.includes('fetch')) {
-          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (message.includes('network') || message.includes('fetch') || message.includes('failed to fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again. If this persists, contact your administrator.';
+          console.error('Network error details:', error);
         } else if (message.includes('csrf') || message.includes('session expired')) {
           errorMessage = 'Session expired. Please try again.';
         } else if (message.includes('deactivated')) {
           errorMessage = 'Account is deactivated. Please contact your administrator.';
+        } else if (message.includes('cors')) {
+          errorMessage = 'CORS error. Please contact your administrator to check backend configuration.';
+          console.error('CORS error details:', error);
         } else {
           errorMessage = error.message;
         }
@@ -159,6 +166,9 @@ export default function AdminLoginPage() {
       
       setErrorMessage(errorMessage);
       toast.error(errorMessage);
+      
+      // Log error for debugging
+      console.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }
