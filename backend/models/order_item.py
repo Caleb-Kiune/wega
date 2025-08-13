@@ -18,12 +18,21 @@ class OrderItem(db.Model):
         return f'<OrderItem {self.id}>'
 
     def to_dict(self):
-        # Format image URL using helper function
-        from utils.helpers import format_image_url
+        # Safely format image URL using helper function
         primary_image = None
         if self.product and self.product.images:
             primary_image = next((img.image_url for img in self.product.images if img.is_primary), 
                                self.product.images[0].image_url if self.product.images else None)
+        
+        # Safely format image URL
+        formatted_image_url = None
+        if primary_image:
+            try:
+                from utils.helpers import format_image_url
+                formatted_image_url = format_image_url(primary_image)
+            except Exception:
+                # Fallback to raw image URL if formatting fails
+                formatted_image_url = primary_image
         
         return {
             'id': self.id,
@@ -35,7 +44,7 @@ class OrderItem(db.Model):
             'product': {
                 'id': self.product.id if self.product else None,
                 'name': self.product.name if self.product else 'Unknown Product',
-                'image_url': format_image_url(primary_image) if primary_image else None,
+                'image_url': formatted_image_url,
                 'price': float(self.product.price) if self.product and self.product.price else 0
             }
         } 

@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { FormField } from '@/components/forms/form-field';
 import { useFormValidation, commonValidationRules } from '@/hooks/use-form-validation';
-import { Package, ArrowRight, Lock, Clock } from 'lucide-react';
+import { Package, ArrowRight, Lock, Clock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
@@ -39,6 +39,7 @@ export default function AdminLoginPage() {
   const [isClient, setIsClient] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [lockoutInfo, setLockoutInfo] = useState<{ isLocked: boolean; remainingSeconds: number } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const usernameInputRef = useRef<HTMLInputElement>(null);
   
   const { login, isAuthenticated } = useAuth();
@@ -87,6 +88,13 @@ export default function AdminLoginPage() {
     }
   }, [formData.password, errors.password, clearFieldError]);
 
+  // Clear error message when user starts typing
+  useEffect(() => {
+    if (formData.username || formData.password) {
+      setErrorMessage(null);
+    }
+  }, [formData.username, formData.password]);
+
   const handleFieldChange = (field: keyof LoginFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
@@ -118,36 +126,38 @@ export default function AdminLoginPage() {
     try {
       setIsLoading(true);
       setLockoutInfo(null);
+      setErrorMessage(null);
       
       await login({
         ...formData,
         remember_me: rememberMe
       });
       
-      toast.success('Login successful!');
-      router.push('/admin');
+      // Success toast is handled in the auth context
       
     } catch (error) {
-      console.error('Login error:', error);
+      let errorMessage = 'Login failed. Please try again.';
       
-      let errorMessage = 'Login failed';
       if (error instanceof Error) {
         const message = error.message.toLowerCase();
         
         if (message.includes('too many login attempts') || message.includes('account locked')) {
           errorMessage = 'Account is temporarily locked due to too many failed attempts. Please try again later.';
           setLockoutInfo({ isLocked: true, remainingSeconds: 900 }); // 15 minutes
-        } else if (message.includes('invalid credentials') || message.includes('invalid username or password')) {
+        } else if (message.includes('invalid username or password') || message.includes('invalid credentials')) {
           errorMessage = 'Invalid username or password. Please check your credentials and try again.';
         } else if (message.includes('network') || message.includes('fetch')) {
           errorMessage = 'Network error. Please check your connection and try again.';
         } else if (message.includes('csrf') || message.includes('session expired')) {
           errorMessage = 'Session expired. Please try again.';
+        } else if (message.includes('deactivated')) {
+          errorMessage = 'Account is deactivated. Please contact your administrator.';
         } else {
           errorMessage = error.message;
         }
       }
       
+      setErrorMessage(errorMessage);
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -204,6 +214,25 @@ export default function AdminLoginPage() {
                       <p className="text-xs text-red-600">
                         Too many failed attempts. Please try again in {lockoutInfo.remainingSeconds} seconds.
                       </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Error Message */}
+              {errorMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 bg-red-50 border border-red-200 rounded-lg"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle className="h-5 w-5 text-red-500" aria-hidden="true" />
+                    <div>
+                      <p className="text-sm font-medium text-red-800">Login Failed</p>
+                      <p className="text-xs text-red-600">{errorMessage}</p>
                     </div>
                   </div>
                 </motion.div>

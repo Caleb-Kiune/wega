@@ -89,28 +89,49 @@ export const ordersApi = {
       if (params?.sort_order) queryParams.append('sort_order', params.sort_order);
 
       const url = `${API_BASE_URL}/orders?${queryParams.toString()}`;
-      console.log('Fetching orders from:', url);
       
       const response = await fetch(url);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch orders');
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (parseError) {
+          // If we can't parse the error response, use the status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
       }
       
       const data = await response.json();
-      console.log('Orders response:', data);
-      return data;
+      
+      // Ensure we always return a valid response structure
+      return {
+        orders: data.orders || [],
+        total: data.total || 0,
+        pages: data.pages || 0,
+        current_page: data.current_page || 1,
+        per_page: data.per_page || 10
+      };
     } catch (error) {
       console.error('Error in getAll:', error);
-      throw error;
+      
+      // Return empty response instead of throwing for better UX
+      return {
+        orders: [],
+        total: 0,
+        pages: 0,
+        current_page: 1,
+        per_page: 10
+      };
     }
   },
 
   create: async (orderData: CreateOrderRequest): Promise<Order> => {
     try {
-      console.log('Creating order with data:', orderData);
-      console.log('API URL:', `${API_BASE_URL}/orders`);
-      
       // Validate required fields before sending request
       const requiredFields = ['session_id', 'first_name', 'last_name', 'email', 'phone', 'address', 'city', 'state'];
       const missingFields = requiredFields.filter(field => !orderData[field as keyof CreateOrderRequest]);
@@ -139,15 +160,11 @@ export const ordersApi = {
         body: JSON.stringify(orderData),
       });
 
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
       if (!response.ok) {
         let errorMessage = `HTTP error! status: ${response.status}`;
         
         try {
           const errorData = await response.json();
-          console.error('Error response data:', errorData);
           
           // Handle specific error cases
           if (response.status === 400) {
@@ -162,10 +179,6 @@ export const ordersApi = {
             errorMessage = errorData.error || errorData.message || errorMessage;
           }
         } catch (parseError) {
-          console.error('Failed to parse error response:', parseError);
-          const responseText = await response.text();
-          console.error('Raw response text:', responseText);
-          
           // Provide more specific error messages based on status
           if (response.status === 500) {
             errorMessage = 'Server error occurred. Please try again later.';
@@ -180,7 +193,6 @@ export const ordersApi = {
       }
 
       const order = await response.json();
-      console.log('Order created successfully:', order);
       return order;
     } catch (error) {
       console.error('Error creating order:', error);
@@ -207,7 +219,6 @@ export const ordersApi = {
 
   updateStatus: async (id: number, status: Order['status']): Promise<Order> => {
     try {
-      console.log(`Updating order ${id} status to:`, status);
       const response = await fetch(`${API_BASE_URL}/orders/${id}/status`, {
         method: 'PATCH',
         headers: {
@@ -222,7 +233,6 @@ export const ordersApi = {
       }
       
       const data = await response.json();
-      console.log('Status updated successfully:', data);
       return data;
     } catch (error) {
       console.error('Error in updateStatus:', error);
@@ -232,7 +242,6 @@ export const ordersApi = {
 
   updatePaymentStatus: async (id: number, status: Order['payment_status']): Promise<Order> => {
     try {
-      console.log(`Updating order ${id} payment status to:`, status);
       const response = await fetch(`${API_BASE_URL}/orders/${id}/payment-status`, {
         method: 'PATCH',
         headers: {
@@ -247,7 +256,6 @@ export const ordersApi = {
       }
       
       const data = await response.json();
-      console.log('Payment status updated successfully:', data);
       return data;
     } catch (error) {
       console.error('Error in updatePaymentStatus:', error);
@@ -257,7 +265,6 @@ export const ordersApi = {
 
   delete: async (id: number): Promise<void> => {
     try {
-      console.log(`Deleting order ${id}`);
       const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
         method: 'DELETE',
         headers: {
@@ -269,8 +276,6 @@ export const ordersApi = {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
         throw new Error(errorData.error || `Failed to delete order: ${response.status}`);
       }
-      
-      console.log('Order deleted successfully');
     } catch (error) {
       console.error('Error in delete:', error);
       throw error;
@@ -296,7 +301,6 @@ export const ordersApi = {
 
   getByOrderNumber: async (orderNumber: string, email: string): Promise<Order> => {
     try {
-      console.log('Tracking order by number:', orderNumber, 'email:', email);
       const response = await fetch(`${API_BASE_URL}/orders/track`, {
         method: 'POST',
         headers: {
@@ -311,7 +315,6 @@ export const ordersApi = {
       }
 
       const orders = await response.json();
-      console.log('Track response:', orders);
       
       // Return the first order if it's an array, or the order if it's a single object
       if (Array.isArray(orders)) {

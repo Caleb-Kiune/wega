@@ -3,13 +3,14 @@
 import { useState } from "react"
 import { MessageCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { WHATSAPP_CONFIG, generateWhatsAppUrl } from "@/lib/whatsapp-config"
 
 export default function WhatsAppChat() {
   const [isOpen, setIsOpen] = useState(false)
-  const phoneNumber = "254769899432" // Kenya format for WhatsApp
 
   const handleWhatsAppRedirect = () => {
-    window.open(`https://wa.me/${phoneNumber}?text=Hello! I'm interested in WEGA Kitchenware products.`, "_blank")
+    const whatsappUrl = generateWhatsAppUrl(WHATSAPP_CONFIG.MESSAGES.GREETING)
+    window.open(whatsappUrl, "_blank")
   }
 
   return (

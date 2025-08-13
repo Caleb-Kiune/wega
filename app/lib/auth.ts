@@ -40,6 +40,8 @@ class AuthAPI {
   private csrfToken: string | null = null;
   private retryAttempts = 3;
   private retryDelay = 1000; // 1 second
+  private isRefreshing = false;
+  private refreshPromise: Promise<AuthTokens> | null = null;
 
   constructor() {
     this.baseURL = API_BASE_URL;
@@ -92,6 +94,17 @@ class AuthAPI {
           // CSRF token invalid
           await this.refreshCsrfToken();
           throw new Error('Session expired. Please try again.');
+        } else if (response.status === 401) {
+          // Authentication error - provide specific feedback
+          if (errorMessage.toLowerCase().includes('invalid credentials')) {
+            throw new Error('Invalid username or password. Please check your credentials and try again.');
+          } else if (errorMessage.toLowerCase().includes('account locked')) {
+            throw new Error('Account is temporarily locked due to too many failed attempts. Please try again later.');
+          } else if (errorMessage.toLowerCase().includes('deactivated')) {
+            throw new Error('Account is deactivated. Please contact your administrator.');
+          } else {
+            throw new Error('Authentication failed. Please check your credentials.');
+          }
         }
         
         throw new Error(errorMessage);
@@ -156,10 +169,24 @@ class AuthAPI {
   }
 
   async refreshToken(refreshToken: string): Promise<{ tokens: AuthTokens }> {
-    return this.request<{ tokens: AuthTokens }>('/auth/refresh', {
+    // Prevent multiple simultaneous refresh attempts
+    if (this.isRefreshing && this.refreshPromise) {
+      return this.refreshPromise;
+    }
+
+    this.isRefreshing = true;
+    this.refreshPromise = this.request<{ tokens: AuthTokens }>('/auth/refresh', {
       method: 'POST',
       body: JSON.stringify({ refresh_token: refreshToken }),
     });
+
+    try {
+      const result = await this.refreshPromise;
+      return result;
+    } finally {
+      this.isRefreshing = false;
+      this.refreshPromise = null;
+    }
   }
 
   async logout(): Promise<{ message: string }> {
@@ -287,6 +314,12 @@ class AuthAPI {
     const now = Date.now();
     
     return (now - createdAt) / 1000 > expiresIn;
+  }
+
+  // Helper method to check if user is authenticated
+  isAuthenticated(): boolean {
+    const token = this.getAccessToken();
+    return !!token && !this.isTokenExpired();
   }
 }
 

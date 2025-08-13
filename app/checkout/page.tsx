@@ -18,6 +18,7 @@ import { useToast } from "@/lib/hooks/use-toast"
 import { useDeliveryLocations } from "@/lib/hooks/use-delivery-locations"
 import { ordersApi, CreateOrderRequest } from "@/lib/orders"
 import { getSessionId } from "@/lib/session"
+import WhatsAppCheckoutButton from "@/components/whatsapp-checkout-button"
 
 export default function CheckoutPage() {
   const { cart, clearCart } = useCart()
@@ -44,6 +45,15 @@ export default function CheckoutPage() {
   const [cardType, setCardType] = useState<string | null>(null)
   const [selectedLocation, setSelectedLocation] = useState<string>("")
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    notes: ""
+  })
 
   // Load selected location from localStorage on mount
   useEffect(() => {
@@ -61,6 +71,13 @@ export default function CheckoutPage() {
     } else {
       localStorage.removeItem('selectedDeliveryLocation')
     }
+  }
+
+  const handleFormDataChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
   }
 
   // Calculate totals
@@ -373,23 +390,58 @@ export default function CheckoutPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     <div>
                       <Label htmlFor="firstName">First Name</Label>
-                      <Input id="firstName" name="firstName" className="mt-1 min-h-[44px] text-base" required />
+                      <Input 
+                        id="firstName" 
+                        name="firstName" 
+                        value={formData.firstName}
+                        onChange={(e) => handleFormDataChange('firstName', e.target.value)}
+                        className="mt-1 min-h-[44px] text-base" 
+                        required 
+                      />
                     </div>
                     <div>
                       <Label htmlFor="lastName">Last Name</Label>
-                      <Input id="lastName" name="lastName" className="mt-1 min-h-[44px] text-base" required />
+                      <Input 
+                        id="lastName" 
+                        name="lastName" 
+                        value={formData.lastName}
+                        onChange={(e) => handleFormDataChange('lastName', e.target.value)}
+                        className="mt-1 min-h-[44px] text-base" 
+                        required 
+                      />
                     </div>
                     <div>
                       <Label htmlFor="email">Email Address</Label>
-                      <Input id="email" name="email" type="email" className="mt-1 min-h-[44px] text-base" required />
+                      <Input 
+                        id="email" 
+                        name="email" 
+                        type="email" 
+                        value={formData.email}
+                        onChange={(e) => handleFormDataChange('email', e.target.value)}
+                        className="mt-1 min-h-[44px] text-base" 
+                        required 
+                      />
                     </div>
                     <div>
                       <Label htmlFor="phone">Phone Number</Label>
-                      <Input id="phone" name="phone" type="tel" className="mt-1 min-h-[44px] text-base" required />
+                      <Input 
+                        id="phone" 
+                        name="phone" 
+                        type="tel" 
+                        value={formData.phone}
+                        onChange={(e) => handleFormDataChange('phone', e.target.value)}
+                        className="mt-1 min-h-[44px] text-base" 
+                        required 
+                      />
                     </div>
                     <div>
                       <Label htmlFor="county">County</Label>
-                      <Select name="county" required>
+                      <Select 
+                        name="county" 
+                        value={formData.city}
+                        onValueChange={(value) => handleFormDataChange('city', value)}
+                        required
+                      >
                         <SelectTrigger id="county" className="mt-1 min-h-[44px] text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500">
                           <SelectValue placeholder="Select county" />
                         </SelectTrigger>
@@ -425,11 +477,25 @@ export default function CheckoutPage() {
                     </div>
                     <div className="md:col-span-2">
                       <Label htmlFor="address">Street Address</Label>
-                      <Input id="address" name="address" className="mt-1 min-h-[44px] text-base" required />
+                      <Input 
+                        id="address" 
+                        name="address" 
+                        value={formData.address}
+                        onChange={(e) => handleFormDataChange('address', e.target.value)}
+                        className="mt-1 min-h-[44px] text-base" 
+                        required 
+                      />
                     </div>
                     <div className="md:col-span-2">
                       <Label htmlFor="notes">Order Notes (Optional)</Label>
-                      <Textarea id="notes" name="notes" placeholder="Special instructions for delivery" className="mt-1 min-h-[44px] text-base" />
+                      <Textarea 
+                        id="notes" 
+                        name="notes" 
+                        value={formData.notes}
+                        onChange={(e) => handleFormDataChange('notes', e.target.value)}
+                        placeholder="Special instructions for delivery" 
+                        className="mt-1 min-h-[44px] text-base" 
+                      />
                     </div>
                   </div>
                 </div>
@@ -776,6 +842,31 @@ export default function CheckoutPage() {
                     >
                       {isSubmitting ? "Processing..." : "Place Order"}
                     </Button>
+                    
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t border-gray-300" />
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="bg-white px-2 text-gray-500">or</span>
+                      </div>
+                    </div>
+                    
+                    <WhatsAppCheckoutButton
+                      customerInfo={formData}
+                      cartItems={items.map(item => ({
+                        name: item.product?.name || "Unknown Product",
+                        quantity: item.quantity,
+                        price: item.product?.price || 0
+                      }))}
+                      deliveryLocation={selectedLocation}
+                      subtotal={subtotal}
+                      shipping={shipping}
+                      total={total}
+                      notes={formData.notes}
+                      disabled={isSubmitting}
+                      className="w-full"
+                    />
                   </div>
 
                   <div className="mt-4 sm:mt-6 space-y-3">

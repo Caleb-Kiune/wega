@@ -1,49 +1,85 @@
 import os
+from datetime import timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
 
 class Config:
-    """Base configuration class"""
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
+    # Database Configuration
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    # Upload configuration
-    UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static', 'uploads')
+    # JWT Configuration
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'your-secret-key-here'
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
+    
+    # File Upload Configuration
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
+    UPLOAD_FOLDER = 'uploads'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
-    MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
     
-    # CORS configuration
-    CORS_ORIGINS = [
-        'http://localhost:3000',
-        'http://localhost:3001', 
-        'http://localhost:3002',
-        'http://localhost:3003',
-        'http://127.0.0.1:3000',
-        'http://127.0.0.1:3001',
-        'http://127.0.0.1:3002',
-        'http://127.0.0.1:3003',
-        # Allow all localhost origins for development
-        'http://localhost:*',
-        'http://127.0.0.1:*',
-        # Production URLs
-        'https://wega-one.vercel.app',  # Your actual Vercel frontend URL
-        'https://wega-kitchenware.vercel.app',  # Alternative Vercel URL
-        'https://wega-chi.vercel.app',  # Your current Vercel URL
-        # Backend URLs for testing
-        'https://wega-backend.onrender.com',  # Your Render backend URL
-        'https://wega-production-28c0.up.railway.app'  # Your Railway backend URL
-    ]
-    CORS_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
-    CORS_ALLOW_HEADERS = ['Content-Type', 'Authorization', 'X-CSRF-Token']
-    CORS_SUPPORTS_CREDENTIALS = True
+    # Cloudinary Configuration
+    CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME') or 'dy082ykuf'
+    CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY')
+    CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET')
     
-    # JWT configuration
-    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'your-jwt-secret-key-change-in-production')
-    JWT_ACCESS_TOKEN_EXPIRES = 1800  # 30 minutes
-    JWT_REFRESH_TOKEN_EXPIRES = 604800  # 7 days
-    JWT_ACCESS_TOKEN_EXPIRES_REMEMBER = 86400  # 24 hours
-    JWT_REFRESH_TOKEN_EXPIRES_REMEMBER = 2592000  # 30 days
+    # WhatsApp Configuration
+    WHATSAPP_PHONE_NUMBER = os.environ.get('WHATSAPP_PHONE_NUMBER') or '254774639253'
+    WHATSAPP_BUSINESS_HOURS = {
+        'START': '8:00 AM',
+        'END': '6:00 PM',
+        'TIMEZONE': 'EAT'
+    }
+    
+    # Email Configuration (for future use)
+    MAIL_SERVER = os.environ.get('MAIL_SERVER')
+    MAIL_PORT = int(os.environ.get('MAIL_PORT') or 587)
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    
+    # Security Configuration
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-secret-key-here'
+    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(',')
+    
+    # Pagination Configuration
+    DEFAULT_PAGE_SIZE = 10
+    MAX_PAGE_SIZE = 100
+    
+    # Order Configuration
+    DEFAULT_CURRENCY = 'KES'
+    DEFAULT_COUNTRY = 'Kenya'
+    
+    # Development Configuration
+    DEBUG = os.environ.get('FLASK_ENV') == 'development'
+    
+    # Logging Configuration
+    LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
+    
+    # Cache Configuration (for future use)
+    CACHE_TYPE = 'simple'
+    CACHE_DEFAULT_TIMEOUT = 300
+    
+    # Rate Limiting (for future use)
+    RATELIMIT_ENABLED = True
+    RATELIMIT_STORAGE_URL = 'memory://'
+    
+    # Session Configuration
+    SESSION_COOKIE_SECURE = os.environ.get('FLASK_ENV') == 'production'
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    
+    # File Storage Configuration
+    STORAGE_TYPE = os.environ.get('STORAGE_TYPE', 'local')  # 'local' or 'cloudinary'
+    
+    # API Configuration
+    API_TITLE = 'WEGA Kitchenware API'
+    API_VERSION = 'v1'
+    OPENAPI_VERSION = '3.0.2'
+    OPENAPI_URL_PREFIX = '/'
+    OPENAPI_SWAGGER_UI_PATH = '/swagger-ui'
+    OPENAPI_SWAGGER_UI_URL = 'https://cdn.jsdelivr.net/npm/swagger-ui-dist/'
 
 class DevelopmentConfig(Config):
     """Development configuration"""

@@ -108,9 +108,13 @@ def get_base_url():
     if current_app.config.get('BASE_URL'):
         return current_app.config['BASE_URL']
     else:
-        # In development, use request.host_url
-        from flask import request
-        return request.host_url.rstrip('/')
+        # In development, use request.host_url if available
+        try:
+            from flask import request
+            return request.host_url.rstrip('/')
+        except RuntimeError:
+            # No request context, use default
+            return 'http://localhost:5000'
 
 def format_image_url(image_url):
     """Format image URL with proper base URL"""

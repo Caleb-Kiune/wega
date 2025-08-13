@@ -51,18 +51,20 @@ export function useAdminDashboard() {
       ]);
       
       setData({
-        products: productsResponse.products,
-        orders: ordersResponse.orders,
-        deliveryLocations: deliveryLocationsData,
+        products: productsResponse.products || [],
+        orders: ordersResponse.orders || [],
+        deliveryLocations: deliveryLocationsData || [],
         loading: false,
         error: null
       });
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
+      
+      // Set partial data if some requests succeeded
       setData(prev => ({
         ...prev,
         loading: false,
-        error: 'Failed to fetch dashboard data'
+        error: 'Failed to fetch some dashboard data. Please refresh to try again.'
       }));
     }
   };
@@ -84,8 +86,8 @@ export function useAdminDashboard() {
     
     // Today's sales calculation
     const today = new Date().toISOString().split('T')[0];
-    const todaysOrders = orders.filter(o => o.created_at.startsWith(today));
-    const todaysSales = todaysOrders.reduce((sum, order) => sum + order.total_amount, 0);
+    const todaysOrders = orders.filter(o => o.created_at && o.created_at.startsWith(today));
+    const todaysSales = todaysOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
     
     // Delivery location statistics
     const totalLocations = deliveryLocations.length;

@@ -2,6 +2,7 @@
 
 import { MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { WHATSAPP_CONFIG, generateWhatsAppUrl } from "@/lib/whatsapp-config"
 
 interface WhatsAppOrderButtonProps {
   product: {
@@ -13,11 +14,10 @@ interface WhatsAppOrderButtonProps {
 }
 
 export default function WhatsAppOrderButton({ product, quantity = 1, className }: WhatsAppOrderButtonProps) {
-  const phoneNumber = "254769899432" // The phone number with country code
   const message = `Hello, I would like to order:\n\nProduct: ${product.name}\nQuantity: ${quantity}\nPrice: KES ${product.price.toLocaleString()}\n\nTotal: KES ${(product.price * quantity).toLocaleString()}`
 
   const handleWhatsAppClick = () => {
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
+    const whatsappUrl = generateWhatsAppUrl(message)
     window.open(whatsappUrl, "_blank")
   }
 
