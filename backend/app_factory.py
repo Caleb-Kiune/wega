@@ -4,6 +4,10 @@ from flask_migrate import Migrate
 from models import db
 from config import config
 import os
+from dotenv import load_dotenv
+
+# Load environment variables early
+load_dotenv()
 
 def create_app(config_name='default'):
     """Application factory function"""
