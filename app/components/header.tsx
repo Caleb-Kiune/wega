@@ -41,11 +41,13 @@ import {
 import { cn } from "@/lib/utils"
 import { useCart } from "@/lib/hooks/use-cart"
 import { useWishlist } from "@/lib/hooks/use-wishlist"
+import { useCustomerAuth } from "@/contexts/customer-auth-context"
 import { motion, AnimatePresence } from "framer-motion"
 import WishlistModal from "@/components/wishlist-modal"
 import CartModal from "@/components/cart-modal"
 import MobileMenuModal from "@/components/mobile-menu-modal"
 import SearchModal from "@/components/search-modal"
+import AccountDropdown from "@/components/account-dropdown"
 
 interface Product {
   id: string;
@@ -87,6 +89,7 @@ export default function Header() {
   const { cartCount } = useCart()
   const { wishlist } = useWishlist()
   const wishlistItems = wishlist?.items || []
+  const { user, isAuthenticated, logout } = useCustomerAuth()
 
   // Handle scroll effect
   useEffect(() => {
@@ -840,79 +843,26 @@ export default function Header() {
                         aria-label="Account"
                         aria-expanded={isAccountDropdownOpen}
                       >
-                        <User className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
+                        {isAuthenticated ? (
+                          <div className="relative">
+                            <User className="h-6 w-6 text-green-600 group-hover:scale-110 transition-transform duration-200" />
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                          </div>
+                        ) : (
+                          <User className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
+                        )}
                       </Link>
                     </TooltipTrigger>
                     <TooltipContent>Account</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
                 
-                {/* Account Dropdown */}
-                <AnimatePresence>
-                  {isAccountDropdownOpen && (
-                    <motion.div
-                      className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-xl z-50"
-                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className="py-2">
-                        {/* Guest Menu Items */}
-                        <div className="px-3 py-2">
-                          <Link
-                            href="/"
-                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 group"
-                            onClick={() => setIsAccountDropdownOpen(false)}
-                          >
-                            <Home className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                            <span className="font-medium">Home</span>
-                          </Link>
-                          
-                          <Link
-                            href="/products"
-                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group"
-                            onClick={() => setIsAccountDropdownOpen(false)}
-                          >
-                            <ShoppingBag className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                            <span className="font-medium">Shop</span>
-                          </Link>
-                          
-                          <Link
-                            href="/track-order"
-                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all duration-200 group"
-                            onClick={() => setIsAccountDropdownOpen(false)}
-                          >
-                            <Package className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                            <span className="font-medium">Track Order</span>
-                          </Link>
-                          
-                          {/* Divider */}
-                          <div className="border-t border-gray-200 my-2"></div>
-                          
-                          {/* Customer Authentication Links */}
-                          <Link
-                            href="/customer/login"
-                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 group"
-                            onClick={() => setIsAccountDropdownOpen(false)}
-                          >
-                            <UserCheck className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                            <span className="font-medium">Sign In</span>
-                          </Link>
-                          
-                          <Link
-                            href="/customer/register"
-                            className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 group"
-                            onClick={() => setIsAccountDropdownOpen(false)}
-                          >
-                            <UserPlus className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                            <span className="font-medium">Create Account</span>
-                          </Link>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {/* Enhanced Account Dropdown */}
+                <AccountDropdown
+                  isOpen={isAccountDropdownOpen}
+                  onClose={() => setIsAccountDropdownOpen(false)}
+                  triggerRef={accountDropdownRef}
+                />
               </div>
             </motion.div>
           </div>

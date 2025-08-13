@@ -140,11 +140,15 @@ def require_customer_auth(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         user = get_current_customer()
+        
         if not user:
             return jsonify({
                 'error': 'Unauthorized',
                 'message': 'Customer authentication required'
             }), 401
+        
+        # Set user_id in request for easy access
+        request.user_id = user.id
         return f(*args, **kwargs)
     return decorated_function
 

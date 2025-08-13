@@ -1,8 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { customerAuthApi, CustomerUser, CustomerLoginCredentials, CustomerAuthTokens } from '@/lib/customer-auth';
+import { customerAuthApi, CustomerUser, CustomerLoginCredentials, CustomerRegisterCredentials } from '@/lib/customer-auth';
 import { toast } from 'sonner';
 
 interface CustomerAuthContextType {
@@ -13,132 +13,140 @@ interface CustomerAuthContextType {
   logout: () => Promise<void>;
   register: (credentials: CustomerRegisterCredentials) => Promise<void>;
   refreshAuth: () => Promise<void>;
-  updateUser: (user: CustomerUser) => void;
-}
-
-interface CustomerRegisterCredentials {
-  email: string;
-  password: string;
-  first_name: string;
-  last_name: string;
+  updateUser: (updatedUser: CustomerUser) => void;
+  isTokenExpired: boolean;
+  isRefreshing: boolean;
 }
 
 const CustomerAuthContext = createContext<CustomerAuthContextType | undefined>(undefined);
 
-export const useCustomerAuth = () => {
+export function useCustomerAuth() {
   const context = useContext(CustomerAuthContext);
   if (context === undefined) {
     throw new Error('useCustomerAuth must be used within a CustomerAuthProvider');
   }
   return context;
-};
-
-interface CustomerAuthProviderProps {
-  children: ReactNode;
 }
 
-export const CustomerAuthProvider: React.FC<CustomerAuthProviderProps> = ({ children }) => {
+interface CustomerAuthProviderProps {
+  children: React.ReactNode;
+}
+
+export function CustomerAuthProvider({ children }: CustomerAuthProviderProps) {
   const [user, setUser] = useState<CustomerUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const router = useRouter();
 
-  // Handle hydration
+  // Check if token is expired
+  const isTokenExpired = customerAuthApi.isTokenExpired();
+
+  // Initialize auth state on mount
   useEffect(() => {
-    setIsHydrated(true);
+    const initializeAuth = async () => {
+      try {
+        setLoading(true);
+        
+        // Check if we have valid tokens
+        const accessToken = customerAuthApi.getAccessToken();
+        const refreshToken = customerAuthApi.getRefreshToken();
+        
+        if (accessToken && !customerAuthApi.isTokenExpired()) {
+          // Token is valid, get user profile
+          try {
+            const response = await customerAuthApi.getProfile();
+            setUser(response.user);
+          } catch (error) {
+            console.error('Failed to get profile with valid token:', error);
+            // Token might be invalid, try to refresh
+            if (refreshToken && !customerAuthApi.isRefreshTokenExpired()) {
+              try {
+                await refreshAuth();
+              } catch (refreshError) {
+                console.error('Token refresh failed:', refreshError);
+                // Clear invalid tokens
+                customerAuthApi.clearTokens();
+              }
+            } else {
+              // Clear invalid tokens
+              customerAuthApi.clearTokens();
+            }
+          }
+        } else if (refreshToken && !customerAuthApi.isRefreshTokenExpired()) {
+          // Access token expired but refresh token is valid
+          await refreshAuth();
+        } else {
+          // No valid tokens, clear everything
+          customerAuthApi.clearTokens();
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        customerAuthApi.clearTokens();
+      } finally {
+        setLoading(false);
+        setIsHydrated(true);
+      }
+    };
+
+    initializeAuth();
   }, []);
+
+  // Auto-refresh token when it's about to expire
+  useEffect(() => {
+    if (user && isHydrated) {
+      const checkTokenExpiry = () => {
+        if (customerAuthApi.isTokenExpired() && !customerAuthApi.isRefreshTokenExpired()) {
+          refreshAuth();
+        }
+      };
+
+      // Check every 5 minutes
+      const interval = setInterval(checkTokenExpiry, 5 * 60 * 1000);
+      
+      // Also check immediately
+      checkTokenExpiry();
+
+      return () => clearInterval(interval);
+    }
+  }, [user, isHydrated]);
 
   const refreshAuth = useCallback(async () => {
     try {
+      setIsRefreshing(true);
       const refreshToken = customerAuthApi.getRefreshToken();
-      if (!refreshToken) {
-        throw new Error('No refresh token available');
+      
+      if (!refreshToken || customerAuthApi.isRefreshTokenExpired()) {
+        throw new Error('No valid refresh token');
       }
 
       const response = await customerAuthApi.refreshToken(refreshToken);
+      
+      // Store new tokens
       customerAuthApi.setTokens(response.tokens);
       
       // Get updated user profile
       const profileResponse = await customerAuthApi.getProfile();
       setUser(profileResponse.user);
       
-    } catch (error) {
+      console.log('Token refreshed successfully');
+      
+    } catch (error: any) {
       console.error('Token refresh failed:', error);
+      
       // Clear tokens and redirect to login
       customerAuthApi.clearTokens();
       setUser(null);
-      router.push('/login');
-    }
-  }, []);
-
-  const checkAuthStatus = useCallback(async () => {
-    try {
-      setLoading(true);
-      console.log('Checking customer auth status...');
       
-      // Check if we have tokens
-      const accessToken = customerAuthApi.getAccessToken();
-      const refreshToken = customerAuthApi.getRefreshToken();
-      
-      console.log('Customer tokens found:', { 
-        hasAccessToken: !!accessToken, 
-        hasRefreshToken: !!refreshToken 
-      });
-      
-      if (!accessToken || !refreshToken) {
-        console.log('No customer tokens found, setting user to null');
-        setUser(null);
-        return;
+      // Only show error if user was previously logged in
+      if (user) {
+        toast.error('Session expired. Please log in again.');
+        router.push('/customer/login');
       }
-
-      // Check if tokens are expired
-      if (customerAuthApi.isRefreshTokenExpired()) {
-        console.log('Customer refresh token expired, clearing tokens');
-        customerAuthApi.clearTokens();
-        setUser(null);
-        return;
-      }
-
-      if (customerAuthApi.isTokenExpired()) {
-        console.log('Customer access token expired, attempting refresh');
-        await refreshAuth();
-        return;
-      }
-
-      console.log('Customer tokens valid, getting user profile');
-      // Tokens are valid, get user profile
-      const response = await customerAuthApi.getProfile();
-      setUser(response.user);
-      
-    } catch (error) {
-      console.error('Error checking customer auth status:', error);
-      // Clear invalid tokens
-      customerAuthApi.clearTokens();
-      setUser(null);
     } finally {
-      setLoading(false);
+      setIsRefreshing(false);
     }
-  }, [refreshAuth]);
-
-  // Check authentication status on mount (only after hydration)
-  useEffect(() => {
-    if (isHydrated) {
-      checkAuthStatus();
-    }
-  }, [isHydrated, checkAuthStatus]);
-
-  // Set up token refresh interval
-  useEffect(() => {
-    if (user && isHydrated) {
-      const interval = setInterval(() => {
-        if (customerAuthApi.isTokenExpired() && !customerAuthApi.isRefreshTokenExpired()) {
-          refreshAuth();
-        }
-      }, 60000); // Check every minute
-
-      return () => clearInterval(interval);
-    }
-  }, [user, isHydrated, refreshAuth]);
+  }, [user, router]);
 
   const login = useCallback(async (credentials: CustomerLoginCredentials) => {
     try {
@@ -163,23 +171,21 @@ export const CustomerAuthProvider: React.FC<CustomerAuthProviderProps> = ({ chil
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [router]);
 
   const register = useCallback(async (credentials: CustomerRegisterCredentials) => {
     try {
       setLoading(true);
       const response = await customerAuthApi.register(credentials);
       
-      // Store tokens
-      customerAuthApi.setTokens(response.tokens);
+      // Don't store tokens or set user - let them log in explicitly
+      // customerAuthApi.setTokens(response.tokens);
+      // setUser(response.user);
       
-      // Set user
-      setUser(response.user);
+      toast.success('Registration successful! Please log in to continue.');
       
-      toast.success('Registration successful! Welcome to Wega Kitchenware!');
-      
-      // Redirect to home
-      router.push('/');
+      // Redirect to login page instead of home
+      router.push('/customer/login');
       
     } catch (error: any) {
       console.error('Customer registration error:', error);
@@ -188,7 +194,7 @@ export const CustomerAuthProvider: React.FC<CustomerAuthProviderProps> = ({ chil
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [router]);
 
   const logout = useCallback(async () => {
     try {
@@ -196,8 +202,14 @@ export const CustomerAuthProvider: React.FC<CustomerAuthProviderProps> = ({ chil
       if (customerAuthApi.getAccessToken()) {
         await customerAuthApi.logout();
       }
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch (error: any) {
+      // Handle specific error cases
+      if (error.message.includes('Customer authentication required') || error.message.includes('Unauthorized')) {
+        // This is expected when account is deleted - user no longer exists
+        console.log('Logout skipped - user account was deleted');
+      } else {
+        console.error('Logout error:', error);
+      }
     } finally {
       // Clear tokens and user state regardless of API call success
       customerAuthApi.clearTokens();
@@ -205,7 +217,7 @@ export const CustomerAuthProvider: React.FC<CustomerAuthProviderProps> = ({ chil
       toast.success('Logged out successfully');
       router.push('/');
     }
-  }, []);
+  }, [router]);
 
   const updateUser = useCallback((updatedUser: CustomerUser) => {
     setUser(updatedUser);
@@ -222,7 +234,9 @@ export const CustomerAuthProvider: React.FC<CustomerAuthProviderProps> = ({ chil
       logout,
       register,
       refreshAuth,
-      updateUser
+      updateUser,
+      isTokenExpired,
+      isRefreshing
     }}>
       {children}
     </CustomerAuthContext.Provider>

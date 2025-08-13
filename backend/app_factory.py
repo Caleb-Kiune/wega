@@ -18,18 +18,23 @@ def create_app(config_name='default'):
     db.init_app(app)
     # migrate = Migrate(app, db)  # Removed, now handled in run.py
     
-    # Configure CORS
+    # Configure CORS with better handling for preflight requests
     if app.config['DEBUG']:
         # In development, allow all origins for easy local testing
-        CORS(app, resources={r"/*": {"origins": "*"}})
+        CORS(app, 
+             resources={r"/*": {"origins": "*"}},
+             supports_credentials=True,
+             allow_headers=['Content-Type', 'Authorization', 'X-CSRF-Token'],
+             methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])
     else:
         # In production, use the strict list
-        CORS(app, resources={r"/*": {
-            "origins": app.config['CORS_ORIGINS'],
-            "methods": app.config['CORS_METHODS'],
-            "allow_headers": app.config['CORS_ALLOW_HEADERS'],
-            "supports_credentials": app.config['CORS_SUPPORTS_CREDENTIALS']
-        }})
+        CORS(app, 
+             resources={r"/*": {
+                 "origins": app.config['CORS_ORIGINS'],
+                 "methods": app.config['CORS_METHODS'],
+                 "allow_headers": app.config['CORS_ALLOW_HEADERS'],
+                 "supports_credentials": app.config['CORS_SUPPORTS_CREDENTIALS']
+             }})
     
     # Ensure upload directory exists
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)

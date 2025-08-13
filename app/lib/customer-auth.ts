@@ -76,6 +76,8 @@ class CustomerAuthAPI {
         'Content-Type': 'application/json',
         ...options.headers,
       },
+      credentials: 'include', // Include cookies for CSRF
+      mode: 'cors', // Explicitly set CORS mode
       ...options,
     };
 
@@ -89,6 +91,12 @@ class CustomerAuthAPI {
 
     try {
       const response = await fetch(url, config);
+      
+      console.log('Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      });
       
       if (!response.ok) {
         let errorMessage = `HTTP error! status: ${response.status}`;
@@ -109,19 +117,53 @@ class CustomerAuthAPI {
           // CSRF token invalid
           await this.refreshCsrfToken();
           throw new Error('Session expired. Please try again.');
+        } else if (response.status === 401) {
+          // Unauthorized - token is invalid
+          this.clearTokens();
+          throw new Error('Authentication required. Please log in again.');
+        } else if (response.status === 500) {
+          // Server error - might be due to invalid user
+          if (errorMessage.includes('User not found') || errorMessage.includes('Failed to update profile')) {
+            this.clearTokens();
+            throw new Error('Session expired. Please log in again.');
+          }
         }
         
         throw new Error(errorMessage);
       }
       
-      return await response.json();
+      const data = await response.json();
+      console.log('Response data:', data);
+      
+      // Check for specific error types in the response
+      if (data.error === 'Account deleted') {
+        throw new Error('This account has been deleted and cannot be accessed. Please create a new account.');
+      }
+      
+      // For invalid credentials, provide a more helpful message
+      if (data.error === 'Invalid credentials') {
+        throw new Error('Invalid email or password. If you recently deleted your account, you will need to create a new one.');
+      }
+      
+      return data;
       
     } catch (error: any) {
-      // Retry logic for network errors
-      if (this.isRetryableError(error) && retryCount < this.retryAttempts) {
-        console.log(`Retrying request (${retryCount + 1}/${this.retryAttempts})...`);
-        await this.delay(this.retryDelay * (retryCount + 1));
-        return this.request(endpoint, options, retryCount + 1);
+      console.error('Request failed:', error);
+      
+      // Enhanced error handling for network issues
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        if (retryCount < this.retryAttempts) {
+          console.log(`Network error, retrying (${retryCount + 1}/${this.retryAttempts})...`);
+          await this.delay(this.retryDelay * (retryCount + 1));
+          return this.request(endpoint, options, retryCount + 1);
+        } else {
+          throw new Error('Network error: Unable to connect to the server. Please check your internet connection and try again.');
+        }
+      }
+      
+      // Handle CORS errors
+      if (error.name === 'TypeError' && error.message.includes('CORS')) {
+        throw new Error('CORS error: Unable to make request due to browser security restrictions.');
       }
       
       throw error;
@@ -138,8 +180,10 @@ class CustomerAuthAPI {
 
   async getCsrfToken(): Promise<string> {
     try {
-      const response: CsrfResponse = await this.request('/api/customer/auth/csrf-token');
+      console.log('Getting CSRF token...');
+      const response: CsrfResponse = await this.request('/customer/auth/csrf-token');
       this.csrfToken = response.csrf_token;
+      console.log('CSRF token obtained:', this.csrfToken ? 'success' : 'failed');
       return response.csrf_token;
     } catch (error) {
       console.error('Failed to get CSRF token:', error);
@@ -157,13 +201,19 @@ class CustomerAuthAPI {
 
   async register(credentials: CustomerRegisterCredentials): Promise<CustomerAuthResponse> {
     try {
+      console.log('Starting registration process...');
+      
       // Get CSRF token first
       await this.getCsrfToken();
       
-      return await this.request<CustomerAuthResponse>('/api/customer/auth/register', {
+      console.log('Making registration request...');
+      const response = await this.request<CustomerAuthResponse>('/customer/auth/register', {
         method: 'POST',
         body: JSON.stringify(credentials),
       });
+      
+      console.log('Registration successful');
+      return response;
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
@@ -172,10 +222,15 @@ class CustomerAuthAPI {
 
   async login(credentials: CustomerLoginCredentials): Promise<CustomerAuthResponse> {
     try {
-      return await this.request<CustomerAuthResponse>('/api/customer/auth/login', {
+      console.log('Starting login process...');
+      
+      const response = await this.request<CustomerAuthResponse>('/customer/auth/login', {
         method: 'POST',
         body: JSON.stringify(credentials),
       });
+      
+      console.log('Login successful');
+      return response;
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -189,7 +244,7 @@ class CustomerAuthAPI {
         return { message: 'Already logged out' };
       }
 
-      return await this.request<{ message: string }>('/api/customer/auth/logout', {
+      return await this.request<{ message: string }>('/customer/auth/logout', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -208,7 +263,7 @@ class CustomerAuthAPI {
         throw new Error('No access token available');
       }
 
-      return await this.request<CustomerProfileResponse>('/api/customer/auth/profile', {
+      return await this.request<CustomerProfileResponse>('/customer/auth/profile', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -216,6 +271,12 @@ class CustomerAuthAPI {
       });
     } catch (error) {
       console.error('Get profile error:', error);
+      // If we get a 401 or 500 error, the token is likely invalid
+      if (error.message.includes('Authentication required') || 
+          error.message.includes('Session expired') ||
+          error.message.includes('User not found')) {
+        this.clearTokens();
+      }
       throw error;
     }
   }
@@ -223,14 +284,12 @@ class CustomerAuthAPI {
   async updateProfile(data: Partial<CustomerUser>): Promise<{ message: string; user: CustomerUser }> {
     try {
       const accessToken = this.getAccessToken();
+      
       if (!accessToken) {
         throw new Error('No access token available');
       }
 
-      // Get CSRF token first
-      await this.getCsrfToken();
-
-      return await this.request<{ message: string; user: CustomerUser }>('/api/customer/auth/profile', {
+      return await this.request<{ message: string; user: CustomerUser }>('/customer/auth/profile', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -239,18 +298,116 @@ class CustomerAuthAPI {
       });
     } catch (error) {
       console.error('Update profile error:', error);
+      // If we get a 401 or 500 error, the token is likely invalid
+      if (error.message.includes('Authentication required') || 
+          error.message.includes('Session expired') ||
+          error.message.includes('User not found')) {
+        this.clearTokens();
+      }
+      throw error;
+    }
+  }
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
+    try {
+      const accessToken = this.getAccessToken();
+      if (!accessToken) {
+        throw new Error('No access token available');
+      }
+
+      return await this.request<{ message: string }>('/customer/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword
+        }),
+      });
+    } catch (error) {
+      console.error('Change password error:', error);
       throw error;
     }
   }
 
   async refreshToken(refreshToken: string): Promise<CustomerRefreshResponse> {
     try {
-      return await this.request<CustomerRefreshResponse>('/api/customer/auth/refresh', {
+      return await this.request<CustomerRefreshResponse>('/customer/auth/refresh', {
         method: 'POST',
         body: JSON.stringify({ refresh_token: refreshToken }),
       });
     } catch (error) {
       console.error('Token refresh error:', error);
+      throw error;
+    }
+  }
+
+  async deleteAccount(data: { reason?: string } = {}): Promise<{ message: string; note: string }> {
+    try {
+      const accessToken = this.getAccessToken();
+      if (!accessToken) {
+        throw new Error('No access token available');
+      }
+
+      return await this.request<{ message: string; note: string }>('/customer/auth/delete-account', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(data),
+      });
+    } catch (error: any) {
+      console.error('Delete account error:', error);
+      
+      // Check if the error is due to user already being deleted
+      if (error.message.includes('User not found') || error.message.includes('already deleted')) {
+        throw new Error('Your account has already been deleted. You will be logged out.');
+      }
+      
+      // Check if the error is due to account already being deleted
+      if (error.message.includes('Account already deleted')) {
+        throw new Error('Your account has already been deleted. You will be logged out.');
+      }
+      
+      throw error;
+    }
+  }
+
+  async testDelete(): Promise<{ message: string; user_id: number; user_found: boolean; user_email: string | null }> {
+    try {
+      const accessToken = this.getAccessToken();
+      if (!accessToken) {
+        throw new Error('No access token available');
+      }
+
+      return await this.request<{ message: string; user_id: number; user_found: boolean; user_email: string | null }>('/customer/auth/test-delete', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+    } catch (error) {
+      console.error('Test delete error:', error);
+      throw error;
+    }
+  }
+
+  async exportData(): Promise<{ message: string; data: any }> {
+    try {
+      const accessToken = this.getAccessToken();
+      if (!accessToken) {
+        throw new Error('No access token available');
+      }
+
+      return await this.request<{ message: string; data: any }>('/customer/auth/export-data', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+    } catch (error) {
+      console.error('Export data error:', error);
       throw error;
     }
   }
