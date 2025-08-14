@@ -1,4 +1,5 @@
 import { SWRConfiguration } from 'swr';
+import { cleanFiltersForAPI } from './utils/filter-utils';
 
 // Reusable fetcher function
 export const fetcher = async (url: string) => {
@@ -56,11 +57,25 @@ export const createSWRKey = (endpoint: string, filters?: Record<string, any>) =>
     return endpoint;
   }
   
+  // Clean filters to remove undefined/null values
+  const cleanedFilters = cleanFiltersForAPI(filters);
+  
+  if (Object.keys(cleanedFilters).length === 0) {
+    return endpoint;
+  }
+  
   const searchParams = new URLSearchParams();
-  Object.entries(filters).forEach(([key, value]) => {
+  Object.entries(cleanedFilters).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {
       if (Array.isArray(value)) {
-        value.forEach(v => searchParams.append(key, v.toString()));
+        // Handle array parameters with proper naming for backend API
+        if (key === 'categories') {
+          value.forEach(v => searchParams.append('categories[]', v.toString()));
+        } else if (key === 'brands') {
+          value.forEach(v => searchParams.append('brands[]', v.toString()));
+        } else {
+          value.forEach(v => searchParams.append(key, v.toString()));
+        }
       } else {
         searchParams.append(key, value.toString());
       }

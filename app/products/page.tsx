@@ -12,6 +12,7 @@ import { Search, Grid3X3, List, Filter, X, Sparkles, Star, TrendingUp, SlidersHo
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
+import { filtersToSearchParams, searchParamsToFilters, getActiveFiltersCount } from '@/lib/utils/filter-utils';
 
 // Custom hook for scroll-to-top functionality
 const useScrollToTop = () => {
@@ -70,19 +71,9 @@ export default function ProductsPage() {
     return 'price-low'; // Default to price low to high
   });
   
-  const [filters, setFilters] = useState<ProductsFilters>({
-    page: Number(searchParams.get('page')) || 1,
-    limit: Number(searchParams.get('limit')) || 24, // Changed from 30 to 24 for better UX
-    categories: searchParams.getAll('categories[]'),
-    brands: searchParams.getAll('brands[]'),
-    min_price: Number(searchParams.get('min_price')) || undefined,
-    max_price: Number(searchParams.get('max_price')) || undefined,
-    is_featured: searchParams.get('is_featured') === 'true',
-    is_new: searchParams.get('is_new') === 'true',
-    is_sale: searchParams.get('is_sale') === 'true',
-    search: searchParams.get('search') || undefined,
-    sort_by: searchParams.get('sort_by') || undefined,
-    sort_order: (searchParams.get('sort_order') as 'asc' | 'desc' | undefined) || undefined,
+  // Initialize filters from URL parameters
+  const [filters, setFilters] = useState<ProductsFilters>(() => {
+    return searchParamsToFilters(searchParams);
   });
 
   // Debug logging for initial load
@@ -95,7 +86,9 @@ export default function ProductsPage() {
       brands: filters.brands,
       is_featured: filters.is_featured,
       is_new: filters.is_new,
-      is_sale: filters.is_sale
+      is_sale: filters.is_sale,
+      sort_by: filters.sort_by,
+      sort_order: filters.sort_order
     });
   }, []);
 
@@ -114,29 +107,13 @@ export default function ProductsPage() {
 
   const { products, loading, error, pages: totalPages, current_page: currentPage } = useProductsSWR(filters);
 
+  // Unified filter change handler
   const handleFiltersChange = (newFilters: Partial<ProductsFilters>) => {
     const updatedFilters = { ...filters, ...newFilters, page: 1 };
     setFilters(updatedFilters);
     
     // Update URL with new filters
-    const params = new URLSearchParams();
-    if (updatedFilters.page > 1) params.set('page', updatedFilters.page.toString());
-    if (updatedFilters.limit !== 24) params.set('limit', updatedFilters.limit.toString());
-    if (updatedFilters.categories?.length) {
-      updatedFilters.categories.forEach(category => params.append('categories[]', category));
-    }
-    if (updatedFilters.brands?.length) {
-      updatedFilters.brands.forEach(brand => params.append('brands[]', brand));
-    }
-    if (updatedFilters.min_price) params.set('min_price', updatedFilters.min_price.toString());
-    if (updatedFilters.max_price) params.set('max_price', updatedFilters.max_price.toString());
-    if (updatedFilters.is_featured) params.set('is_featured', 'true');
-    if (updatedFilters.is_new) params.set('is_new', 'true');
-    if (updatedFilters.is_sale) params.set('is_sale', 'true');
-    if (updatedFilters.search) params.set('search', updatedFilters.search);
-    if (updatedFilters.sort_by) params.set('sort_by', updatedFilters.sort_by);
-    if (updatedFilters.sort_order) params.set('sort_order', updatedFilters.sort_order);
-    
+    const params = filtersToSearchParams(updatedFilters);
     const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
     router.replace(newUrl, { scroll: false });
   };
@@ -170,66 +147,12 @@ export default function ProductsPage() {
     
     console.log('Mapped to backend parameters:', { sort_by, sort_order });
     
-    const updatedFilters = { 
-      ...filters, 
-      sort_by, 
-      sort_order, 
-      page: 1 
-    };
-    setFilters(updatedFilters);
-    
-    // Update URL with new sort parameters
-    const params = new URLSearchParams();
-    if (updatedFilters.page > 1) params.set('page', updatedFilters.page.toString());
-    if (updatedFilters.limit !== 24) params.set('limit', updatedFilters.limit.toString());
-    if (updatedFilters.categories?.length) {
-      updatedFilters.categories.forEach(category => params.append('categories[]', category));
-    }
-    if (updatedFilters.brands?.length) {
-      updatedFilters.brands.forEach(brand => params.append('brands[]', brand));
-    }
-    if (updatedFilters.min_price) params.set('min_price', updatedFilters.min_price.toString());
-    if (updatedFilters.max_price) params.set('max_price', updatedFilters.max_price.toString());
-    if (updatedFilters.is_featured) params.set('is_featured', 'true');
-    if (updatedFilters.is_new) params.set('is_new', 'true');
-    if (updatedFilters.is_sale) params.set('is_sale', 'true');
-    if (updatedFilters.search) params.set('search', updatedFilters.search);
-    if (updatedFilters.sort_by) params.set('sort_by', updatedFilters.sort_by);
-    if (updatedFilters.sort_order) params.set('sort_order', updatedFilters.sort_order);
-    
-    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
-    console.log('Updating URL with sort parameters:', newUrl);
-    router.replace(newUrl, { scroll: false });
+    handleFiltersChange({ sort_by, sort_order });
   };
 
   const handlePageChange = (page: number) => {
     console.log('Page change requested:', { page, currentPage: filters.page, totalPages });
-    
-    const updatedFilters = { ...filters, page };
-    setFilters(updatedFilters);
-    
-    // Update URL with new page
-    const params = new URLSearchParams();
-    params.set('page', page.toString());
-    if (filters.limit !== 24) params.set('limit', filters.limit.toString());
-    if (filters.categories?.length) {
-      filters.categories.forEach(category => params.append('categories[]', category));
-    }
-    if (filters.brands?.length) {
-      filters.brands.forEach(brand => params.append('brands[]', brand));
-    }
-    if (filters.min_price) params.set('min_price', filters.min_price.toString());
-    if (filters.max_price) params.set('max_price', filters.max_price.toString());
-    if (filters.is_featured) params.set('is_featured', 'true');
-    if (filters.is_new) params.set('is_new', 'true');
-    if (filters.is_sale) params.set('is_sale', 'true');
-    if (filters.search) params.set('search', filters.search);
-    if (filters.sort_by) params.set('sort_by', filters.sort_by);
-    if (filters.sort_order) params.set('sort_order', filters.sort_order);
-    
-    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
-    console.log('Updating URL to:', newUrl);
-    router.replace(newUrl, { scroll: false });
+    handleFiltersChange({ page });
   };
 
   // New pagination handler with scroll-to-products functionality
@@ -246,68 +169,15 @@ export default function ProductsPage() {
   const scrollToProducts = useScrollToProducts(mainContentRef as React.RefObject<HTMLDivElement>);
 
   const handleClearSearch = () => {
-    const updatedFilters = { ...filters, search: undefined, page: 1 };
-    setFilters(updatedFilters);
-    
-    // Update URL without search parameter
-    const params = new URLSearchParams();
-    if (updatedFilters.limit !== 24) params.set('limit', updatedFilters.limit.toString());
-    if (updatedFilters.categories?.length) {
-      updatedFilters.categories.forEach(category => params.append('categories[]', category));
-    }
-    if (updatedFilters.brands?.length) {
-      updatedFilters.brands.forEach(brand => params.append('brands[]', brand));
-    }
-    if (updatedFilters.min_price) params.set('min_price', updatedFilters.min_price.toString());
-    if (updatedFilters.max_price) params.set('max_price', updatedFilters.max_price.toString());
-    if (updatedFilters.is_featured) params.set('is_featured', 'true');
-    if (updatedFilters.is_new) params.set('is_new', 'true');
-    if (updatedFilters.is_sale) params.set('is_sale', 'true');
-    if (updatedFilters.sort_by) params.set('sort_by', updatedFilters.sort_by);
-    if (updatedFilters.sort_order) params.set('sort_order', updatedFilters.sort_order);
-    
-    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
-    router.replace(newUrl, { scroll: false });
+    handleFiltersChange({ search: undefined });
   };
 
   // Enhanced search handling with better UX
   const handleSearchChange = (newSearch: string) => {
-    const updatedFilters = { ...filters, search: newSearch || undefined, page: 1 };
-    setFilters(updatedFilters);
-    
-    // Update URL with new search
-    const params = new URLSearchParams();
-    if (updatedFilters.page > 1) params.set('page', updatedFilters.page.toString());
-    if (updatedFilters.limit !== 24) params.set('limit', updatedFilters.limit.toString());
-    if (updatedFilters.categories?.length) {
-      updatedFilters.categories.forEach(category => params.append('categories[]', category));
-    }
-    if (updatedFilters.brands?.length) {
-      updatedFilters.brands.forEach(brand => params.append('brands[]', brand));
-    }
-    if (updatedFilters.min_price) params.set('min_price', updatedFilters.min_price.toString());
-    if (updatedFilters.max_price) params.set('max_price', updatedFilters.max_price.toString());
-    if (updatedFilters.is_featured) params.set('is_featured', 'true');
-    if (updatedFilters.is_new) params.set('is_new', 'true');
-    if (updatedFilters.is_sale) params.set('is_sale', 'true');
-    if (updatedFilters.search) params.set('search', updatedFilters.search);
-    if (updatedFilters.sort_by) params.set('sort_by', updatedFilters.sort_by);
-    if (updatedFilters.sort_order) params.set('sort_order', updatedFilters.sort_order);
-    
-    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
-    router.replace(newUrl, { scroll: false });
+    handleFiltersChange({ search: newSearch || undefined });
   };
 
-  const getActiveFiltersCount = () => {
-    let count = 0;
-    if (filters.categories?.length) count += filters.categories.length;
-    if (filters.brands?.length) count += filters.brands.length;
-    if (filters.min_price || filters.max_price) count += 1;
-    if (filters.is_featured) count += 1;
-    if (filters.is_new) count += 1;
-    if (filters.is_sale) count += 1;
-    return count;
-  };
+  const activeFiltersCount = getActiveFiltersCount(filters);
 
   // Get all active filters with their details for individual removal
   const getActiveFilters = () => {
@@ -387,7 +257,6 @@ export default function ProductsPage() {
     return activeFilters;
   };
 
-  const activeFiltersCount = getActiveFiltersCount();
   const activeFilters = getActiveFilters();
 
   // Handle individual filter removal with toast feedback
