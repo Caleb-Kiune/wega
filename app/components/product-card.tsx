@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
+import { createPortal } from "react-dom"
 import Link from "next/link"
 import Image from "next/image"
 import OptimizedImage from "./optimized-image"
@@ -53,7 +54,7 @@ const QuickViewModal = ({
 
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -246,6 +247,12 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
   const [quantity, setQuantity] = useState(1)
   const [showQuantitySelector, setShowQuantitySelector] = useState(false);
   const [mobileQuantity, setMobileQuantity] = useState(1);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Ensure component is mounted before rendering portals
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Check if item is in cart
   const isInCart = cart?.items?.some(item => item.product_id === product.id) || false
@@ -773,121 +780,255 @@ export default function ProductCard({ product, viewMode = 'grid' }: ProductCardP
         </Link>
       </article>
       
-      {/* Quick View Modal */}
-      <QuickViewModal
-        product={product}
-        isOpen={showQuickView}
-        onClose={handleCloseQuickView}
-        selectedImageIndex={selectedImageIndex}
-        setSelectedImageIndex={setSelectedImageIndex}
-        isInCart={isInCart}
-        isWishlisted={isWishlisted}
-        onToggleCart={handleToggleCart}
-        onToggleWishlist={handleToggleWishlist}
-        quantity={quantity}
-        setQuantity={setQuantity}
-      />
-      {/* Quantity Selector Popover for Mobile */}
-      <AnimatePresence>
-      {showQuantitySelector && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 md:hidden"
-          role="dialog"
-          aria-modal="true"
-          tabIndex={-1}
-          onClick={() => setShowQuantitySelector(false)}
-        >
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            className="bg-white rounded-xl shadow-2xl border border-gray-100 p-6 flex flex-col items-center min-w-[220px] relative animate-fade-in focus:outline-none"
-            tabIndex={0}
-            onClick={e => e.stopPropagation()}
-            onKeyDown={e => {
-              if (e.key === 'Escape') setShowQuantitySelector(false);
-            }}
-          >
-            {/* Focus trap: invisible input at start and end */}
-            <input className="absolute opacity-0 w-0 h-0" tabIndex={0} aria-hidden="true" onFocus={() => document.getElementById('modal-close-btn')?.focus()} />
-            {/* Close button */}
-            <button id="modal-close-btn" className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 focus:ring-2 focus:ring-green-400 focus:outline-none" onClick={() => setShowQuantitySelector(false)} aria-label="Close quantity selector">
-              <X className="h-5 w-5" />
-            </button>
-            {/* Divider (top) */}
-            <div className="w-full border-t border-gray-100 mb-4" />
-            {/* Quantity selector */}
-            <div className="mb-4">
-              <QuantitySelector
-                value={mobileQuantity}
-                onChange={setMobileQuantity}
-                max={product.stock}
-                size="lg"
-                variant="outline"
-                showPresets={false}
-                showInput={true}
-                className="justify-center"
-              />
-            </div>
-            {/* Divider */}
-            <div className="w-full border-t border-gray-100 mb-4" />
-            {/* Add to Cart button */}
-            <Button
-              className="w-full bg-green-600 text-white hover:bg-green-700 font-semibold rounded-lg min-h-[44px] mb-2 focus:ring-2 focus:ring-green-400 focus:outline-none active:scale-95 transition-transform"
-              onClick={async () => {
-                await addToCart({
-                  id: product.id,
-                  name: product.name,
-                  price: product.price,
-                  image: getImageUrl(primaryImage) || "/placeholder.svg",
-                  quantity: mobileQuantity
-                });
-                setShowQuantitySelector(false);
-                setMobileQuantity(1);
-                toast.success(`${product.name} has been added to your cart.`);
-              }}
-              aria-label={`Add ${product.name} (quantity ${mobileQuantity}) to cart`}
-            >
-              Add to Cart
-            </Button>
-           {/* Add to Wishlist button */}
-           <Button
-             className={`w-full bg-white text-gray-800 hover:bg-gray-100 font-semibold rounded-lg min-h-[44px] border border-gray-200 flex items-center justify-center focus:ring-2 focus:ring-green-400 focus:outline-none active:scale-95 transition-transform ${isWishlisted ? 'border-green-500 text-green-600' : ''}`}
-             onClick={() => {
-               if (isWishlisted) {
-                 removeFromWishlist(product.id);
-                 toast.success(`${product.name} has been removed from your wishlist.`);
-               } else {
-                 addToWishlist({
-                   id: product.id,
-                   name: product.name,
-                   price: product.price,
-                   image: getImageUrl(primaryImage) || "/placeholder.svg",
-                   slug: product.slug,
-                   description: product.description,
-                   category: product.category,
-                   brand: product.brand,
-                   stock: product.stock,
-                   originalPrice: product.original_price,
-                   images: product.images,
-                   specifications: product.specifications,
-                   features: product.features
-                 });
-                 toast.success(`${product.name} has been added to your wishlist.`);
-               }
-             }}
-             aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
-           >
-             <Heart className={`h-5 w-5 mr-2 ${isWishlisted ? 'text-green-500 fill-current' : 'text-gray-400'}`} />
-             {isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
-           </Button>
-           {/* Focus trap: invisible input at end */}
-           <input className="absolute opacity-0 w-0 h-0" tabIndex={0} aria-hidden="true" onFocus={() => document.getElementById('modal-close-btn')?.focus()} />
-          </motion.div>
-        </div>
+      {/* Quick View Modal - Rendered via Portal */}
+      {isMounted && createPortal(
+        <QuickViewModal
+          product={product}
+          isOpen={showQuickView}
+          onClose={handleCloseQuickView}
+          selectedImageIndex={selectedImageIndex}
+          setSelectedImageIndex={setSelectedImageIndex}
+          isInCart={isInCart}
+          isWishlisted={isWishlisted}
+          onToggleCart={handleToggleCart}
+          onToggleWishlist={handleToggleWishlist}
+          quantity={quantity}
+          setQuantity={setQuantity}
+        />,
+        document.body
       )}
-      </AnimatePresence>
+      {/* Quantity Selector Popover for Mobile - Portal Version with Fallback */}
+      {isMounted && typeof window !== 'undefined' ? (
+        createPortal(
+          <AnimatePresence>
+            {showQuantitySelector && (
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 md:hidden"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 9999
+            }}
+            role="dialog"
+            aria-modal="true"
+            tabIndex={-1}
+            onClick={() => setShowQuantitySelector(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="bg-white rounded-xl shadow-2xl border border-gray-100 p-6 flex flex-col items-center min-w-[220px] relative animate-fade-in focus:outline-none"
+              style={{
+                position: 'relative',
+                zIndex: 10000
+              }}
+              tabIndex={0}
+              onClick={e => e.stopPropagation()}
+              onKeyDown={e => {
+                if (e.key === 'Escape') setShowQuantitySelector(false);
+              }}
+            >
+              {/* Focus trap: invisible input at start and end */}
+              <input className="absolute opacity-0 w-0 h-0" tabIndex={0} aria-hidden="true" onFocus={() => document.getElementById('modal-close-btn')?.focus()} />
+              {/* Close button */}
+              <button id="modal-close-btn" className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 focus:ring-2 focus:ring-green-400 focus:outline-none" onClick={() => setShowQuantitySelector(false)} aria-label="Close quantity selector">
+                <X className="h-5 w-5" />
+              </button>
+              {/* Divider (top) */}
+              <div className="w-full border-t border-gray-100 mb-4" />
+              {/* Quantity selector */}
+              <div className="mb-4">
+                <QuantitySelector
+                  value={mobileQuantity}
+                  onChange={setMobileQuantity}
+                  max={product.stock}
+                  size="lg"
+                  variant="outline"
+                  showPresets={false}
+                  showInput={true}
+                  className="justify-center"
+                />
+              </div>
+              {/* Divider */}
+              <div className="w-full border-t border-gray-100 mb-4" />
+              {/* Add to Cart button */}
+              <Button
+                className="w-full bg-green-600 text-white hover:bg-green-700 font-semibold rounded-lg min-h-[44px] mb-2 focus:ring-2 focus:ring-green-400 focus:outline-none active:scale-95 transition-transform"
+                onClick={async () => {
+                  await addToCart({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    image: getImageUrl(primaryImage) || "/placeholder.svg",
+                    quantity: mobileQuantity
+                  });
+                  setShowQuantitySelector(false);
+                  setMobileQuantity(1);
+                  toast.success(`${product.name} has been added to your cart.`);
+                }}
+                aria-label={`Add ${product.name} (quantity ${mobileQuantity}) to cart`}
+              >
+                Add to Cart
+              </Button>
+             {/* Add to Wishlist button */}
+             <Button
+               className={`w-full bg-white text-gray-800 hover:bg-gray-100 font-semibold rounded-lg min-h-[44px] border border-gray-200 flex items-center justify-center focus:ring-2 focus:ring-green-400 focus:outline-none active:scale-95 transition-transform ${isWishlisted ? 'border-green-500 text-green-600' : ''}`}
+               onClick={() => {
+                 if (isWishlisted) {
+                   removeFromWishlist(product.id);
+                   toast.success(`${product.name} has been removed from your wishlist.`);
+                 } else {
+                   addToWishlist({
+                     id: product.id,
+                     name: product.name,
+                     price: product.price,
+                     image: getImageUrl(primaryImage) || "/placeholder.svg",
+                     slug: product.slug,
+                     description: product.description,
+                     category: product.category,
+                     brand: product.brand,
+                     stock: product.stock,
+                     originalPrice: product.original_price,
+                     images: product.images,
+                     specifications: product.specifications,
+                     features: product.features
+                   });
+                   toast.success(`${product.name} has been added to your wishlist.`);
+                 }
+               }}
+               aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+             >
+               <Heart className={`h-5 w-5 mr-2 ${isWishlisted ? 'text-green-500 fill-current' : 'text-gray-400'}`} />
+               {isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+             </Button>
+                           {/* Focus trap: invisible input at end */}
+              <input className="absolute opacity-0 w-0 h-0" tabIndex={0} aria-hidden="true" onFocus={() => document.getElementById('modal-close-btn')?.focus()} />
+             </motion.div>
+           </div>
+         )}
+           </AnimatePresence>,
+           document.body
+         )
+       ) : (
+         // Fallback for SSR or when portal is not available
+         <AnimatePresence>
+           {showQuantitySelector && (
+             <div
+               className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 md:hidden"
+               style={{
+                 position: 'fixed',
+                 top: 0,
+                 left: 0,
+                 right: 0,
+                 bottom: 0,
+                 zIndex: 9999
+               }}
+               role="dialog"
+               aria-modal="true"
+               tabIndex={-1}
+               onClick={() => setShowQuantitySelector(false)}
+             >
+               <motion.div
+                 initial={{ scale: 0.95, opacity: 0 }}
+                 animate={{ scale: 1, opacity: 1 }}
+                 exit={{ scale: 0.95, opacity: 0 }}
+                 transition={{ duration: 0.18, ease: "easeOut" }}
+                 className="bg-white rounded-xl shadow-2xl border border-gray-100 p-6 flex flex-col items-center min-w-[220px] relative animate-fade-in focus:outline-none"
+                 style={{
+                   position: 'relative',
+                   zIndex: 10000
+                 }}
+                 tabIndex={0}
+                 onClick={e => e.stopPropagation()}
+                 onKeyDown={e => {
+                   if (e.key === 'Escape') setShowQuantitySelector(false);
+                 }}
+               >
+                 {/* Focus trap: invisible input at start and end */}
+                 <input className="absolute opacity-0 w-0 h-0" tabIndex={0} aria-hidden="true" onFocus={() => document.getElementById('modal-close-btn')?.focus()} />
+                 {/* Close button */}
+                 <button id="modal-close-btn" className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 focus:ring-2 focus:ring-green-400 focus:outline-none" onClick={() => setShowQuantitySelector(false)} aria-label="Close quantity selector">
+                   <X className="h-5 w-5" />
+                 </button>
+                 {/* Divider (top) */}
+                 <div className="w-full border-t border-gray-100 mb-4" />
+                 {/* Quantity selector */}
+                 <div className="mb-4">
+                   <QuantitySelector
+                     value={mobileQuantity}
+                     onChange={setMobileQuantity}
+                     max={product.stock}
+                     size="lg"
+                     variant="outline"
+                     showPresets={false}
+                     showInput={true}
+                     className="justify-center"
+                   />
+                 </div>
+                 {/* Divider */}
+                 <div className="w-full border-t border-gray-100 mb-4" />
+                 {/* Add to Cart button */}
+                 <Button
+                   className="w-full bg-green-600 text-white hover:bg-green-700 font-semibold rounded-lg min-h-[44px] mb-2 focus:ring-2 focus:ring-green-400 focus:outline-none active:scale-95 transition-transform"
+                   onClick={async () => {
+                     await addToCart({
+                       id: product.id,
+                       name: product.name,
+                       price: product.price,
+                       image: getImageUrl(primaryImage) || "/placeholder.svg",
+                       quantity: mobileQuantity
+                     });
+                     setShowQuantitySelector(false);
+                     setMobileQuantity(1);
+                     toast.success(`${product.name} has been added to your cart.`);
+                   }}
+                   aria-label={`Add ${product.name} (quantity ${mobileQuantity}) to cart`}
+                 >
+                   Add to Cart
+                 </Button>
+                {/* Add to Wishlist button */}
+                <Button
+                  className={`w-full bg-white text-gray-800 hover:bg-gray-100 font-semibold rounded-lg min-h-[44px] border border-gray-200 flex items-center justify-center focus:ring-2 focus:ring-green-400 focus:outline-none active:scale-95 transition-transform ${isWishlisted ? 'border-green-500 text-green-600' : ''}`}
+                  onClick={() => {
+                    if (isWishlisted) {
+                      removeFromWishlist(product.id);
+                      toast.success(`${product.name} has been removed from your wishlist.`);
+                    } else {
+                      addToWishlist({
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        image: getImageUrl(primaryImage) || "/placeholder.svg",
+                        slug: product.slug,
+                        description: product.description,
+                        category: product.category,
+                        brand: product.brand,
+                        stock: product.stock,
+                        originalPrice: product.original_price,
+                        images: product.images,
+                        specifications: product.specifications,
+                        features: product.features
+                      });
+                      toast.success(`${product.name} has been added to your wishlist.`);
+                    }
+                  }}
+                  aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+                >
+                  <Heart className={`h-5 w-5 mr-2 ${isWishlisted ? 'text-green-500 fill-current' : 'text-gray-400'}`} />
+                  {isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                </Button>
+                {/* Focus trap: invisible input at end */}
+                <input className="absolute opacity-0 w-0 h-0" tabIndex={0} aria-hidden="true" onFocus={() => document.getElementById('modal-close-btn')?.focus()} />
+               </motion.div>
+             </div>
+           )}
+         </AnimatePresence>
+       )}
     </>
   )
 } 
