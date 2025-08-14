@@ -447,12 +447,7 @@ export default function SearchModal({ children, className }: SearchModalProps) {
                                 <span className="font-semibold text-green-600 text-sm">
                                   KES {product.price?.toLocaleString()}
                                 </span>
-                                {product.rating && (
-                                  <div className="flex items-center gap-1">
-                                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-xs text-gray-500">{product.rating}</span>
-                                  </div>
-                                )}
+                                {/* Ratings hidden - removed for cleaner search results */}
                               </div>
                               {product.category && (
                                 <div className="text-xs text-gray-500 mt-1">

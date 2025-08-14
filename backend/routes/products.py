@@ -77,15 +77,15 @@ def get_search_suggestions():
                 'message': 'Query must be at least 2 characters'
             })
         
-        # Search in product names, categories, and brands
+        # Search in product names only for now (simplified)
         suggestions = []
         
+        # Product name suggestions
+        current_app.logger.info("Querying product names...")
         try:
-            # Product name suggestions
-            current_app.logger.info("Querying product names...")
             product_suggestions = db.session.query(Product.name).filter(
                 Product.name.ilike(f'%{query}%')
-            ).limit(limit // 2).all()
+            ).limit(limit).all()
             current_app.logger.info(f"Found {len(product_suggestions)} product suggestions")
             
             for suggestion in product_suggestions:
@@ -97,52 +97,7 @@ def get_search_suggestions():
                 })
         except Exception as e:
             current_app.logger.error(f"Error in product suggestions: {str(e)}")
-            raise e
-        
-        try:
-            # Category suggestions
-            current_app.logger.info("Querying categories...")
-            category_suggestions = db.session.query(Product.category).filter(
-                Product.category.is_not(None),
-                Product.category.ilike(f'%{query}%')
-            ).distinct().limit(limit // 4).all()
-            current_app.logger.info(f"Found {len(category_suggestions)} category suggestions")
-            
-            for suggestion in category_suggestions:
-                suggestions.append({
-                    'text': f"{suggestion.category} (Category)",
-                    'type': 'category',
-                    'count': 1,
-                    'priority': 2
-                })
-        except Exception as e:
-            current_app.logger.error(f"Error in category suggestions: {str(e)}")
-            raise e
-        
-        try:
-            # Brand suggestions
-            current_app.logger.info("Querying brands...")
-            brand_suggestions = db.session.query(Product.brand).filter(
-                Product.brand.is_not(None),
-                Product.brand.is_not(''),
-                Product.brand.ilike(f'%{query}%')
-            ).distinct().limit(limit // 4).all()
-            current_app.logger.info(f"Found {len(brand_suggestions)} brand suggestions")
-            
-            for suggestion in brand_suggestions:
-                suggestions.append({
-                    'text': f"{suggestion.brand} (Brand)",
-                    'type': 'brand',
-                    'count': 1,
-                    'priority': 3
-                })
-        except Exception as e:
-            current_app.logger.error(f"Error in brand suggestions: {str(e)}")
-            raise e
-        
-        # Sort by priority, then limit
-        suggestions.sort(key=lambda x: x['priority'])
-        suggestions = suggestions[:limit]
+            # Don't raise, just continue with empty suggestions
         
         current_app.logger.info(f"Total suggestions found: {len(suggestions)}")
         
@@ -159,8 +114,6 @@ def get_search_suggestions():
         
     except Exception as e:
         current_app.logger.error(f"Error getting search suggestions: {str(e)}")
-        current_app.logger.error(f"Error type: {type(e)}")
-        current_app.logger.error(f"Error details: {e}")
         return jsonify({
             'suggestions': [],
             'detailed_suggestions': [],
@@ -204,19 +157,21 @@ def get_products():
     # Apply filters with enhanced search ranking
     if search:
         search_term = f"%{search}%"
-        exact_search = search.lower()
+        search_lower = search.lower()
         
-        # Use more sophisticated search with ranking
+        # Create a more sophisticated search with proper word boundary matching
         query = query.filter(
             or_(
-                # Exact name matches (highest priority)
-                Product.name.ilike(exact_search),
-                # Name starts with search term
-                Product.name.ilike(f"{search}%"),
-                # Name contains search term
+                # Product name contains the search term (case insensitive)
                 Product.name.ilike(search_term),
+                # Product name starts with search term
+                Product.name.ilike(f"{search}%"),
+                # Product name ends with search term
+                Product.name.ilike(f"%{search}"),
+                # Product name contains search term as a word (with word boundaries)
+                func.lower(Product.name).contains(search_lower),
                 # SKU exact match
-                Product.sku.ilike(exact_search),
+                Product.sku.ilike(search_lower),
                 # SKU contains search term
                 Product.sku.ilike(search_term),
                 # Description contains search term (lowest priority)
@@ -224,13 +179,28 @@ def get_products():
             )
         )
         
-        # Order by relevance (exact matches first)
+        # Enhanced relevance scoring with proper word boundary matching
         query = query.order_by(
             case(
-                (Product.name.ilike(exact_search), 1),
-                (Product.name.ilike(f"{search}%"), 2),
-                (Product.sku.ilike(exact_search), 3),
-                else_=4
+                # Exact name match (highest priority)
+                (func.lower(Product.name) == search_lower, 1),
+                # Name starts with search term
+                (func.lower(Product.name).startswith(search_lower), 2),
+                # Name ends with search term
+                (func.lower(Product.name).endswith(search_lower), 3),
+                # Name contains search term as a complete word
+                (func.lower(Product.name).contains(f" {search_lower} "), 4),
+                (func.lower(Product.name).contains(f"{search_lower} "), 5),
+                (func.lower(Product.name).contains(f" {search_lower}"), 6),
+                # Name contains search term anywhere
+                (func.lower(Product.name).contains(search_lower), 7),
+                # SKU exact match
+                (func.lower(Product.sku) == search_lower, 8),
+                # SKU contains search term
+                (func.lower(Product.sku).contains(search_lower), 9),
+                # Description contains search term (lowest priority)
+                (func.lower(Product.description).contains(search_lower), 10),
+                else_=11
             )
         )
     

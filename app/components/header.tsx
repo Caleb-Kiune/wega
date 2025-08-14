@@ -703,17 +703,7 @@ export default function Header() {
                                       </div>
                                     )}
                                   </div>
-                                  {product.rating && product.rating > 0 && (
-                                    <div className="flex items-center text-yellow-400">
-                                      <Star className="h-4 w-4 fill-current" />
-                                      <span className="text-xs text-gray-500 ml-1">
-                                        {product.rating.toFixed(1)}
-                                        {product.review_count && (
-                                          <span className="text-gray-400"> ({product.review_count})</span>
-                                        )}
-                                      </span>
-                                    </div>
-                                  )}
+                                  {/* Ratings hidden - removed for cleaner search results */}
                                 </Link>
                               </motion.div>
                             ))}
